@@ -25,61 +25,61 @@ public class SQLTranslator {
 	
 	String sparql ;
 	
-	DirectedGraph<NewCS> queryGraph ;
+	DirectedGraph<CharacteristicSet> queryGraph ;
 		
-	Map<NewCS, List<NewCS>> csJoinMap ;
+	Map<CharacteristicSet, List<CharacteristicSet>> csJoinMap ;
 	
-	Set<NewCS> csSet = new HashSet<NewCS>();
+	Set<CharacteristicSet> csSet = new HashSet<CharacteristicSet>();
 	
-	Map<NewCS, List<Triple>> csRestrictions = new HashMap<NewCS, List<Triple>>();
+	Map<CharacteristicSet, List<Triple>> csRestrictions = new HashMap<CharacteristicSet, List<Triple>>();
 	
 	Map<String, Integer> objectMap ;
 	
-	Map<NewCS, Integer> subjectMap = new HashMap<NewCS, Integer>() ;
+	Map<CharacteristicSet, Integer> subjectMap = new HashMap<CharacteristicSet, Integer>() ;
 	
-	public Map<NewCS, Integer> getSubjectMap() {
+	public Map<CharacteristicSet, Integer> getSubjectMap() {
 		return subjectMap;
 	}
 
-	public void setSubjectMap(Map<NewCS, Integer> subjectMap) {
+	public void setSubjectMap(Map<CharacteristicSet, Integer> subjectMap) {
 		this.subjectMap = subjectMap;
 	}
 
-	Map<NewCS, List<Triple>> csVars = new HashMap<NewCS, List<Triple>>();
+	Map<CharacteristicSet, List<Triple>> csVars = new HashMap<CharacteristicSet, List<Triple>>();
 	
-	Map<List<NewCS>, List<Triple>> csJoinProperties = new HashMap<List<NewCS>, List<Triple>>(); 
+	Map<List<CharacteristicSet>, List<Triple>> csJoinProperties = new HashMap<List<CharacteristicSet>, List<Triple>>(); 
 	
 
 
-	public DirectedGraph<NewCS> getQueryGraph() {
+	public DirectedGraph<CharacteristicSet> getQueryGraph() {
 		return queryGraph;
 	}
 
-	public void setQueryGraph(DirectedGraph<NewCS> queryGraph) {
+	public void setQueryGraph(DirectedGraph<CharacteristicSet> queryGraph) {
 		this.queryGraph = queryGraph;
 	}
 
-	public Map<NewCS, List<NewCS>> getCsJoinMap() {
+	public Map<CharacteristicSet, List<CharacteristicSet>> getCsJoinMap() {
 		return csJoinMap;
 	}
 
-	public void setCsJoinMap(Map<NewCS, List<NewCS>> csJoinMap) {
+	public void setCsJoinMap(Map<CharacteristicSet, List<CharacteristicSet>> csJoinMap) {
 		this.csJoinMap = csJoinMap;
 	}
 
-	public Set<NewCS> getCsSet() {
+	public Set<CharacteristicSet> getCsSet() {
 		return csSet;
 	}
 
-	public void setCsSet(Set<NewCS> csSet) {
+	public void setCsSet(Set<CharacteristicSet> csSet) {
 		this.csSet = csSet;
 	}
 
-	public Map<NewCS, List<Triple>> getCsRestrictions() {
+	public Map<CharacteristicSet, List<Triple>> getCsRestrictions() {
 		return csRestrictions;
 	}
 
-	public void setCsRestrictions(Map<NewCS, List<Triple>> csRestrictions) {
+	public void setCsRestrictions(Map<CharacteristicSet, List<Triple>> csRestrictions) {
 		this.csRestrictions = csRestrictions;
 	}
 
@@ -91,19 +91,19 @@ public class SQLTranslator {
 		this.objectMap = objectMap;
 	}
 
-	public Map<NewCS, List<Triple>> getCsVars() {
+	public Map<CharacteristicSet, List<Triple>> getCsVars() {
 		return csVars;
 	}
 
-	public void setCsVars(Map<NewCS, List<Triple>> csVars) {
+	public void setCsVars(Map<CharacteristicSet, List<Triple>> csVars) {
 		this.csVars = csVars;
 	}
 
-	public Map<List<NewCS>, List<Triple>> getCsJoinProperties() {
+	public Map<List<CharacteristicSet>, List<Triple>> getCsJoinProperties() {
 		return csJoinProperties;
 	}
 
-	public void setCsJoinProperties(Map<List<NewCS>, List<Triple>> csJoinProperties) {
+	public void setCsJoinProperties(Map<List<CharacteristicSet>, List<Triple>> csJoinProperties) {
 		this.csJoinProperties = csJoinProperties;
 	}
 
@@ -158,7 +158,7 @@ public class SQLTranslator {
 		
 		Map<Node, List<Triple>> subjectRestrictions = new HashMap<Node, List<Triple>>();
 		
-		Map<NewCS, List<NewCS>> csJoinMap = new HashMap<NewCS, List<NewCS>>();
+		Map<CharacteristicSet, List<CharacteristicSet>> csJoinMap = new HashMap<CharacteristicSet, List<CharacteristicSet>>();
 		
 		Map<Node, List<Integer>> subjectCSMap = new HashMap<Node, List<Integer>>();
 		
@@ -200,7 +200,7 @@ public class SQLTranslator {
 					
 					
 					if(varNames.contains(nextTriple.getObject().getName())){
-						NewCS cs = new NewCS(propertiesAsList);
+						CharacteristicSet cs = new CharacteristicSet(propertiesAsList);
 						//System.out.println("var is contained! " + nextTriple.getObject().getName());
 						List<Triple> vars = csVars.getOrDefault(cs, new ArrayList<Triple>());
 						
@@ -222,10 +222,10 @@ public class SQLTranslator {
 			//System.out.println(subjectCSMap.toString()) ; 
 			
 			
-			csSet.add(new NewCS(propertiesAsList));
+			csSet.add(new CharacteristicSet(propertiesAsList));
 						
 			if(subjectRestrictions.containsKey(nextSubject))
-				csRestrictions.put(new NewCS(propertiesAsList), subjectRestrictions.get(nextSubject));
+				csRestrictions.put(new CharacteristicSet(propertiesAsList), subjectRestrictions.get(nextSubject));
 			
 			//System.out.println("Subject: " + nextSubject.toString());
 			
@@ -238,11 +238,11 @@ public class SQLTranslator {
 			for(Triple nextTriple : subjectTripleMap.get(nextSubject)){				
 				if(nextTriple.getObject().isVariable() && subjectTripleMap.containsKey(nextTriple.getObject())){
 					
-					List<NewCS> joinLists = new ArrayList<NewCS>();
+					List<CharacteristicSet> joinLists = new ArrayList<CharacteristicSet>();
 					//System.out.println("left: " + propertiesAsList.toString());
 					//System.out.println("right: " + subjectCSMap.get(nextTriple.getObject()).toString());
-					joinLists.add(new NewCS(subjectCSMap.get(nextSubject)));
-					joinLists.add(new NewCS(subjectCSMap.get(nextTriple.getObject())));
+					joinLists.add(new CharacteristicSet(subjectCSMap.get(nextSubject)));
+					joinLists.add(new CharacteristicSet(subjectCSMap.get(nextTriple.getObject())));
 					List<Triple> joinTriples = csJoinProperties.getOrDefault(joinLists, new ArrayList<Triple>());
 					
 					joinTriples.add(nextTriple);
@@ -261,31 +261,31 @@ public class SQLTranslator {
 		
 		for(Node nextSubject : varJoins.keySet()){
 						
-			List<NewCS> joinedCS = new ArrayList<NewCS>();
+			List<CharacteristicSet> joinedCS = new ArrayList<CharacteristicSet>();
 				
 			for(Node nextObject : varJoins.get(nextSubject)){
-				joinedCS.add(new NewCS(subjectCSMap.get(nextObject)));
+				joinedCS.add(new CharacteristicSet(subjectCSMap.get(nextObject)));
 			}			
 			
-			csJoinMap.put(new NewCS(subjectCSMap.get(nextSubject)), joinedCS);
+			csJoinMap.put(new CharacteristicSet(subjectCSMap.get(nextSubject)), joinedCS);
 			
 		}
 		
 		for(Node nextSubject : subjectCSMap.keySet()){
 			
-			if(csJoinMap.containsKey(new NewCS(subjectCSMap.get(nextSubject))))
+			if(csJoinMap.containsKey(new CharacteristicSet(subjectCSMap.get(nextSubject))))
 				continue;
-			csJoinMap.put(new NewCS(subjectCSMap.get(nextSubject)), null);
+			csJoinMap.put(new CharacteristicSet(subjectCSMap.get(nextSubject)), null);
 			
 		}
-		DirectedGraph<NewCS> queryGraph = new DirectedGraph<NewCS>();
+		DirectedGraph<CharacteristicSet> queryGraph = new DirectedGraph<CharacteristicSet>();
 		
-		for(NewCS nextSubjectCS : csJoinMap.keySet()){
+		for(CharacteristicSet nextSubjectCS : csJoinMap.keySet()){
 		
 			queryGraph.addNode(nextSubjectCS);
 			
 			if(csJoinMap.get(nextSubjectCS) != null)
-			for(NewCS nextJoin : csJoinMap.get(nextSubjectCS)){
+			for(CharacteristicSet nextJoin : csJoinMap.get(nextSubjectCS)){
 				
 				queryGraph.addNode(nextJoin);
 				
@@ -353,7 +353,7 @@ public class SQLTranslator {
 				
 				while(rsProps.next()){
 					
-					subjectMap.put(new NewCS(subjectCSMap.get(nextSubject)), rsProps.getInt(1));
+					subjectMap.put(new CharacteristicSet(subjectCSMap.get(nextSubject)), rsProps.getInt(1));
 				}
 				rsProps.close();
 				st.close();

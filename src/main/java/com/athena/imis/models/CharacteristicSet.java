@@ -8,7 +8,12 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class NewCS {
+/***
+ * 
+ * A characteristic set is the list of properties that are common for a set of subject nodes  
+ *
+ */
+public class CharacteristicSet {
 	
 	List<Integer> asList ;
 	
@@ -30,12 +35,12 @@ public class NewCS {
 		this.matches = matches;
 	}
 	
-	public NewCS(List<Integer> asList){
+	public CharacteristicSet(List<Integer> asList){
 		this.asList = asList;
 		Collections.sort(this.asList);
 	}
 	
-	public NewCS(Integer[] asArray){
+	public CharacteristicSet(Integer[] asArray){
 		
 		List<Integer> intList = new ArrayList<Integer>();
 		for (int index = 0; index < asArray.length; index++)
@@ -58,12 +63,12 @@ public class NewCS {
 	
 	@Override
     public boolean equals(Object obj) {
-       if (!(obj instanceof NewCS))
+       if (!(obj instanceof CharacteristicSet))
             return false;
         if (obj == this)
             return true;
 
-        NewCS rhs = (NewCS) obj;
+        CharacteristicSet rhs = (CharacteristicSet) obj;
         return new EqualsBuilder().
             // if deriving: appendSuper(super.equals(obj)).
             append(asList, rhs.asList).            

@@ -1,0 +1,12 @@
+/target/
+.settings/org.eclipse.jdt.core.prefs
+target/classes/com/athena/imis/runnables/RelationalLoader.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$1.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$2.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$3.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$4.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$5.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$6.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray$7.class
+target/classes/com/athena/imis/runnables/SmartRelationalLoaderArray.class
+*.class

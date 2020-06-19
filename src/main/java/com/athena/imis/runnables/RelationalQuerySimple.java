@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import org.apache.jena.graph.Triple;
 
 import com.athena.imis.models.DirectedGraph;
-import com.athena.imis.models.NewCS;
+import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.SQLTranslator;
 
 public class RelationalQuerySimple {
@@ -73,14 +73,14 @@ public class RelationalQuerySimple {
 			
 			
 			
-			Map<NewCS, Set<Integer>> multiValuedCSProps = new HashMap<NewCS, Set<Integer>>();
-			Map<Integer, NewCS> realCSIds = new HashMap<Integer, NewCS>();
+			Map<CharacteristicSet, Set<Integer>> multiValuedCSProps = new HashMap<CharacteristicSet, Set<Integer>>();
+			Map<Integer, CharacteristicSet> realCSIds = new HashMap<Integer, CharacteristicSet>();
 			String multiValuedQuery = " SELECT cs, p, properties FROM multi_valued INNER JOIN cs_schema ON cs=id ;";
 			ResultSet rsMulti = st.executeQuery(multiValuedQuery);
 			while(rsMulti.next()){
 				Array a = rsMulti.getArray(3);
 				Integer[] arr = (Integer[])a.getArray();
-				NewCS arrCS = new NewCS(arr);
+				CharacteristicSet arrCS = new CharacteristicSet(arr);
 				Set<Integer> thisCS = multiValuedCSProps.getOrDefault(arrCS, new HashSet<Integer>());
 				
 				thisCS.add(rsMulti.getInt(2));
@@ -109,21 +109,21 @@ public class RelationalQuerySimple {
 				
 				sqlTranslator.parseSPARQL();
 				
-				Map<NewCS, List<NewCS>> csJoinMap = sqlTranslator.getCsJoinMap();
+				Map<CharacteristicSet, List<CharacteristicSet>> csJoinMap = sqlTranslator.getCsJoinMap();
 				
-				Set<NewCS> csSet = sqlTranslator.getCsSet();
+				Set<CharacteristicSet> csSet = sqlTranslator.getCsSet();
 									
-				Map<NewCS, Set<String>> csMatches = new HashMap<NewCS, Set<String>>();
+				Map<CharacteristicSet, Set<String>> csMatches = new HashMap<CharacteristicSet, Set<String>>();
 				
-				Map<NewCS, Set<String>> csQueryMatches = new HashMap<NewCS, Set<String>>();
+				Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
 				
-				Set<NewCS> undangled = new HashSet<NewCS>();
+				Set<CharacteristicSet> undangled = new HashSet<CharacteristicSet>();
 				//get ecs from db for each pair of SO joins
-				for(NewCS nextCSS : csJoinMap.keySet()){
+				for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 					
 					if(csJoinMap.get(nextCSS) == null) 
 						continue;
-					for(NewCS nextCSO : csJoinMap.get(nextCSS)){
+					for(CharacteristicSet nextCSO : csJoinMap.get(nextCSS)){
 						
 						undangled.add(nextCSO);
 						
@@ -146,7 +146,7 @@ public class RelationalQuerySimple {
 						}
 						rsS.close();
 						st.close();						
-						for(NewCS nextCS : csQueryMatches.keySet()){
+						for(CharacteristicSet nextCS : csQueryMatches.keySet()){
 							
 							if(!csMatches.containsKey(nextCS)){
 								
@@ -166,7 +166,7 @@ public class RelationalQuerySimple {
 					}				
 					
 				}			
-				for(NewCS nextCSS : csSet){
+				for(CharacteristicSet nextCSS : csSet){
 					
 					if(csJoinMap.get(nextCSS) != null || undangled.contains(nextCSS))
 						continue;
@@ -186,7 +186,7 @@ public class RelationalQuerySimple {
 					st.close();
 				}
 								
-				for(NewCS nextCS : csMatches.keySet()){
+				for(CharacteristicSet nextCS : csMatches.keySet()){
 					nextCS.setMatches(csMatches.get(nextCS));					
 				}
 				
@@ -198,23 +198,23 @@ public class RelationalQuerySimple {
 				
 				List<String> resList = new ArrayList<String>();
 				
-				Map<NewCS, List<Triple>> csRestrictions = sqlTranslator.getCsRestrictions();
+				Map<CharacteristicSet, List<Triple>> csRestrictions = sqlTranslator.getCsRestrictions();
 				
 				//generate aliases for CSs
-				Map<NewCS, String> csAliases = new HashMap<NewCS, String>();
+				Map<CharacteristicSet, String> csAliases = new HashMap<CharacteristicSet, String>();
 				
-				int csAliasIdx = 0; for(NewCS nextCS : csMatches.keySet()){csAliases.put(nextCS, "c"+(csAliasIdx++));}
+				int csAliasIdx = 0; for(CharacteristicSet nextCS : csMatches.keySet()){csAliases.put(nextCS, "c"+(csAliasIdx++));}
 				
 				Map<String, String> csIdAliases = new HashMap<String, String>();
 				
 				csAliasIdx = 0; 
-				for(NewCS nextCS : csMatches.keySet()){
+				for(CharacteristicSet nextCS : csMatches.keySet()){
 					for(String nextCSId : nextCS.getMatches())
 						csIdAliases.put(nextCSId, "c"+(csAliasIdx));
 					csAliasIdx++;
 				}
 				System.out.println("Prefetching matches...");
-				for(NewCS nextCS : csMatches.keySet()){
+				for(CharacteristicSet nextCS : csMatches.keySet()){
 					
 					Set<Integer> isCovered = new HashSet<Integer>();
 					if(csRestrictions.containsKey(nextCS)){
@@ -266,23 +266,23 @@ public class RelationalQuerySimple {
 				
 				//find permutations of cs
 				List<List<String>> csAsList = new ArrayList<List<String>>();
-				List<NewCS> csMatchesOrdered = new ArrayList<NewCS>(csMatches.keySet());
+				List<CharacteristicSet> csMatchesOrdered = new ArrayList<CharacteristicSet>(csMatches.keySet());
 				
-				Map<NewCS, Integer> csListIndexMap = new HashMap<NewCS, Integer>();
+				Map<CharacteristicSet, Integer> csListIndexMap = new HashMap<CharacteristicSet, Integer>();
 				
 				int csIndexMap = 0;
-				for(NewCS nextCS : csMatchesOrdered){
+				for(CharacteristicSet nextCS : csMatchesOrdered){
 					csAsList.add(new ArrayList<String>(nextCS.getMatches()));
 					csListIndexMap.put(nextCS, csIndexMap++);
 				}
 				//System.out.println("CS list index map: " + csListIndexMap.toString());
 				List<List<String>> perms = cartesianProduct(csAsList);
 				
-				Map<NewCS, List<Triple>> vars = sqlTranslator.getCsVars();
+				Map<CharacteristicSet, List<Triple>> vars = sqlTranslator.getCsVars();
 				//System.out.println("vars " + vars.toString()) ;
 				List<String> csProjectionsOrdered = new ArrayList<String>();
 				//System.out.println("CS MATCHES ORDERED " + csMatchesOrdered.toString());
-				for(NewCS nextCS : csMatchesOrdered){
+				for(CharacteristicSet nextCS : csMatchesOrdered){
 				
 					//System.out.println("NEXT CS: " + nextCS.toString());
 					//System.out.println("CS PROJECTIONS : " + csProjectionsOrdered.toString());
@@ -312,7 +312,7 @@ public class RelationalQuerySimple {
 				//are there any joins? 
 				String noJoins = ""; boolean joinsExist = false;
 				
-				for(NewCS nextCSS : csJoinMap.keySet()){
+				for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 					if(csJoinMap.get(nextCSS) != null){
 						joinsExist = true;
 						break;
@@ -324,7 +324,7 @@ public class RelationalQuerySimple {
 				
 				
 				//how do we build a query graph representation?
-				DirectedGraph<NewCS> queryGraph = sqlTranslator.getQueryGraph();				
+				DirectedGraph<CharacteristicSet> queryGraph = sqlTranslator.getQueryGraph();				
 								
 				if(!joinsExist){
 					//one query for each permutation
@@ -356,7 +356,7 @@ public class RelationalQuerySimple {
 						//int idx = 0;
 						//System.out.println("nextPerm: " + nextPerm.toString()) ;						
 						for(String nextIntString : nextPerm) {
-							NewCS nextCSToTransform = csMatchesOrdered.get(idx++);
+							CharacteristicSet nextCSToTransform = csMatchesOrdered.get(idx++);
 							templateQ = templateQ.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
 							
 							//regexes for multivalued properties
@@ -476,26 +476,26 @@ public class RelationalQuerySimple {
 				}
 				else{
 					
-					Set<NewCS> graphRoots = queryGraph.findRoots() ;
+					Set<CharacteristicSet> graphRoots = queryGraph.findRoots() ;
 					
 					if(graphRoots.isEmpty()) // no roots, must be a cyclic query -- let's iterate through every node!
 						graphRoots = queryGraph.getmGraph().keySet();
 					
-					Stack<NewCS> stack = new Stack<NewCS>();								
+					Stack<CharacteristicSet> stack = new Stack<CharacteristicSet>();								
 					
-					Map<NewCS, LinkedHashSet<NewCS>> joinQueues = new HashMap<NewCS, LinkedHashSet<NewCS>>();
+					Map<CharacteristicSet, LinkedHashSet<CharacteristicSet>> joinQueues = new HashMap<CharacteristicSet, LinkedHashSet<CharacteristicSet>>();
 					
-					for(NewCS root : graphRoots){
+					for(CharacteristicSet root : graphRoots){
 						
 						stack.push(root);
 						
-						Set<NewCS> visited = new HashSet<NewCS>();
+						Set<CharacteristicSet> visited = new HashSet<CharacteristicSet>();
 						
-						LinkedHashSet<NewCS> currentQueue = joinQueues.getOrDefault(root, new LinkedHashSet<NewCS>()) ;
+						LinkedHashSet<CharacteristicSet> currentQueue = joinQueues.getOrDefault(root, new LinkedHashSet<CharacteristicSet>()) ;
 						
 						while(!stack.isEmpty()){
 							
-							NewCS currentCS = stack.pop();												
+							CharacteristicSet currentCS = stack.pop();												
 							
 							//System.out.println("next popped : " + currentCS.toString());
 							
@@ -506,7 +506,7 @@ public class RelationalQuerySimple {
 							
 							currentQueue.add(currentCS);
 							
-							for(NewCS child : queryGraph.edgesFrom(currentCS)){
+							for(CharacteristicSet child : queryGraph.edgesFrom(currentCS)){
 								
 								//if(!visited.contains(child)){
 								if(!visited.contains(child))
@@ -535,9 +535,9 @@ public class RelationalQuerySimple {
 					}
 					//System.out.println("\n");
 					//System.out.println(joinQueues.toString());
-					Set<LinkedHashSet<NewCS>> uniqueQueues = new HashSet<LinkedHashSet<NewCS>>();
+					Set<LinkedHashSet<CharacteristicSet>> uniqueQueues = new HashSet<LinkedHashSet<CharacteristicSet>>();
 					int qsize = 0;
-					for(NewCS nextCS : joinQueues.keySet()){
+					for(CharacteristicSet nextCS : joinQueues.keySet()){
 						uniqueQueues.add(joinQueues.get(nextCS));
 						qsize = joinQueues.get(nextCS).size();
 					}					
@@ -576,14 +576,14 @@ public class RelationalQuerySimple {
 						varList += csProjectionsOrdered.get(ig) + ", ";
 					}
 					varList = varList.substring(0, varList.length()-2) ;
-					Map<NewCS, Set<NewCS>> reverseJoinMap = new HashMap<NewCS, Set<NewCS>>();
+					Map<CharacteristicSet, Set<CharacteristicSet>> reverseJoinMap = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 					
 					//reverse the join map...
-					for(NewCS key : csJoinMap.keySet()){
+					for(CharacteristicSet key : csJoinMap.keySet()){
 						if(!csJoinMap.containsKey(key) || csJoinMap.get(key) == null) continue;
-						for(NewCS nextValue : csJoinMap.get(key)){
+						for(CharacteristicSet nextValue : csJoinMap.get(key)){
 							
-							Set<NewCS> values = reverseJoinMap.getOrDefault(nextValue, new HashSet<NewCS>());
+							Set<CharacteristicSet> values = reverseJoinMap.getOrDefault(nextValue, new HashSet<CharacteristicSet>());
 							values.add(key) ;
 							reverseJoinMap.put(nextValue, values) ;				
 							
@@ -593,17 +593,17 @@ public class RelationalQuerySimple {
 					
 					
 					
-					for(LinkedHashSet<NewCS> nextQueue : uniqueQueues){
+					for(LinkedHashSet<CharacteristicSet> nextQueue : uniqueQueues){
 
-						List<NewCS> qAsList = new ArrayList<NewCS>(nextQueue) ;
+						List<CharacteristicSet> qAsList = new ArrayList<CharacteristicSet>(nextQueue) ;
 						int jid = 0;
 						String nextQS = "";
 						
-						HashSet<NewCS> visited = new HashSet<NewCS>();
+						HashSet<CharacteristicSet> visited = new HashSet<CharacteristicSet>();
 						
 						for(int i = 0; i < qAsList.size(); i++){
 						
-							NewCS nextCS = qAsList.get(i);
+							CharacteristicSet nextCS = qAsList.get(i);
 							//System.out.println("next CS: " + nextCS + " alias " + csAliases.get(nextCS));
 							visited.add(nextCS) ;
 							
@@ -617,9 +617,9 @@ public class RelationalQuerySimple {
 									//System.out.println("here!") ;
 									nextQS += " INNER JOIN cs_ AS " + csAliases.get(nextCS) + " ON " ;
 									
-									for(NewCS nextReverseJoin : reverseJoinMap.get(nextCS)){
+									for(CharacteristicSet nextReverseJoin : reverseJoinMap.get(nextCS)){
 										if(visited.contains(nextReverseJoin)){
-											List<NewCS> joinKey = new ArrayList<NewCS>();
+											List<CharacteristicSet> joinKey = new ArrayList<CharacteristicSet>();
 											
 											joinKey.add(nextReverseJoin);
 											
@@ -653,9 +653,9 @@ public class RelationalQuerySimple {
 									//if(!visited.contains(nextCS))
 									nextQS += " INNER JOIN cs_ AS " + csAliases.get(nextCS) + " ON " ;
 									
-									for(NewCS nextReverseJoin : csJoinMap.get(nextCS)){
+									for(CharacteristicSet nextReverseJoin : csJoinMap.get(nextCS)){
 										if(visited.contains(nextReverseJoin)){
-											List<NewCS> joinKey = new ArrayList<NewCS>();
+											List<CharacteristicSet> joinKey = new ArrayList<CharacteristicSet>();
 											
 											joinKey.add(nextCS);
 											
@@ -735,7 +735,7 @@ public class RelationalQuerySimple {
 							int idx = 0;
 							//System.out.println("nextPerm: " + nextPerm.toString()) ;						
 							for(String nextIntString : nextPerm) {
-								NewCS nextCSToTransform = csMatchesOrdered.get(idx++);
+								CharacteristicSet nextCSToTransform = csMatchesOrdered.get(idx++);
 								templateQ = templateQ.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
 								
 								//regexes for multivalued properties
@@ -946,11 +946,11 @@ public class RelationalQuerySimple {
 	    return ret;
 	}*/
 
-	private static HashMap<List<NewCS>, Integer> updateCardinality(List<NewCS> next,
-			Map<NewCS, Integer> csSizes, HashMap<List<NewCS>, Integer> pathCosts) {
+	private static HashMap<List<CharacteristicSet>, Integer> updateCardinality(List<CharacteristicSet> next,
+			Map<CharacteristicSet, Integer> csSizes, HashMap<List<CharacteristicSet>, Integer> pathCosts) {
 		int newCardinality = 0;
 		
-		for(NewCS innerCS : next){
+		for(CharacteristicSet innerCS : next){
 			
 			newCardinality += csSizes.get(innerCS);
 			
