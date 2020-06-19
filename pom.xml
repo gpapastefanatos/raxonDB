@@ -3,20 +3,28 @@
   <groupId>com.athena.imis</groupId>
   <artifactId>raxonDB</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>roseDB</name>
-  <description>This is a prototype intended for submission at EDBT 2018.</description>
+  <name>raxonDB</name>
+  <description>This is a prototype intended for submission at IS2020.</description>
   <repositories>
+<!--    <repository> -->
+<!--        <snapshots> -->
+<!--         <enabled>false</enabled> -->
+<!--        </snapshots> -->
+<!--        <id>central</id> -->
+<!--        <name>bintray</name> -->
+<!--        <url>http://jcenter.bintray.com</url> -->
+<!--    </repository> -->
    <repository>
        <snapshots>
         <enabled>false</enabled>
        </snapshots>
-       <id>central</id>
-       <name>bintray</name>
-       <url>http://jcenter.bintray.com</url>
+       <id>secondary</id>
+       <name>mvn</name>
+       <url>https://mvnrepository.com/</url>
    </repository>
 </repositories>
   <dependencies>
-   <dependency>
+  <dependency>
 	<groupId>org.apache.commons</groupId>
 	<artifactId>commons-lang3</artifactId>
 	<version>3.0</version>
@@ -65,12 +73,8 @@
 	<artifactId>trove4j</artifactId>
 	<version>3.0.3</version>
 </dependency>
-
-
-
-  
-  </dependencies>
- 
-  
-  
+  </dependencies>  
+  <organization>
+  	<name>Athena Research Center</name>
+  </organization>
 </project>
