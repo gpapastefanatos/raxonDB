@@ -1,0 +1,5 @@
+<http://www.University0.edu> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://swat.cse.lehigh.edu/onto/univ-bench.owl#University> .
+<http://www.University0.edu> <http://swat.cse.lehigh.edu/onto/univ-bench.owl#name> "University0" .
+<http://www.Department0.University0.edu> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department> .
+<http://www.Department0.University0.edu> <http://swat.cse.lehigh.edu/onto/univ-bench.owl#name> "Department0" .
+<http://www.University1.edu> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://swat.cse.lehigh.edu/onto/univ-bench.owl#University> .

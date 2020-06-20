@@ -96,7 +96,13 @@ public class SmartRelationalLoaderArray {
 			meanMultiplier = Integer.parseInt(args[6]);
 
 		/**
-		 * Read Input .nt File and store it in an array[#triples][4] --> [filerowNumber] [s, p, o, graphId], graphId default=-1 
+		 * Read Input .nt File and stores triples in an int array[#triples][4] --> [s, p, o, csId], csID initialized to -1  (it is filled later when CS are constructed)
+		 * 				an auto-increment is assigned to {s, o} (s,o share the same index) and p based on the order of occurrence
+		 * 				
+		 * 				e.g., for 3  n-triples <s1 p1 o1>. <s1 p2 o2>. <s3 p1 o1>.
+		 *  							array[0][0] = [0,0,1,-1] --> <s1 p1 o1>
+		 *  							array[0][1] = [0,1,2,-1] --> <s1 p2 o2>
+		 *  							array[0][2] = [3,0,1,-1] --> <s3 p1 o1>
 		 */
 
 		//create indices 
@@ -247,11 +253,15 @@ public class SmartRelationalLoaderArray {
 		System.out.println("sorting: " + (end-start));
 
 		/**
-		 * Create Characteristics CSs    
+		 * Create Characteristics CSs and store them in 3 HashMaps
+		 * CSMap<CharacteristicSet,Integer> : assigns an index (e.g., csID) to each cs; a CS is a list of properties {p1,p2,...,pn} (int representation)
+		 * reverseCSMap<Integer,CharacteristicSet>: keeps the reverse mapping from index (csID) to a CS  
+		 * dbECSMap: keeps a mapping between a subject index and a csID
 		 */
 
 		int previousSubject = Integer.MIN_VALUE;
 
+		// characteristic set  map --- assigns a int to each distinct cs; a CS is a list of properties (int representation)
 		Map<CharacteristicSet, Integer> csMap = new HashMap<>();
 
 		int csIndex = 0;
@@ -263,23 +273,29 @@ public class SmartRelationalLoaderArray {
 		int subject ;
 		int prop ;
 
+		//keeps a mapping between a subject int and a csID  
 		Map<Integer, Integer> dbECSMap = new THashMap<Integer, Integer>(array.length/10);
-		Map<Integer, CharacteristicSet> rucs = new HashMap<Integer, CharacteristicSet>();
+		
+		//reverse characteristic set  map
+		Map<Integer, CharacteristicSet> reverseCSMap = new HashMap<Integer, CharacteristicSet>();
 
 		List<Integer> propList = new ArrayList<Integer>();;
 
+		//array is sorted on s
 		for(int i = 0; i < array.length; i++){
 			t = array[i];
 			subject = t[0];
 			prop = t[1];
 
+			// if the subject has changed check if a new CS is needed 
 			if(i > 0 && previousSubject != subject){
 
 				cs = new CharacteristicSet(propList);					
 				if(!csMap.containsKey(cs)){
 
 					dbECSMap.put(previousSubject, csIndex);
-					rucs.put(csIndex, cs);
+					reverseCSMap.put(csIndex, cs);
+					//update with the new csID the triples array for all triples mapped to this CS
 					for(int j = previousStart; j < i; j++)
 						array[j][3] = csIndex;
 					csMap.put(cs, csIndex++);
@@ -308,7 +324,7 @@ public class SmartRelationalLoaderArray {
 				for(int j = previousStart; j < array.length; j++)
 					array[j][3] = csIndex;
 				dbECSMap.put(previousSubject, csIndex);
-				rucs.put(csIndex, cs);
+				reverseCSMap.put(csIndex, cs);
 				csMap.put(cs, csIndex);
 
 			}
@@ -322,7 +338,15 @@ public class SmartRelationalLoaderArray {
 		}
 		end = System.nanoTime();
 		System.out.println("ucs time: " + (end-start));
+		
+		/**
+		 * Construct a utility CS full map  
+		 * It constructs a csMapFull  which keeps mapping between a csID and all an ArrayList<int[4]> for each triple assigned to it.
+		 */
+		
+		
 		start = System.nanoTime();
+		//array[n][3] keeps unique CSid. Before processing, it sorts all triples on csID 
 		Arrays.sort(array, new Comparator<int[]>() {
 			public int compare(int[] s1, int[] s2) {
 				if (s1[3] > s2[3])
@@ -375,6 +399,13 @@ public class SmartRelationalLoaderArray {
 
 		System.out.println("csMapFull size: " + csMapFull.size());
 
+
+		
+
+		/**
+		 * Process CSs for deriving parent child relationships   
+		 */
+		
 		HashSet<String> pathPairs = new HashSet<String>();
 		HashMap<String, Set<Integer>> pathPairProperties = new HashMap<String, Set<Integer>>();
 		HashMap<Integer, int[]> csProps = new HashMap<Integer, int[]>(); 
@@ -1042,8 +1073,8 @@ public class SmartRelationalLoaderArray {
 					if(dbECSMap.containsKey(tripleNext[2])){
 						//System.out.println("1"  + rucs.get(dbECSMap.get(tripleNext[2])));
 						//System.out.println("2" + csToPathMap.get(rucs.get(dbECSMap.get(tripleNext[2]))));
-						if(csToPathMap.containsKey(rucs.get(dbECSMap.get(tripleNext[2])))){
-							int pairedPathIndex = pathMap.get(csToPathMap.get(rucs.get(dbECSMap.get(tripleNext[2]))));
+						if(csToPathMap.containsKey(reverseCSMap.get(dbECSMap.get(tripleNext[2])))){
+							int pairedPathIndex = pathMap.get(csToPathMap.get(reverseCSMap.get(dbECSMap.get(tripleNext[2]))));
 							String pairString = ""+nextPathIndex +"_"+pairedPathIndex;
 							pathPairs.add(pairString);
 							Set<Integer> ecsProp = pathPairProperties.getOrDefault(pairString, new HashSet<Integer>());
