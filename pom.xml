@@ -6,22 +6,22 @@
   <name>raxonDB</name>
   <description>This is a prototype intended for submission at IS2020.</description>
   <repositories>
-   <repository>
-       <snapshots>
-        <enabled>false</enabled>
-       </snapshots>
-       <id>central</id>
-       <name>bintray</name>
-       <url>http://jcenter.bintray.com</url>
-   </repository>
 <!--    <repository> -->
 <!--        <snapshots> -->
 <!--         <enabled>false</enabled> -->
 <!--        </snapshots> -->
-<!--        <id>secondary</id> -->
-<!--        <name>mvn</name> -->
-<!--        <url>https://mvnrepository.com/</url> -->
+<!--        <id>central</id> -->
+<!--        <name>bintray</name> -->
+<!--        <url>http://jcenter.bintray.com</url> -->
 <!--    </repository> -->
+   <repository>
+       <snapshots>
+        <enabled>false</enabled>
+       </snapshots>
+       <id>secondary</id>
+       <name>mvn</name>
+       <url>https://mvnrepository.com/</url>
+   </repository>
 </repositories>
   <dependencies>
   <dependency>
