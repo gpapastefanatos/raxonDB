@@ -16,8 +16,28 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class CharacteristicSet {
 	
 	List<Integer> asList ;
-	
 	Set<String> matches ;
+	ArrayList<int[]> triples;
+	private boolean isDense = false ;
+		
+	
+	
+	public ArrayList<int[]> getTriples() {
+		return triples;
+	}
+
+	public void setTriples(ArrayList<int[]> triples) {
+		this.triples = triples;
+	}
+
+	
+	public boolean isDense() {
+		return isDense;
+	}
+
+	public void setDense(boolean isDense) {
+		this.isDense = isDense;
+	}
 
 	public List<Integer> getAsList() {
 		return asList;
@@ -51,6 +71,12 @@ public class CharacteristicSet {
 		Collections.sort(this.asList);
 	}
 	
+	public boolean contains (CharacteristicSet parent) {
+		if (this.getAsList().containsAll(parent.getAsList()))
+				return true;
+		return false;
+		
+	}
 	
 	
 	@Override

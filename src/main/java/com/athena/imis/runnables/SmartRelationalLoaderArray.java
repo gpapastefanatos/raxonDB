@@ -33,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.CharacteristicSet;
+import com.athena.imis.models.DirectedGraph;
 
 import gnu.trove.map.hash.THashMap;
 
@@ -253,7 +254,7 @@ public class SmartRelationalLoaderArray {
 		System.out.println("sorting: " + (end-start));
 
 		/**
-		 * Create Characteristics CSs and store them in 3 HashMaps
+		 * Iterate over the triples, Create Characteristics CSs and store them in 3 HashMaps
 		 * CSMap<CharacteristicSet,Integer> : assigns an index (e.g., csID) to each cs; a CS is a list of properties {p1,p2,...,pn} (int representation)
 		 * reverseCSMap<Integer,CharacteristicSet>: keeps the reverse mapping from index (csID) to a CS  
 		 * dbECSMap: keeps a mapping between a subject index and a csID
@@ -263,12 +264,18 @@ public class SmartRelationalLoaderArray {
 
 		// characteristic set  map --- assigns a int to each distinct cs; a CS is a list of properties (int representation)
 		Map<CharacteristicSet, Integer> csMap = new HashMap<>();
-
+		
+		//gp addition for grpah-based management of CS
+//		DirectedGraph<CharacteristicSet> csGraph = new DirectedGraph<CharacteristicSet>();
+//		ArrayList<int[]> csTriples;
+		
+		
 		int csIndex = 0;
 		/*for(int i = 0; i < l.size(); i++){
 					long t = l.apply((long)i);*/
 		int previousStart = 0;
 		CharacteristicSet cs = null;
+		
 		int[] t ;
 		int subject ;
 		int prop ;
@@ -283,30 +290,37 @@ public class SmartRelationalLoaderArray {
 
 		//array is sorted on s
 		for(int i = 0; i < array.length; i++){
-			t = array[i];
-			subject = t[0];
-			prop = t[1];
+			subject = array[i][0];
+			prop = array[i][1];
 
 			// if the subject has changed check if a new CS is needed 
 			if(i > 0 && previousSubject != subject){
 
-				cs = new CharacteristicSet(propList);					
+				cs = new CharacteristicSet(propList);	
+				 		
 				if(!csMap.containsKey(cs)){
-
+//					csTriples = new ArrayList<int[]>();
 					dbECSMap.put(previousSubject, csIndex);
 					reverseCSMap.put(csIndex, cs);
 					//update with the new csID the triples array for all triples mapped to this CS
-					for(int j = previousStart; j < i; j++)
+					for(int j = previousStart; j < i; j++) {
 						array[j][3] = csIndex;
+//						csTriples.add(array[j]);
+					}
 					csMap.put(cs, csIndex++);
-
-
+//					cs.setTriples(csTriples);
+//					csGraph.addNode(cs);
 				}
 				else{
 					dbECSMap.put(previousSubject, csMap.get(cs));
+//					csTriples = cs.getTriples();
 					//array[i-1][3] = ucs.get(cs);
-					for(int j = previousStart; j < i; j++)
+					for(int j = previousStart; j < i; j++) {
 						array[j][3] = csMap.get(cs);
+//						csTriples.add(array[j]);
+					}
+//					cs.setTriples(csTriples);
+					
 				}
 				previousStart = i;
 				propList = new ArrayList<Integer>();
@@ -320,19 +334,28 @@ public class SmartRelationalLoaderArray {
 		if(!propList.isEmpty()){
 			cs = new CharacteristicSet(propList);
 			if(!csMap.containsKey(cs)){
-				//array[array.length-1][3] = csIndex; 
-				for(int j = previousStart; j < array.length; j++)
+//				csTriples = new ArrayList<int[]>();
+								//array[array.length-1][3] = csIndex; 
+				for(int j = previousStart; j < array.length; j++) {
 					array[j][3] = csIndex;
+//					csTriples.add(array[j]);
+				}
 				dbECSMap.put(previousSubject, csIndex);
 				reverseCSMap.put(csIndex, cs);
 				csMap.put(cs, csIndex);
-
+//				cs.setTriples(csTriples);
+//				csGraph.addNode(cs);
 			}
 			else{
-				for(int j = previousStart; j < array.length; j++)
+//				csTriples = cs.getTriples();
+				for(int j = previousStart; j < array.length; j++) {
 					array[j][3] = csMap.get(cs);
+//					csTriples.add(array[j]);
+				}
 				//array[array.length-1][3] = ucs.get(cs);
 				dbECSMap.put(previousSubject, csMap.get(cs));
+//				cs.setTriples(csTriples);
+				
 			}
 
 		}
@@ -411,7 +434,6 @@ public class SmartRelationalLoaderArray {
 		HashMap<Integer, int[]> csProps = new HashMap<Integer, int[]>(); 
 
 
-
 		CopyManager cpManager;
 		try {
 			cpManager = ((PGConnection)conn).getCopyAPI();
@@ -451,13 +473,14 @@ public class SmartRelationalLoaderArray {
 
 			for(CharacteristicSet child: csMap.keySet()){
 
-				if(parent.equals(child)) continue;
+				if(child.equals(parent)) continue;
 
 				//the condition for a parent-child is that the child CS must contain ALL properties of parent   
-				if(child.getAsList().containsAll(parent.getAsList())){
+				if(child.contains(parent)){
 					Set<CharacteristicSet> children = ancestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					ancestors.put(parent, children);
+//					csGraph.addEdge(child,parent);
 				}
 				//						else{
 				//							//check for set inclusion?
@@ -493,12 +516,13 @@ public class SmartRelationalLoaderArray {
 			}
 		}
 		//System.out.println("\n\n No children: ") ;
+//		for(CharacteristicSet nextCS : csGraph) {
 		for(CharacteristicSet nextCS : csMap.keySet()) {
 			//if(immediateAncestors.containsKey(nextCS))
 			//	continue;
 			//System.out.println(nextCS.toString() + ": " + csSizes.get(nextCS));
 			total+=csSizes.get(nextCS);
-
+//			total+=nextCS.getTriples().size();
 		}
 		System.out.println("total estimate size: " + total) ;
 		System.out.println("mean size: " + total/csMap.size()) ;
@@ -507,6 +531,13 @@ public class SmartRelationalLoaderArray {
 		 * Process CSs for finding dense CSs.
 		 * A dense CS is a CS which contains (cs.size) more triples than a threshold = Math.max(total/csMap.size()*meanMultiplier*2, total/100))   
 		 */
+//		int threshold = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
+//		for(CharacteristicSet nodeCS : csMap.keySet()) {
+//			if(nodeCS.getTriples().size()>=threshold) {
+//				nodeCS.setDense(true);
+//				System.out.println("Dense CS found: " + nodeCS.toString());
+//			}
+//		}
 		
 		int noOfdenseCS = 0, totalDenseRows = 0;;
 		Set<CharacteristicSet> denseCSs = new HashSet<CharacteristicSet>();
@@ -530,13 +561,18 @@ public class SmartRelationalLoaderArray {
 		System.out.println("Dense CS Coverage: " + totalDenseRows);						
 
 		//System.out.println("\n\n\n\n");
-
+		
+		
+		/**
+		 * Find paths in parent child relationships   
+		 */
 		HashMap<List<CharacteristicSet>, Integer> pathCosts = new HashMap<List<CharacteristicSet>, Integer>();
 
 		Set<List<CharacteristicSet>> foundPaths = findPaths(denseCSs, pathCosts, csSizes, reverseImmediateAncestors, true, false);
 
 		List<CharacteristicSet> cur ;
 
+		// clean up internal paths and keep only longest ones  
 		Set<List<CharacteristicSet>> clonedPaths = new HashSet<List<CharacteristicSet>>();
 		for(List<CharacteristicSet> n : foundPaths){
 			clonedPaths.add(new ArrayList<CharacteristicSet>(n));
@@ -564,12 +600,17 @@ public class SmartRelationalLoaderArray {
 		//				}
 		//System.out.println("\n\n\n\n");
 
+		/**
+		 * Merge paths and move CSs to the merged path   
+		 */
+		
+		//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
 		List<List<CharacteristicSet>> orderedPaths = new ArrayList<List<CharacteristicSet>>(foundPaths);			
 		Collections.sort(orderedPaths, new Comparator<List<CharacteristicSet>>() {
 
 			public int compare(List<CharacteristicSet> o1, List<CharacteristicSet> o2) {
-				if (pathCosts.get(o1) > pathCosts.get(o2)) return -11;
-				else if (pathCosts.get(o1) < pathCosts.get(o2)) return 1;
+				if (pathCosts.get(o1) > pathCosts.get(o2)) return -11; //tell sorting that if o1>o2 then o1 should come before o2
+				else if (pathCosts.get(o1) < pathCosts.get(o2)) return 1; //tell sorting that if o1<o2 then o1 should come after o2
 				else return 0;
 
 			}
@@ -578,10 +619,13 @@ public class SmartRelationalLoaderArray {
 		//				for(List<NewCS> nextPath : orderedPaths){
 		//					System.out.println(pathCosts.get(nextPath)+": " + nextPath.toString()) ;
 		//				}
+		
+		//create final list of paths and update the costs of paths , i.e., cardinality
 		List<List<CharacteristicSet>> finalList = new ArrayList<List<CharacteristicSet>>();
 
 		int totalIterations = 0;					
 
+		//get each path bases i
 		for(int i = 0; i < orderedPaths.size(); i++){
 
 			cur = orderedPaths.get(i);
@@ -632,6 +676,9 @@ public class SmartRelationalLoaderArray {
 		System.out.println(finalUnique.size());
 		System.out.println(finalList.size() + ": " + finalList.toString());
 
+		/**
+		 * Process CS not contained or covered in paths  
+		 */
 		int notCovered = 0;
 		Set<CharacteristicSet> notContained = new HashSet<CharacteristicSet>();
 		for(CharacteristicSet nextCS : csMap.keySet()){
@@ -656,7 +703,7 @@ public class SmartRelationalLoaderArray {
 
 				if(parent.equals(child)) continue;
 
-				if(child.getAsList().containsAll(parent.getAsList())){
+				if(child.contains(parent)){
 					Set<CharacteristicSet> children = remainingAncestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					remainingAncestors.put(parent, children);
@@ -847,6 +894,8 @@ public class SmartRelationalLoaderArray {
 
 		Map<List<CharacteristicSet>, Integer> pathMap = new HashMap<List<CharacteristicSet>, Integer>();
 		int pathIndex = 0;
+		
+		//contains all paths. Maps a path id to a list of triples 
 		Map<Integer, int[][]> mergedMapFull = new HashMap<Integer, int[][]>();
 		Map<CharacteristicSet, List<CharacteristicSet>> csToPathMap = new HashMap<CharacteristicSet, List<CharacteristicSet>>();
 		finalList.addAll(remainingFinalList);
@@ -900,7 +949,7 @@ public class SmartRelationalLoaderArray {
 			reversePathMap.put(pathMap.get(pathP), pathP);
 		//if(true) return ;
 		System.out.println("merged map full: " + mergedMapFull.toString());
-		Iterator<Map.Entry<Integer, int[][]>> it = mergedMapFull.entrySet().iterator();
+		Iterator<Map.Entry<Integer, int[][]>> tripleGroups = mergedMapFull.entrySet().iterator();
 
 
 		/**
@@ -911,8 +960,8 @@ public class SmartRelationalLoaderArray {
 		int nextPathIndex;
 		int multiIndex = -1;								
 
-		while(it.hasNext()){
-			Entry<Integer, int[][]> nextEntry = it.next();
+		while(tripleGroups.hasNext()){
+			Entry<Integer, int[][]> nextEntry = tripleGroups.next();
 			nextPathIndex = nextEntry.getKey();
 			int[][] triplesArray = nextEntry.getValue();
 			//System.out.println("Next CS: " + nextPathIndex + ", " + reversePathMap.get(nextPathIndex));
@@ -1083,7 +1132,6 @@ public class SmartRelationalLoaderArray {
 								sb.append("null").append(",");
 							}
 
-
 						}						
 						sb.deleteCharAt(sb.length()-1);
 						sb.append("\n");
@@ -1097,7 +1145,7 @@ public class SmartRelationalLoaderArray {
 								System.out.println("Next checkpoint: " + rowBatch);
 						}
 						poValues = new HashMap<Integer, HashSet<Integer>>();						
-						sb.append(prevSubject).append(',');
+						sb.append(tripleNext[0]).append(',');
 					}
 					oValues = poValues.getOrDefault(tripleNext[1], new HashSet<Integer>());
 					oValues.add(tripleNext[2]);			
@@ -1116,7 +1164,6 @@ public class SmartRelationalLoaderArray {
 
 					}
 					poValues.put(tripleNext[1], oValues);
-
 					prevSubject = tripleNext[0];
 
 				}
@@ -1168,6 +1215,7 @@ public class SmartRelationalLoaderArray {
 				cpManager.copyIn("COPY cs_" + nextPathIndex + " FROM STDIN WITH CSV NULL AS 'null'", reader );
 				sb.delete(0,sb.length());
 
+				
 				//create gin indexes
 				for(Integer mp : multiValuedProperties){
 					//multiValuedValues += "("+nextPathIndex+", "+mp+"), ";
@@ -1189,7 +1237,7 @@ public class SmartRelationalLoaderArray {
 				//					    multisb.delete(0,multisb.length());
 
 
-				it.remove();
+				tripleGroups.remove();
 
 
 				//System.out.println("Removed CS from cs Map.");
@@ -1352,16 +1400,24 @@ public class SmartRelationalLoaderArray {
 		return immediateAncestors;
 	}
 
-	private static Map<List<CharacteristicSet>, Integer> updateCardinality(List<CharacteristicSet> next,
+	
+	/***
+	 * Takes as input a path and updates its cost based on the CS it contains.  
+	 * @param path is the path containing a list of CS 
+	 * @param csSizes contains the size (#triples) in each cs 
+	 * @param pathCosts contains the size (#triples) in all CS of a path.
+	 * @return updated cost of the input path.
+	 */
+	private static Map<List<CharacteristicSet>, Integer> updateCardinality(List<CharacteristicSet> path,
 			Map<CharacteristicSet, Integer> csSizes, Map<List<CharacteristicSet>, Integer> pathCosts) {
 		int newCardinality = 0;
 
-		for(CharacteristicSet innerCS : next){
+		for(CharacteristicSet innerCS : path){
 
 			newCardinality += csSizes.get(innerCS);
 
 		}
-		pathCosts.put(next, newCardinality) ;
+		pathCosts.put(path, newCardinality) ;
 
 		return pathCosts;
 
@@ -1386,25 +1442,29 @@ public class SmartRelationalLoaderArray {
 	{
 		Stack<List<CharacteristicSet>> stack ;
 		List<CharacteristicSet> path ;
-		List<CharacteristicSet> cur ;
+		List<CharacteristicSet> curPath ;
 		CharacteristicSet curCS ;
 		int cardinality ;
 		List<CharacteristicSet> newCur ;
 		Set<List<CharacteristicSet>> foundPaths = new HashSet<List<CharacteristicSet>>();
 
+		//create a path from each denseCS, a path is a ArrayList<CharacteristicSet>
 		for(CharacteristicSet nextDenseCS :  denseCSs){ 
 
+			//stack for keeping paths
 			stack = new Stack<List<CharacteristicSet>>();
-
 			path = new ArrayList<CharacteristicSet>();
+
 			path.add(nextDenseCS);
 			stack.push(path);		
 			Set<CharacteristicSet> visited = new HashSet<CharacteristicSet>();
 
 			while(!stack.empty()){
 
-				cur = stack.pop();
-				curCS = cur.get(cur.size()-1);
+				// get a path from stack
+				curPath = stack.pop();
+				//get the last cs from path 
+				curCS = curPath.get(curPath.size()-1);
 
 				if(withSiblings && visited.contains(curCS)) continue;
 				//if no parents, is root, add path
@@ -1412,12 +1472,12 @@ public class SmartRelationalLoaderArray {
 					//no parents and no dense node reached.
 					//has it become dense?
 					cardinality = 0;
-					for(CharacteristicSet node : cur){
+					for(CharacteristicSet node : curPath){
 						cardinality += csSizes.get(node);
 						//added.add(node);
 					}
-					foundPaths.add(cur);
-					pathCosts.put(cur, cardinality);
+					foundPaths.add(curPath);
+					pathCosts.put(curPath, cardinality);
 
 					continue;
 				}
@@ -1428,17 +1488,17 @@ public class SmartRelationalLoaderArray {
 						if(denseCheck && denseCSs.contains(parent)) {
 
 							//it already contains a dense node so just add it.
-							foundPaths.add(cur);
+							foundPaths.add(curPath);
 
 							cardinality = 0;
-							for(CharacteristicSet node : cur){
+							for(CharacteristicSet node : curPath){
 								cardinality += csSizes.get(node);
 							}
-							pathCosts.put(cur, cardinality);
+							pathCosts.put(curPath, cardinality);
 
 							continue;
 						}
-						newCur = new ArrayList<CharacteristicSet>(cur);
+						newCur = new ArrayList<CharacteristicSet>(curPath);
 						newCur.add(parent);	
 						if(withSiblings)
 							visited.add(parent);
