@@ -3,7 +3,7 @@ package com.athena.imis.runnables;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Queries {
+public final class Queries {
 
 	public static List<String> queries = new ArrayList<String>();
 	

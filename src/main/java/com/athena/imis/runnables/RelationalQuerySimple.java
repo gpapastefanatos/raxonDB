@@ -71,8 +71,6 @@ public class RelationalQuerySimple {
 			
 			st = c.createStatement();				
 			
-			
-			
 			Map<CharacteristicSet, Set<Integer>> multiValuedCSProps = new HashMap<CharacteristicSet, Set<Integer>>();
 			Map<Integer, CharacteristicSet> realCSIds = new HashMap<Integer, CharacteristicSet>();
 			String multiValuedQuery = " SELECT cs, p, properties FROM multi_valued INNER JOIN cs_schema ON cs=id ;";

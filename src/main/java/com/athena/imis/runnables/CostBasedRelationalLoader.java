@@ -487,7 +487,7 @@ public class CostBasedRelationalLoader  {
 		
 		/**
 		 * Process CSs for finding dense CSs.
-		 * A dense CS is a CS which contains (cs.size) more triples than a threshold = Math.max(total/csMap.size()*meanMultiplier*2, total/100))   
+		 * A dense CS is a CS which contains (cs.size) more triples than a threshold    
 		 */
 //		int threshold = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 //		for(CharacteristicSet nodeCS : csMap.keySet()) {
@@ -504,7 +504,9 @@ public class CostBasedRelationalLoader  {
 			//	continue;
 //			int bb = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 			
-			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier, total/100)){
+//			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier*2, total/100)){ //-initial Marios Implementation
+			if(csSizes.get(nextCS) >= maxCSSize*meanMultiplier/100){ //Dolap definition
+			
 				noOfdenseCS++;
 				denseCSs.add(nextCS);
 				totalDenseRows += csSizes.get(nextCS);
@@ -526,6 +528,7 @@ public class CostBasedRelationalLoader  {
 		 */
 		HashMap<Path, Integer> pathCosts = new HashMap<Path, Integer>();
 
+		//findPaths returns a path for each dense node. 
 		Set<Path> foundPaths = findPaths(denseCSs, pathCosts, csSizes, reverseImmediateAncestors, true, false);
 
 //		clean up internal paths and keep only longest ones  
@@ -545,7 +548,20 @@ public class CostBasedRelationalLoader  {
 		//System.out.println("\n\n\n\n");
 
 		/**
-		 * Merge paths and move CSs to the merged path   
+		 * Merging paths into Dense Nodes and move merged CSs properties to the merged Dense nodes
+		 * 
+		 * 0. Each path corresponds to only one Dense Cs and contains multiple non-dense CSs. Non dense CS may exist in multiple paths
+		 * 1. It sorts paths by size (desc). Size is the sum of triples assigned to all CS in the path. 
+		 * 2. It gets the biggestPath path and 
+		 * 		2a. removes the COMMON cs from all other smaller paths and updates their sizes , since triples that existed in small paths are now assigned to the biggest.
+		 * 3. It re-sorts the remaining paths and continues from 2. 
+		 * 4. After visiting all paths, it removes empty paths + and updates all sizes
+		 * 5. It processes CS not contained in any path, i.e., they are not dense and they are not parent of dense.
+		 * 		5a. It redefines dense nodes threshold in the remaining CS, as  Math.max((notCovered)/notContained.size()*meanMultiplier, total/1000)){
+		 * 		5b. It finds new paths from remaining CSs, given new dense nodes.  
+		 * 		5c. It continues from 2-4 for remaining paths
+		 * 6. It stores everything left until 5 in a big CS.  
+		 *    
 		 */
 		
 		//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
@@ -562,21 +578,21 @@ public class CostBasedRelationalLoader  {
 		
 		//create final list of paths and update the costs of paths , i.e., cardinality
 		List<Path> finalList = new ArrayList<Path>();		
-		Path mostCostlyPath ;
+		Path bigPath ;
 
 		int totalIterations = 0;					
 		//get each path based on their costs
 		for(int i = 0; i < orderedPaths.size(); i++){
 			//get the path with the highest cost
-			mostCostlyPath = orderedPaths.get(i);
+			bigPath = orderedPaths.get(i);
 			// iterate over the rest
 			for(int k = i+1; k < orderedPaths.size(); k++){
 				//get the next less costly
-				Path lessCostlyPath = orderedPaths.get(k);
+				Path smallPath = orderedPaths.get(k);
 				//remove from the less costly the CS that are already contained in the most costly path. 
-				lessCostlyPath.removeAll(mostCostlyPath);
+				smallPath.removeAll(bigPath);
 				//update the cost of the lessCostly to remove the triples contained in the CS that were removed.
-				updateCardinality(lessCostlyPath, csSizes, pathCosts);	
+				updateCardinality(smallPath, csSizes, pathCosts);	
 			}				
 
 
@@ -754,13 +770,13 @@ public class CostBasedRelationalLoader  {
 		System.out.println("Pruning...");
 		for(int i = 0; i < remainingOrderedPaths.size(); i++){
 
-			mostCostlyPath = remainingOrderedPaths.get(i);
+			bigPath = remainingOrderedPaths.get(i);
 
 			for(int k = i+1; k < remainingOrderedPaths.size(); k++){
 
 				Path nextCS = remainingOrderedPaths.get(k);
 
-				nextCS.removeAll(mostCostlyPath);
+				nextCS.removeAll(bigPath);
 
 				updateCardinality(nextCS, csSizes, remainingCosts);	
 
