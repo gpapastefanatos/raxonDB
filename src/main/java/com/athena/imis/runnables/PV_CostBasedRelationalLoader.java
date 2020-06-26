@@ -178,7 +178,8 @@ public class PV_CostBasedRelationalLoader  {
 		 */
 
 
-		//findPaths returns a path for each dense node. 
+		//findPaths returns a path for each dense node. !!!!! OXI !!!! P.x. [0,1], [0] !!!!!! FIX !!!!!
+		//TODO FIX FIX FIX. MUST UNDERSTAND WHAT A PATH IS
 		Set<Path> foundPaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
 
 		//		clean up internal paths and keep only longest ones  
@@ -191,13 +192,6 @@ public class PV_CostBasedRelationalLoader  {
 				}					
 			}
 		}	
-
-		//				for(Path nextPath : foundPaths){
-		//					System.out.println(pathCosts.get(nextPath)+": " + nextPath.toString()) ;
-		//				}
-		//System.out.println("\n\n\n\n");
-
-		
 		
 		//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
 		List<Path> orderedPaths = new ArrayList<Path>(foundPaths);			
@@ -243,6 +237,7 @@ public class PV_CostBasedRelationalLoader  {
 
 		}
 
+		//remove empty paths
 		Iterator<Path> finalIt = orderedPaths.iterator();
 		while(finalIt.hasNext()){
 			Path n = finalIt.next();
@@ -255,6 +250,8 @@ public class PV_CostBasedRelationalLoader  {
 				finalList.add(n);
 			}
 		}
+		
+		//Add all paths' CSs left in the finalUnique Set
 		Set<CharacteristicSet> finalUnique = new HashSet<CharacteristicSet>();
 		for(Path finalCS : finalList){
 
@@ -267,6 +264,9 @@ public class PV_CostBasedRelationalLoader  {
 		System.out.println(finalUnique.size());
 		System.out.println(finalList.size() + ": " + finalList.toString());
 
+		
+		
+		
 		/**
 		 * Process CS not contained or covered in paths  
 		 */
@@ -461,6 +461,10 @@ public class PV_CostBasedRelationalLoader  {
 		System.out.println("Remaining Unique: " + remainingFinalUnique.size());
 		//end remaining cleanup
 
+		
+		
+		
+		
 		int coveredSoFar = totalCovered + totalRemaining;
 
 		System.out.println("Dataset coverage: "  +  ((double)coveredSoFar/(double)totalNumOfTriples));
@@ -892,7 +896,7 @@ public class PV_CostBasedRelationalLoader  {
 		}				
 		System.out.println("max CS Size: " + maxCSSize);
 		
-		//discover ancestry
+		//discover ancestry via pairwise checks
 		for(CharacteristicSet parent : csMap.keySet()){
 
 			for(CharacteristicSet child: csMap.keySet()){
@@ -960,7 +964,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	 */
 	public static Map<CharacteristicSet, Set<CharacteristicSet>> getChildren(Map<CharacteristicSet, Set<CharacteristicSet>> ancestors){
 
-		Map<CharacteristicSet, Set<CharacteristicSet>> immediateAncestors = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
+		Map<CharacteristicSet, Set<CharacteristicSet>> immediateDescendants = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		for(CharacteristicSet parent : ancestors.keySet()) {
 
 			Set<CharacteristicSet> children = ancestors.get(parent) ;
@@ -979,12 +983,12 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 				}					
 			}
 			children.removeAll(toRemove) ;
-			immediateAncestors.put(parent,children ) ;
+			immediateDescendants.put(parent,children ) ;
 
 
 		}
 
-		return immediateAncestors;
+		return immediateDescendants;
 	}
 
 
@@ -1054,7 +1058,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	}
 
 	/***
-	 * Computes a set of paths containing a route between each dense node and its ancestors ???
+	 * Computes a set of paths containing a route between each dense node and its ancestors ??? UNCLEAR ????
 	 * 
 	 * @param denseCSs are the dense cs
 	 * @param pathCosts the cost of a path between two CSs. The cost of a path is the cardinality , i.e., the no of triples contained in ALL cs in the path 
@@ -1067,7 +1071,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	public static Set<Path> findPaths(Set<CharacteristicSet> denseCSs, 
 			Map<Path, Integer> pathCosts, 
 			Map<CharacteristicSet, Integer> csSizes, 
-			Map<CharacteristicSet, Set<CharacteristicSet>> reverseImmediateAncestors, 
+			Map<CharacteristicSet, Set<CharacteristicSet>> immediateAncestors, 
 			boolean denseCheck,
 			boolean withSiblings)
 	{
@@ -1099,7 +1103,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 
 				if(withSiblings && visited.contains(curCS)) continue;
 				//if no parents, is root, add path
-				if(reverseImmediateAncestors.get(curCS).isEmpty()){
+				if(immediateAncestors.get(curCS).isEmpty()){
 					//no parents and no dense node reached.
 					//has it become dense?
 					cardinality = 0;
@@ -1113,12 +1117,11 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 					continue;
 				}
 
-				if(!reverseImmediateAncestors.get(curCS).isEmpty()){
+				if(!immediateAncestors.get(curCS).isEmpty()){
 
-					for(CharacteristicSet parent : reverseImmediateAncestors.get(curCS)){							
+					for(CharacteristicSet parent : immediateAncestors.get(curCS)){							
 						if(denseCheck && denseCSs.contains(parent)) {
-//System.out.println("\n@@@@@cur: " + curCS.toString());
-//System.out.println("@@@@@par: " + parent.toString() + "\n");
+System.out.println("\n@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
 							//it already contains a dense node so just add it.
 							foundPaths.add(curPath);
 
@@ -1141,7 +1144,6 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 			}
 
 		}
-
 		return foundPaths;
 
 	}//end findPaths
