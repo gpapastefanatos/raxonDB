@@ -61,8 +61,8 @@ public class PV_CostBasedRelationalLoader  {
 	private Map<Integer, Integer> dbECSMap;
 	private Map<Integer, CharacteristicSet> reverseCSMap;
 	private Map<Integer, int[][]> csMapFull;
-	private Map<CharacteristicSet, Set<CharacteristicSet>> immediateAncestors;
-	private Map<CharacteristicSet, Set<CharacteristicSet>> reverseImmediateAncestors;
+	private Map<CharacteristicSet, Set<CharacteristicSet>> children;
+	private Map<CharacteristicSet, Set<CharacteristicSet>> parents;
 	private Map<CharacteristicSet, Set<CharacteristicSet>> allCsAncestors;
 	private Map<CharacteristicSet, Integer> csExtentSizes;
 	private int maxCSSize;
@@ -101,15 +101,15 @@ public class PV_CostBasedRelationalLoader  {
 		this.dbECSMap = null; 
 		this.reverseCSMap = new HashMap<Integer, CharacteristicSet>();
 		this.csMapFull = new HashMap<Integer, int[][]>();
-		this.immediateAncestors = null;
-		this.reverseImmediateAncestors = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
+		this.children = null;
+		this.parents = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		this.allCsAncestors = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		this.csExtentSizes = new HashMap<CharacteristicSet, Integer>();
 		this.maxCSSize = Integer.MIN_VALUE;
-		denseCSs = new HashSet<CharacteristicSet>();
-		numDenseCSs = 0;
-		numDenseRows = 0;
-		pathCosts = new HashMap<Path, Integer>();
+		this.denseCSs = new HashSet<CharacteristicSet>();
+		this.numDenseCSs = 0;
+		this.numDenseRows = 0;
+		this.pathCosts = new HashMap<Path, Integer>();
 
 		//Commented out as useless
 		//revIntMap = new THashMap<Integer, String>();
@@ -179,7 +179,7 @@ public class PV_CostBasedRelationalLoader  {
 
 
 		//findPaths returns a path for each dense node. 
-		Set<Path> foundPaths = findPaths(denseCSs, pathCosts, csExtentSizes, reverseImmediateAncestors, true, false);
+		Set<Path> foundPaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
 
 		//		clean up internal paths and keep only longest ones  
 		for(Path outerPath : foundPaths){
@@ -318,7 +318,7 @@ public class PV_CostBasedRelationalLoader  {
 		}
 
 		System.out.println("Remaining ancestor listing complete.");
-		Map<CharacteristicSet, Set<CharacteristicSet>> remainingImmediateAncestors = getImmediateAncestors(remainingAncestors);
+		Map<CharacteristicSet, Set<CharacteristicSet>> remainingImmediateAncestors = getChildren(remainingAncestors);
 		Map<CharacteristicSet, Set<CharacteristicSet>> reverseImmediateAncestorsNotContained = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		for(CharacteristicSet f : notContained){
 			reverseImmediateAncestorsNotContained.put(f, new HashSet<CharacteristicSet>());
@@ -334,7 +334,7 @@ public class PV_CostBasedRelationalLoader  {
 		//Now for the remaining paths.
 		Set<CharacteristicSet> remainingDenseCSs = new HashSet<CharacteristicSet>();
 		for(CharacteristicSet nextCS : notContained) {
-			//if(immediateAncestors.containsKey(nextCS))
+			//if(children.containsKey(nextCS))
 			//	continue;
 			if(csExtentSizes.get(nextCS) >= Math.max((notCovered)/notContained.size()*meanMultiplier, totalNumOfTriples/1000)){
 				//denseCS++;
@@ -901,6 +901,7 @@ public class PV_CostBasedRelationalLoader  {
 
 				//the condition for a parent-child is that the child CS must contain ALL properties of parent   
 				if(child.contains(parent)){
+System.out.println("\n\n$$child: " + child.toString() + " parent " + parent.toString()+ "\n\n");					
 					Set<CharacteristicSet> children = allCsAncestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					allCsAncestors.put(parent, children);
@@ -922,23 +923,25 @@ public class PV_CostBasedRelationalLoader  {
 		System.out.println("Ancestor listing complete.");
 
 
-		immediateAncestors = getImmediateAncestors(allCsAncestors);
+		this.children = getChildren(allCsAncestors);
 		for(CharacteristicSet f : csMap.keySet()){
-			reverseImmediateAncestors.put(f, new HashSet<CharacteristicSet>());
+			parents.put(f, new HashSet<CharacteristicSet>());
 		}
 
-		for(CharacteristicSet nextCS : immediateAncestors.keySet()){
+		for(CharacteristicSet nextCS : children.keySet()){
 
-			for(CharacteristicSet child : immediateAncestors.get(nextCS)){
-				Set<CharacteristicSet> set = reverseImmediateAncestors.getOrDefault(child, new HashSet<CharacteristicSet>());
+			for(CharacteristicSet child : children.get(nextCS)){				
+				Set<CharacteristicSet> set = parents.getOrDefault(child, new HashSet<CharacteristicSet>());
 				set.add(nextCS);
-				reverseImmediateAncestors.put(child, set);
+				parents.put(child, set);
+System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toString()+ "\n\n");					
+				
 			}
 		}
 		//System.out.println("\n\n No children: ") ;
 		//		for(CharacteristicSet nextCS : csGraph) {
 		for(CharacteristicSet nextCS : csMap.keySet()) {
-			//if(immediateAncestors.containsKey(nextCS))
+			//if(children.containsKey(nextCS))
 			//	continue;
 			//System.out.println(nextCS.toString() + ": " + csSizes.get(nextCS));
 			total+=csExtentSizes.get(nextCS);
@@ -950,12 +953,12 @@ public class PV_CostBasedRelationalLoader  {
 
 
 	/**
-	 * A method that returns all immediate parents for each CS
+	 * A method that returns all immediate children for each CS   !!!! FIXED!! used to be immediateAncestors, erroneously !!!!!
 	 * 
 	 * @param ancestors is the graph of all CS in the data 
-	 * @return a collection that for a cs provides all direct ancestors (1-hop)    
+	 * @return a collection that for a cs provides all direct children (1-hop)    
 	 */
-	public static Map<CharacteristicSet, Set<CharacteristicSet>> getImmediateAncestors(Map<CharacteristicSet, Set<CharacteristicSet>> ancestors){
+	public static Map<CharacteristicSet, Set<CharacteristicSet>> getChildren(Map<CharacteristicSet, Set<CharacteristicSet>> ancestors){
 
 		Map<CharacteristicSet, Set<CharacteristicSet>> immediateAncestors = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		for(CharacteristicSet parent : ancestors.keySet()) {
@@ -998,7 +1001,7 @@ public class PV_CostBasedRelationalLoader  {
 		//		}
 
 		for(CharacteristicSet nextCS : csMap.keySet()) {
-			//if(immediateAncestors.containsKey(nextCS))
+			//if(children.containsKey(nextCS))
 			//	continue;
 			//			int bb = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 			//			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier*2, total/100)){ //-initial Marios Implementation
@@ -1056,7 +1059,7 @@ public class PV_CostBasedRelationalLoader  {
 	 * @param denseCSs are the dense cs
 	 * @param pathCosts the cost of a path between two CSs. The cost of a path is the cardinality , i.e., the no of triples contained in ALL cs in the path 
 	 * @param csSizes the no of triples a cs contains
-	 * @param reverseImmediateAncestors a collection with mappings from a parent cs to its child
+	 * @param parents a collection with mappings from a parent cs to its child
 	 * @param denseCheck
 	 * @param withSiblings
 	 * @return foundPaths is a Set containing mapping between a dense CS and a CS in the ancestor graph for which a path exists!
@@ -1114,7 +1117,8 @@ public class PV_CostBasedRelationalLoader  {
 
 					for(CharacteristicSet parent : reverseImmediateAncestors.get(curCS)){							
 						if(denseCheck && denseCSs.contains(parent)) {
-
+//System.out.println("\n@@@@@cur: " + curCS.toString());
+//System.out.println("@@@@@par: " + parent.toString() + "\n");
 							//it already contains a dense node so just add it.
 							foundPaths.add(curPath);
 
@@ -1140,7 +1144,7 @@ public class PV_CostBasedRelationalLoader  {
 
 		return foundPaths;
 
-	}
+	}//end findPaths
 
 	static private double jaccardSimilarity(List<Integer> a1, List<Integer> b1) {
 		Set<Integer> a = new HashSet<Integer>(a1);
