@@ -251,6 +251,7 @@ public class RelationalQueryArray {
 					if(csJoinMap.get(nextCSS) != null || undangled.contains(nextCSS))
 						continue;
 					//System.out.println("Dangling: " + nextCSS.toString());													
+					//fetch all cs joins (ecs) that contain the 
 					String schema = " SELECT DISTINCT * FROM ecs_schema as e "
 							+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;											
 					st = c.createStatement();

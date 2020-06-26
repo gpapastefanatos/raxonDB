@@ -18,6 +18,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
+import com.athena.imis.runnables.RelationalQueryArray;
 import com.athena.imis.runnables.RelationalQuerySimple;
 
 public class SQLTranslator {
@@ -313,7 +314,7 @@ public class SQLTranslator {
 		for(Node nextObject : objects) {
 			
 			try{
-				Statement st = RelationalQuerySimple.c.createStatement();
+				Statement st = RelationalQueryArray.c.createStatement();
 				
 				String value = nextObject.toString();
 				if(!nextObject.isLiteral())									
@@ -321,7 +322,10 @@ public class SQLTranslator {
 				
 				//System.out.println(value);
 				
-				String objectSetQuery = " SELECT id, label FROM dictionary WHERE label = " + value.hashCode() ;
+				//hash
+//				String objectSetQuery = " SELECT id, label FROM dictionary WHERE label = " + value.hashCode() ;
+				//strings
+				String objectSetQuery = " SELECT id, label FROM dictionary WHERE label ='" + value.toString() +"'";//.hashCode() ;
 				//System.out.println(objectSetQuery);
 				ResultSet rsProps = st.executeQuery(objectSetQuery);
 				
@@ -341,13 +345,17 @@ public class SQLTranslator {
 		for(Node nextSubject : subjectCSMap.keySet()) {
 			
 			try{
-				Statement st = RelationalQuerySimple.c.createStatement();
+				Statement st = RelationalQueryArray.c.createStatement();
 				
 				String value = nextSubject.toString();
 				if(!nextSubject.isURI())									
 					continue;
 				value = "<" + value + ">";
-				String objectSetQuery = " SELECT id, label FROM dictionary WHERE label = " + value.hashCode() ;
+				//hash
+//				String objectSetQuery = " SELECT id, label FROM dictionary WHERE label = " + value.hashCode() ;
+				//strings
+				String objectSetQuery = " SELECT id, label FROM dictionary WHERE label ='" + value.toString() +"'";//.hashCode() ;
+				
 				//System.out.println(objectSetQuery);
 				ResultSet rsProps = st.executeQuery(objectSetQuery);
 				

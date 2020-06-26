@@ -387,20 +387,6 @@ public class CostBasedRelationalLoader  {
 		 * Process CSs for deriving ancestor relationships   
 		 */
 		
-		HashSet<String> pathPairs = new HashSet<String>();
-		HashMap<String, Set<Integer>> pathPairProperties = new HashMap<String, Set<Integer>>();
-		HashMap<Integer, int[]> csProps = new HashMap<Integer, int[]>(); 
-
-
-		CopyManager cpManager;
-		try {
-			cpManager = ((PGConnection)conn).getCopyAPI();
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return;
-		}
-
 		//init refs
 		int idx, min, total = 0;
 		PushbackReader reader ;
@@ -904,19 +890,25 @@ public class CostBasedRelationalLoader  {
 		System.out.println("Adding keys to dictionary. " + new Date().toString());
 		try {
 			stmt = conn.createStatement();
-			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS dictionary (id INT, label INT); ");
+			//HashCode URIs 
+			//stmt.executeUpdate("CREATE TABLE IF NOT EXISTS dictionary (id INT, label INT); ");
+			//plain string URIs 
+			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS dictionary (id INT, label TEXT); ");
+
 			stmt.close();		       
 
 
 			cpManager2 = ((PGConnection)conn).getCopyAPI();
-			PushbackReader reader2 = new PushbackReader( new StringReader(""), 20000 );
+			PushbackReader reader2 = new PushbackReader( new StringReader(""), 100000 );
 			Iterator<Map.Entry<String, Integer>> keyIt = intMap.entrySet().iterator();
 			int iter = 0;
 			while(keyIt.hasNext())
 			{
 				Entry<String, Integer> nextEntry = keyIt.next();
-				sb2.append(nextEntry.getValue()).append(",")		      
-				.append(nextEntry.getKey().hashCode()).append("\n");
+				//append hashcoded values
+//				sb2.append(nextEntry.getValue()).append(",").append(nextEntry.getKey().hashCode()).append("\n");
+				//append string values
+				sb2.append(nextEntry.getValue()).append(",").append(nextEntry.getKey()).append("\n");
 				if (iter++ % batchSize == 0)
 				{
 					reader2.unread( sb2.toString().toCharArray() );
@@ -941,6 +933,20 @@ public class CostBasedRelationalLoader  {
 		/**
 		 * Create database table cs schema. CS schema contains the id of a CS and the array of properties (int[])
 		 */
+		HashSet<String> pathPairs = new HashSet<String>();
+		HashMap<String, Set<Integer>> pathPairProperties = new HashMap<String, Set<Integer>>();
+		HashMap<Integer, int[]> csProps = new HashMap<Integer, int[]>(); 
+
+
+		CopyManager cpManager;
+		try {
+			cpManager = ((PGConnection)conn).getCopyAPI();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return;
+		}
+
 		int nextPathIndex;
 		int multiIndex = -1;								
 
