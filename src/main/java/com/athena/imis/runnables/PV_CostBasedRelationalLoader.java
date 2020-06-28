@@ -962,7 +962,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	 * @param ancestors is the graph of all CS in the data 
 	 * @return a collection that for a cs provides all direct children (1-hop)    
 	 */
-	public static Map<CharacteristicSet, Set<CharacteristicSet>> getChildren(Map<CharacteristicSet, Set<CharacteristicSet>> ancestors){
+	private static Map<CharacteristicSet, Set<CharacteristicSet>> getChildren(Map<CharacteristicSet, Set<CharacteristicSet>> ancestors){
 
 		Map<CharacteristicSet, Set<CharacteristicSet>> immediateDescendants = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		for(CharacteristicSet parent : ancestors.keySet()) {
