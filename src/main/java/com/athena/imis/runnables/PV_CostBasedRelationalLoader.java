@@ -206,7 +206,14 @@ public class PV_CostBasedRelationalLoader  {
 	}//end decideSchemaAndPopulate()   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
+	// /////////////////////////////////////////////////////////////////////////////////////
+	// ///////////////////////////////////////////////////////////////////////////////////
+	// ///////////////////////////////////////////////////////////////////////////////////
+	
+	
+	/**
+	 * FIX ME FIX ME FIX ME
+	 */
 	private void cannotRefactorStep5UnlessYouExplainItToMe() {
 		/**
 		 * Process CS not contained or covered in paths  
@@ -475,9 +482,6 @@ public class PV_CostBasedRelationalLoader  {
 
 
 
-	// /////////////////////////////////////////////////////////////////////////////////////
-	// ///////////////////////////////////////////////////////////////////////////////////
-	// ///////////////////////////////////////////////////////////////////////////////////
 
 
 	
@@ -949,19 +953,20 @@ public class PV_CostBasedRelationalLoader  {
 		//		}
 
 		double _DENSITY_THRESHOLD = maxCSSize*meanMultiplier/100;
-System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
+//System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
 		for(CharacteristicSet nextCS : csMap.keySet()) {
 			//if(children.containsKey(nextCS))
 			//	continue;
 			//			int bb = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 			//			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier*2, total/100)){ //-initial Marios Implementation
+
+//System.out.println("Candidate dense: " + nextCS.toString());			
 			
-			/* 
-			 * HERE IS THE DECISION ON DENSITY
-			 * */
-System.out.println("Candidate dense: " + nextCS.toString());
+			/* ********************************************* 
+			 * 		HERE IS THE DECISION ON DENSITY
+			 * *********************************************/
 			if(csExtentSizes.get(nextCS) >= _DENSITY_THRESHOLD){ //Dolap definition
-System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
+//System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
 				numDenseCSs++;
 				denseCSs.add(nextCS);
 				numDenseRows += csExtentSizes.get(nextCS);
@@ -1085,7 +1090,13 @@ System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));
 			System.exit(-1);
 		}
 		else
-			System.out.println("About to process " + foundCandidatePaths.size() + " candidate paths.");
+			System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
+
+		System.out.println("---------BEFORE CLEANUP-------");
+		for(Path path: foundCandidatePaths)
+			System.out.println("PATH: " + path.toString());
+		System.out.println("----------------\n");
+		
 		//UNCLEAR!!!!!!!!!!! TODO EXPLAIN
 		
 		/***
@@ -1137,6 +1148,12 @@ System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));
 
 			}
 		});
+
+		System.out.println("-------AFTER CLEANUP---------");
+		for(Path path: orderedPaths)
+			System.out.println("PATH: " + path.toString());
+		System.out.println("----------------\n");
+		
 		return orderedPaths;
 	}//end extracteCandidatePathsSortedOnTripleNumber()
 
@@ -1212,7 +1229,7 @@ System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));
 
 					for(CharacteristicSet parent : immediateAncestors.get(curCS)){							
 						if(denseCheck && denseCSs.contains(parent)) {
-System.out.println("@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
+//System.out.println("@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
 							//it already contains a dense node so just add it.
 							foundPaths.add(curPath);
 

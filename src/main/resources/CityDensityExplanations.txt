@@ -7,6 +7,12 @@
 6		<hasDensitySqM>
 
 
+Lattice
+---------------
+				     1,2
+  1,2,3,5		0,1,2		  1,2,46			
+0,1,2,3,5						0,1,2,46			
+
 allCSAncestors
 -----------------------
 $$child: [0, 1, 2, 4, 6] parent [1, 2, 4, 6]
@@ -33,6 +39,44 @@ $$$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
 
 Total number of triples: 197
 Mean size of CS extent: 32
-MaxCSsize: 75 
-meanMultiplier 2
-_DNS_THETA 1.0	
+MaxCSsize: 75	
+meanMultiplier 20	
+_DNS_THETA 15.0  //anything more than 15 tuples is dense.
+
+Candidate dense: [1, 2]
+Candidate dense: [0, 1, 2, 4, 6]
+... is dense, with extent 75
+Candidate dense: [0, 1, 2, 3, 5]
+... is dense, with extent 55
+Candidate dense: [1, 2, 3, 5]
+... is dense, with extent 36
+Candidate dense: [1, 2, 4, 6]
+... is dense, with extent 20
+Candidate dense: [0, 1, 2]
+Total CSs: 6
+Dense CSs: 4
+#Dense rows: 186
+
+-----------------------------------------------------------------------------
+Dense Dadies [1, 2, 4, 6], [1, 2, 3, 5]
+@@@@@cur: [0, 1, 2, 4, 6]	@@@@@par: [1, 2, 4, 6]
+
+@@@@@cur: [0, 1, 2, 3, 5]	@@@@@par: [1, 2, 3, 5]
+-----------------------------------------------------------------------------
+extractCandidatePathsSortedOnTripleNumber()
+-----------------------------------
+---------BEFORE CLEANUP-------
+PATH: [[0, 1, 2, 4, 6]]
+PATH: [[0, 1, 2, 3, 5]]
+PATH: [[0, 1, 2, 4, 6], [0, 1, 2], [1, 2]]
+PATH: [[0, 1, 2, 3, 5], [0, 1, 2], [1, 2]]
+PATH: [[1, 2, 3, 5], [1, 2]]
+PATH: [[1, 2, 4, 6], [1, 2]]
+----------------
+
+-------AFTER CLEANUP---------
+PATH: [[0, 1, 2, 4, 6], [0, 1, 2], [1, 2]]
+PATH: [[0, 1, 2, 3, 5], [0, 1, 2], [1, 2]]
+PATH: [[1, 2, 3, 5], [1, 2]]
+PATH: [[1, 2, 4, 6], [1, 2]]
+----------------
