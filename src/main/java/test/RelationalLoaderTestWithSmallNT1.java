@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import com.athena.imis.runnables.PV_CostBasedRelationalLoader;
 
 /**
+ * Just a very small data set lubm nt1
+ * 
  * @author pvassil
  *
  */

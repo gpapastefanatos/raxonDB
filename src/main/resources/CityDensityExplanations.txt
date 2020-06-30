@@ -35,4 +35,4 @@ Total number of triples: 197
 Mean size of CS extent: 32
 MaxCSsize: 75 
 meanMultiplier 2
-_DNS_THETA 1.0	//anyone who has more than 1 tuple is dense? Nonsense
+_DNS_THETA 1.0	
