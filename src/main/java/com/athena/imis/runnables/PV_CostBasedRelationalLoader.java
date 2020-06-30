@@ -167,7 +167,7 @@ public class PV_CostBasedRelationalLoader  {
 		System.out.println("Mean size of CS extent: " + totalNumOfTriples/csMap.size()) ;
 		
 		//extractDense nodes and calculate their number and the number of their triples
-		extracteDenseNodes();
+		extractDenseNodes();
 		System.out.println("Dense CSs: " + numDenseCSs);
 		System.out.println("#Dense rows: " + numDenseRows);						
 
@@ -193,7 +193,7 @@ public class PV_CostBasedRelationalLoader  {
 		 */
 
 //steps [1 .. 4]
-		List<Path> orderedPaths = extracteCandidatePathsSortedOnTripleNumber();
+		List<Path> orderedPaths = extractCandidatePathsSortedOnTripleNumber();
 		removeNestedAndEmptyPaths(orderedPaths);
 //steps 5 and 6, before we break, must explain to me. TODO		
 		cannotRefactorStep5UnlessYouExplainItToMe();
@@ -534,7 +534,7 @@ public class PV_CostBasedRelationalLoader  {
 	 * An auto-increment is assigned to {s, o} (s,o share the same index) and p based on the order of occurrence
 	 * csID is initialized to -1 (it is filled later when CS are constructed)
 	 * 
-	 * @param start A long value to denote the start of time measurement 9and contrast it to individual time measurements 
+	 * @param start A long value to denote the start of time measurement and contrast it to individual time measurements 
 	 * for the different steps within the method
 	 * @return returns the number of triples stored in the triplesArray
 	 */
@@ -656,7 +656,7 @@ public class PV_CostBasedRelationalLoader  {
 		int previousSubject = Integer.MIN_VALUE;
 
 	
-		//gp addition for grpah-based management of CS
+		//gp addition for graph-based management of CS
 		//		DirectedGraph<CharacteristicSet> csGraph = new DirectedGraph<CharacteristicSet>();
 		//		ArrayList<int[]> csTriples;
 
@@ -939,7 +939,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	/**
 	 * Calculates Dense nodes and the number of their tuples. A dense CS is a CS which contains (cs.size) more triples than a threshold
 	 */
-	private void extracteDenseNodes() {
+	private void extractDenseNodes() {
 		//		int threshold = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 		//		for(CharacteristicSet nodeCS : csMap.keySet()) {
 		//			if(nodeCS.getTriples().size()>=threshold) {
@@ -1065,7 +1065,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	 * Finds candidate paths and sorts them over their total number of triples
 	 * @return
 	 */
-	private List<Path> extracteCandidatePathsSortedOnTripleNumber() {
+	private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
 
 		//UNCLEAR!!!!!!!!!!! TODO EXPLAIN
@@ -1096,8 +1096,13 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 
 
 	/***
-	 * Computes a set of paths containing a route between each dense node and its ancestors ??? UNCLEAR ????
-	 * 
+	 * Computes a set of paths. A path is a list of CS between a dense node and its ancestors
+	 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
+	 * 			then 	Path1 = [cs1<--cs3<--cs4]
+	 * 					Path2 = [cs2<--cs3<--cs4]
+	 * 			No other paths exist, since only cs1,cs2 are dense.
+	 * The collection of paths form a strongly connected component; i.e., the (undirected) paths in the connected subgraph connect every pair of CSs in the graph   
+	 *  
 	 * @param denseCSs are the dense cs
 	 * @param pathCosts the cost of a path between two CSs. The cost of a path is the cardinality , i.e., the no of triples contained in ALL cs in the path 
 	 * @param csSizes the no of triples a cs contains
