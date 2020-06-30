@@ -193,9 +193,14 @@ public class PV_CostBasedRelationalLoader  {
 		 */
 
 //steps [1 .. 4]
-		List<Path> orderedPaths = extractCandidatePathsSortedOnTripleNumber();
-		removeNestedAndEmptyPaths(orderedPaths);
-//steps 5 and 6, before we break, must explain to me. TODO		
+/* *************************************************************************************************************		
+ *   TODO: HERE, AFTER THE EXTRACTION OF ORDERED PATHS, WE NEED TO CALCULATE THE COST OF EACH PATH AND RE-SORT	
+ * ************************************************************************************************************ */	
+		List<Path> orderedPaths = this.extractCandidatePathsSortedOnTripleNumber();
+		this.removeNestedAndEmptyPaths(orderedPaths);
+		
+		
+//steps 5 and 6, before we refactor this mega-method, must explain to me. 		
 		cannotRefactorStep5UnlessYouExplainItToMe();
 
 		//Finally, populate the db with triples.
@@ -212,7 +217,7 @@ public class PV_CostBasedRelationalLoader  {
 	
 	
 	/**
-	 * FIX ME FIX ME FIX ME
+	 * TODO FIX ME FIX ME FIX ME
 	 */
 	private void cannotRefactorStep5UnlessYouExplainItToMe() {
 		/**
@@ -222,12 +227,13 @@ public class PV_CostBasedRelationalLoader  {
 		Set<CharacteristicSet> notContained = new HashSet<CharacteristicSet>();
 		for(CharacteristicSet nextCS : csMap.keySet()){
 			if(!finalUniqueCandidatePathsMap.contains(nextCS)){
-				//System.out.println("Not contained: ("+csSizes.get(nextCS)+")" + nextCS.toString()) ;
+//PV DIAGNOSTICS
+System.out.println("Id of CS not contained: " + nextCS.toString()) ;
 				notCovered += csExtentSizes.get(nextCS);
 				notContained.add(nextCS);
 			}
 		}
-		System.out.println("Not covered : " + notCovered); 
+		System.out.println("#Tuples not covered : " + notCovered); 
 
 		Map<Path, Integer> remainingCosts = new HashMap<Path, Integer>();
 		Map<CharacteristicSet, Set<CharacteristicSet>> remainingAncestors = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
@@ -265,14 +271,17 @@ public class PV_CostBasedRelationalLoader  {
 
 		}
 
-		System.out.println("Remaining ancestor listing complete.");
+		System.out.println("Remaining ancestor listing complete.\n\n");
+		
+		
+		
+		
 		Map<CharacteristicSet, Set<CharacteristicSet>> remainingImmediateAncestors = getChildren(remainingAncestors);
 		Map<CharacteristicSet, Set<CharacteristicSet>> reverseImmediateAncestorsNotContained = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		for(CharacteristicSet f : notContained){
 			reverseImmediateAncestorsNotContained.put(f, new HashSet<CharacteristicSet>());
 		}
 		for(CharacteristicSet nextCS : remainingImmediateAncestors.keySet()){
-
 			for(CharacteristicSet child : remainingImmediateAncestors.get(nextCS)){
 				Set<CharacteristicSet> set = reverseImmediateAncestorsNotContained.getOrDefault(child, new HashSet<CharacteristicSet>());
 				set.add(nextCS);
@@ -284,19 +293,34 @@ public class PV_CostBasedRelationalLoader  {
 		for(CharacteristicSet nextCS : notContained) {
 			//if(children.containsKey(nextCS))
 			//	continue;
+			
+			
+			/*
+			 * DECIDE IF DENSE !!!!! MUST ALIGN TO THE OTHER DEF.
+			 */
+			
 			if(csExtentSizes.get(nextCS) >= Math.max((notCovered)/notContained.size()*meanMultiplier, totalNumOfTriples/1000)){
 				//denseCS++;
 				remainingDenseCSs.add(nextCS);
 				//totalDenseRows += csSizes.get(nextCS);
 			}
-
 		}
 		Set<Path> remainingPaths = findPaths(remainingDenseCSs, remainingCosts, csExtentSizes, reverseImmediateAncestorsNotContained, true, true);
+//PV DIAGNOSTICS
+System.out.println("\n---------REM. DENSE----------------");		
+for(CharacteristicSet cs: remainingDenseCSs) {
+	System.out.println("Remaining Dense:" + cs.toString());
+}
+System.out.println("\n-----------REM. PATH--------------");
+for(Path path: remainingPaths) {
+	System.out.println("Remaining Path:" + path.toString());
+}
+System.out.println("-------------------------\n");
+
 
 		int totalCovered = 0;
 
 		for(Path nextPath : finalListCandidatePAths){
-
 			//System.out.println("next path: " + nextPath );
 			totalCovered += pathCosts.get(nextPath);
 
@@ -306,7 +330,6 @@ public class PV_CostBasedRelationalLoader  {
 		int totalRemaining = 0;
 
 		for(Path nextPath : remainingPaths){
-
 			//System.out.println("next path: " + nextPath );
 			totalRemaining  += remainingCosts.get(nextPath);
 
@@ -477,7 +500,15 @@ public class PV_CostBasedRelationalLoader  {
 		//if(true) return ;
 		System.out.println("merged map full: " + mergedMapFull.toString());
 		tripleGroups = mergedMapFull.entrySet().iterator();
-	}
+
+//PV DIAGNOSTICS		
+System.out.println("\n-----------PATHMAP--------------");
+		for(Path path: pathMap.keySet()) {
+			System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
+		}
+		System.out.println("-------------------------\n");
+		
+	}//end cannotRefactorStep5UnlessYouExplainItToMe()
 
 
 
@@ -853,7 +884,8 @@ public class PV_CostBasedRelationalLoader  {
 
 				//the condition for a parent-child is that the child CS must contain ALL properties of parent   
 				if(child.contains(parent)){
-//System.out.println("$$child: " + child.toString() + " parent " + parent.toString());					
+//PV DIAGNOSTICS COMMENTED OUT						
+System.out.println("$$child: " + child.toString() + " parent " + parent.toString());					
 					Set<CharacteristicSet> children = allCsAncestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					allCsAncestors.put(parent, children);
@@ -886,7 +918,8 @@ public class PV_CostBasedRelationalLoader  {
 				Set<CharacteristicSet> set = parents.getOrDefault(child, new HashSet<CharacteristicSet>());
 				set.add(nextCS);
 				parents.put(child, set);
-//System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
+//PV DIAGNOSTICS COMMENTED OUT		
+System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
 				
 			}
 		}
@@ -953,20 +986,24 @@ public class PV_CostBasedRelationalLoader  {
 		//		}
 
 		double _DENSITY_THRESHOLD = maxCSSize*meanMultiplier/100;
-//System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
+
+//PV DIAGNOSTICS COMMENTED OUT		
+System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
 		for(CharacteristicSet nextCS : csMap.keySet()) {
 			//if(children.containsKey(nextCS))
 			//	continue;
 			//			int bb = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 			//			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier*2, total/100)){ //-initial Marios Implementation
 
-//System.out.println("Candidate dense: " + nextCS.toString());			
+//PV DIAGNOSTICS COMMENTED OUT
+System.out.println("Candidate dense: " + nextCS.toString());			
 			
 			/* ********************************************* 
 			 * 		HERE IS THE DECISION ON DENSITY
 			 * *********************************************/
 			if(csExtentSizes.get(nextCS) >= _DENSITY_THRESHOLD){ //Dolap definition
-//System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
+//PV DIAGNOSTICS COMMENTED OUT			
+System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
 				numDenseCSs++;
 				denseCSs.add(nextCS);
 				numDenseRows += csExtentSizes.get(nextCS);
@@ -979,10 +1016,97 @@ public class PV_CostBasedRelationalLoader  {
 		//				}
 	}// end extracteDenseNodes
 
+	
+	
+	/**
+	 * Finds candidate paths and sorts them over their total number of triples
+	 * 
+		 * POST-CONDITION: at the end of this method
+	 * --------------------------------------------
+	 * each Path is a sequence of edges, in the typical graph-theoretic meaning,
+	 * starting from a dense node
+	 * containing non-dense nodes in the rest of the path's nodes, all forming a path
+	 * 
+	 *  At the end of the method, the returned Set<Path> contains, for each pair of dense node and non-dense ancestor,
+	 *  a Path in the above sense that connects the ancestor to the dense descendant
+
+	 * 
+	 * Step1: 
+	 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
+	 * 			then 	Path1 = [cs1<--cs3<--cs4], Path2 = [cs1<--cs3]
+	 * 						Path3 = [cs2<--cs3<--cs4], Path4 = [cs2<--cs3] are the possible paths from the two dense nodes  
+	 * 			No other paths exist, since only cs1,cs2 are dense.
+	 * The collection of paths form a strongly connected component; i.e., the (undirected) paths in the connected subgraph connect every pair of CSs in the graph   
+	 *  
+	 * Step 2:	Keep longest paths only Path1 = [cs1<--cs3<--cs4] and Path3 = [cs2<--cs3<--cs4]  
+	 * 
+	 * Step 3: sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path 
+	 * 			If Path1.cost > Path2.cost  then Path1>>Path2>>....>>
+	 * 
+	 **/
+private List<Path> extractCandidatePathsSortedOnTripleNumber() {
+	foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
+	if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
+		System.err.println("There are no candidate paths found. Exiting");
+		System.exit(-1);
+	}
+//PV DIAGNOSTICS COMMENTED OUT
+	else
+		System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
+
+	System.out.println("---------BEFORE CLEANUP-------");
+	for(Path path: foundCandidatePaths)
+		System.out.println("PATH: " + path.toString());
+	System.out.println("----------------\n");
+			
+	Set<Path> toRemovePaths = new HashSet<Path>();
+	Iterator<Path> iterOuter = foundCandidatePaths.iterator();
+	while (iterOuter.hasNext()) {
+	    Path outerPath = iterOuter.next();
+	//for(Path outerPath : foundCandidatePaths){
+		Iterator<Path> iterInn = foundCandidatePaths.iterator();
+
+		while (iterInn.hasNext()) {
+		    Path innerPath = iterInn.next();
+		    
+//		for(Path innerPath : foundCandidatePaths){
+			if(outerPath.equals(innerPath)) continue;					
+			if(innerPath.containsAll(outerPath)){
+//				foundCandidatePaths.remove(outerPath);
+				toRemovePaths.add(outerPath);
+				break;
+			}					
+		}
+	}	
+	foundCandidatePaths.removeAll(toRemovePaths);
+	
+	//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
+	List<Path> orderedPaths = new ArrayList<Path>(foundCandidatePaths);			
+	Collections.sort(orderedPaths, new Comparator<Path>() {
+
+		public int compare(Path o1, Path o2) {
+			if (pathCosts.get(o1) > pathCosts.get(o2)) return -11; //tell sorting that if o1>o2 then o1 should come before o2
+			else if (pathCosts.get(o1) < pathCosts.get(o2)) return 1; //tell sorting that if o1<o2 then o1 should come after o2
+			else return 0;
+
+		}
+	});
+//PV DIAGNOSTICS COMMENTED OUT
+	System.out.println("-------AFTER CLEANUP---------");
+	for(Path path: orderedPaths)
+		System.out.println("PATH: " + path.toString());
+	System.out.println("----------------\n");
+	
+	return orderedPaths;
+}//end extracteCandidatePathsSortedOnTripleNumber()
+
 
 	/**
-	 * TODO Fix description
-	 * Performs merging of paths based on their cost. Takes an DESC order list of paths and when two paths overlap --> keeps the one with the higher cost.
+	 * Performs merging of paths based on their cost. 
+	 * POST CONDITION
+	 * at the end of this step, each non-dense node is part of exactly one path
+	 * 
+	 * Takes an DESC order list of paths and when two paths overlap --> keeps the one with the higher cost.
 	 * Two paths overlap for the common CS they contain  
 	 * 
 	 * Step 1-3 done in extractCandidatePathsSortedOnTripleNumber()  
@@ -1024,7 +1148,12 @@ public class PV_CostBasedRelationalLoader  {
 			});
 
 		}
-
+//PV DIAGNOSTICS COMMENTED OUT
+		System.out.println("-------------------------------------\n\n");
+		for(Path path: orderedPaths) {
+			System.out.println("Survives Nested Removal: " + path.toString());
+		}
+		
 		//remove empty paths
 		Iterator<Path> finalIt = orderedPaths.iterator();
 		while(finalIt.hasNext()){
@@ -1039,12 +1168,12 @@ public class PV_CostBasedRelationalLoader  {
 			}
 		}
 		for(Path finalCS : finalListCandidatePAths){
-
 			finalUniqueCandidatePathsMap.addAll(finalCS);
 		}
-		System.out.println(finalUniqueCandidatePathsMap.size());
-		System.out.println(finalListCandidatePAths.size() + ": " + finalListCandidatePAths.toString());
 
+		System.out.println("After removalOfNestedAndEmptyPaths,finalUniqueCandidatePathsMap.size: " + finalUniqueCandidatePathsMap.size());
+		System.out.println("finalListCandidatePAths size is: " + finalListCandidatePAths.size() + "...\n\t.. and the actual paths: " + finalListCandidatePAths.toString());
+		System.out.println("-------------------------------------\n\n");
 	}//end method removeNestedAndEmptyPaths
 
 
@@ -1078,90 +1207,8 @@ public class PV_CostBasedRelationalLoader  {
 
 	}
 	
+
 	
-		/**
-		 * Finds candidate paths and sorts them over their total number of triples
-		 * 
- 		 * POST-CONDITION: at the end of this method
-		 * --------------------------------------------
-		 * each Path is a sequence of edges, in the typical graph-theoretic meaning,
-		 * starting from a dense node
-		 * containing non-dense nodes in the rest of the path's nodes, all forming a path
-		 * 
-		 *  At the end of the method, the returned Set<Path> contains, for each pair of dense node and non-dense ancestor,
-		 *  a Path in the above sense that connects the ancestor to the dense descendant
-
-		 * 
-		 * Step1: 
-		 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
-		 * 			then 	Path1 = [cs1<--cs3<--cs4], Path2 = [cs1<--cs3]
-		 * 						Path3 = [cs2<--cs3<--cs4], Path4 = [cs2<--cs3] are the possible paths from the two dense nodes  
-		 * 			No other paths exist, since only cs1,cs2 are dense.
-		 * The collection of paths form a strongly connected component; i.e., the (undirected) paths in the connected subgraph connect every pair of CSs in the graph   
-		 *  
-		 * Step 2:	Keep longest paths only Path1 = [cs1<--cs3<--cs4] and Path3 = [cs2<--cs3<--cs4]  
-		 * 
-		 * Step 3: sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path 
-		 * 			If Path1.cost > Path2.cost  then Path1>>Path2>>....>>
-		 * 
-		 **/
-	private List<Path> extractCandidatePathsSortedOnTripleNumber() {
-		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
-		if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
-			System.err.println("There are no candidate paths found. Exiting");
-			System.exit(-1);
-		}
-//PV COMMENTS
-//		else
-//			System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
-//
-//		System.out.println("---------BEFORE CLEANUP-------");
-//		for(Path path: foundCandidatePaths)
-//			System.out.println("PATH: " + path.toString());
-//		System.out.println("----------------\n");
-				
-		Set<Path> toRemovePaths = new HashSet<Path>();
-		Iterator<Path> iterOuter = foundCandidatePaths.iterator();
-		while (iterOuter.hasNext()) {
-		    Path outerPath = iterOuter.next();
-		//for(Path outerPath : foundCandidatePaths){
-			Iterator<Path> iterInn = foundCandidatePaths.iterator();
-
-			while (iterInn.hasNext()) {
-			    Path innerPath = iterInn.next();
-			    
-//			for(Path innerPath : foundCandidatePaths){
-				if(outerPath.equals(innerPath)) continue;					
-				if(innerPath.containsAll(outerPath)){
-//					foundCandidatePaths.remove(outerPath);
-					toRemovePaths.add(outerPath);
-					break;
-				}					
-			}
-		}	
-		foundCandidatePaths.removeAll(toRemovePaths);
-		
-		//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
-		List<Path> orderedPaths = new ArrayList<Path>(foundCandidatePaths);			
-		Collections.sort(orderedPaths, new Comparator<Path>() {
-
-			public int compare(Path o1, Path o2) {
-				if (pathCosts.get(o1) > pathCosts.get(o2)) return -11; //tell sorting that if o1>o2 then o1 should come before o2
-				else if (pathCosts.get(o1) < pathCosts.get(o2)) return 1; //tell sorting that if o1<o2 then o1 should come after o2
-				else return 0;
-
-			}
-		});
-//PV COMMENTED OUT
-//		System.out.println("-------AFTER CLEANUP---------");
-//		for(Path path: orderedPaths)
-//			System.out.println("PATH: " + path.toString());
-//		System.out.println("----------------\n");
-		
-		return orderedPaths;
-	}//end extracteCandidatePathsSortedOnTripleNumber()
-
-
 	/***
 	 * Computes a set of paths. A path is a list of CS between a dense node and its ancestors
 	 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 

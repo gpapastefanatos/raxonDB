@@ -195,3 +195,9 @@
 <Cádiz>	<hasDensitySqM>	<25000> .
 <L'Hospitalet de Llobregat>	<hasDensitySqM>	<55599> .
 <Madrid>	<hasDensitySqM>	<14000> .
+<Austria>	<isInEU>	<TRUE> .
+< Belgium>	<isInEU>	<TRUE> .
+< Bulgaria>	<isInEU>	<TRUE> .
+< Croatia>	<isInEU>	<TRUE> .
+< Czech Republic>	<isInEU>	<TRUE> .
+< Denmark>	<isInEU>	<TRUE> .

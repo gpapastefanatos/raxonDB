@@ -5,6 +5,7 @@
 4		<hasAreaSqM>
 5		<hasDensityKm2>
 6		<hasDensitySqM>
+7		<isInEU>
 
 
 Lattice
@@ -15,16 +16,15 @@ Lattice
 
 allCSAncestors
 -----------------------
-$$child: [0, 1, 2, 4, 6] parent [1, 2, 4, 6]
+$$child: [0, 1, 2, 4, 6] parent [1, 2]
+$$child: [0, 1, 2, 3, 5] parent [1, 2]
 $$child: [1, 2, 3, 5] parent [1, 2]
 $$child: [1, 2, 4, 6] parent [1, 2]
 $$child: [0, 1, 2] parent [1, 2]
-$$child: [0, 1, 2, 4, 6] parent [1, 2]
-$$child: [0, 1, 2, 3, 5] parent [1, 2]
 $$child: [0, 1, 2, 3, 5] parent [1, 2, 3, 5]
-$$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
+$$child: [0, 1, 2, 4, 6] parent [1, 2, 4, 6]
 $$child: [0, 1, 2, 4, 6] parent [0, 1, 2]
-
+$$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
 
 children and parents
 --------------------------------
@@ -36,9 +36,8 @@ $$$child: [0, 1, 2, 4, 6] parent [1, 2, 4, 6]
 $$$child: [0, 1, 2, 4, 6] parent [0, 1, 2]
 $$$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
 
-
-Total number of triples: 197
-Mean size of CS extent: 32
+Total number of triples: 203
+Mean size of CS extent: 29
 MaxCSsize: 75	
 meanMultiplier 20	
 _DNS_THETA 15.0  //anything more than 15 tuples is dense.
@@ -53,7 +52,7 @@ Candidate dense: [1, 2, 3, 5]
 Candidate dense: [1, 2, 4, 6]
 ... is dense, with extent 20
 Candidate dense: [0, 1, 2]
-Total CSs: 6
+Total CSs: 7
 Dense CSs: 4
 #Dense rows: 186
 
@@ -63,6 +62,9 @@ Dense Dadies [1, 2, 4, 6], [1, 2, 3, 5]
 
 @@@@@cur: [0, 1, 2, 3, 5]	@@@@@par: [1, 2, 3, 5]
 -----------------------------------------------------------------------------
+
+
+
 extractCandidatePathsSortedOnTripleNumber()
 -----------------------------------
 ---------BEFORE CLEANUP-------
@@ -80,3 +82,62 @@ PATH: [[0, 1, 2, 3, 5], [0, 1, 2], [1, 2]]
 PATH: [[1, 2, 3, 5], [1, 2]]
 PATH: [[1, 2, 4, 6], [1, 2]]
 ----------------
+/extractCandidatePathsSortedOnTripleNumber()
+
+
+
+
+removeNestedAndEmptyPaths()
+-------------------------------------
+Survives Nested Removal: [[0, 1, 2, 4, 6], [0, 1, 2], [1, 2]]
+Survives Nested Removal: [[0, 1, 2, 3, 5]]
+Survives Nested Removal: [[1, 2, 3, 5]]
+Survives Nested Removal: [[1, 2, 4, 6]]
+
+//contrast this to the AFTER CLEANUP
+//observe that the [1,2] has gone into the the first path, and removed from all else
+//observe that the [0,1,2] has gone into the the first path, and removed the second
+
+After removalOfNestedAndEmptyPaths,finalUniqueCandidatePathsMap.size: 6
+finalListCandidatePAths size is: 4...
+	.. and the actual paths: [
+	[[0, 1, 2, 4, 6], [0, 1, 2], [1, 2]], 
+	[[0, 1, 2, 3, 5]], 
+	[[1, 2, 3, 5]], 
+	[[1, 2, 4, 6]]	
+	]
+//i.e, there were no empty paths in this example	
+-------------------------------------
+/removeNestedAndEmptyPaths()
+
+
+
+============== HERE COMES THE GLENTI =========================
+Not contained: [7]
+Not covered : 6
+Remaining ancestor listing complete.
+
+//at this point only 7: isInTheEU is pending
+
+    ... BLACK MAGIC INTERVENES && DOES STH WITH IT...
+
+//cause [7] is not touchded by this code
+---------REM. DENSE----------------
+
+-----------REM. PATH--------------
+-------------------------
+Total coverage: 197
+Total remaining:0
+Size of remaining Paths: 0
+Removed contained.
+
+
+... BLACK MAGIC INTERVENES ...
+
+-----------PATHMAP--------------
+PathMap:[[7]] -> 4
+PathMap:[[0, 1, 2, 3, 5]] -> 1
+PathMap:[[0, 1, 2, 4, 6], [0, 1, 2], [1, 2]] -> 0
+PathMap:[[1, 2, 3, 5]] -> 2
+PathMap:[[1, 2, 4, 6]] -> 3
+-------------------------
