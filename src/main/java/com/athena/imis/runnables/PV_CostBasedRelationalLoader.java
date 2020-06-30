@@ -973,10 +973,23 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 
 	/**
 	 * TODO Fix description
+	 * Performs merging of paths based on their cost. Takes an DESC order list of paths and when two paths overlap --> keeps the one with the higher cost.
+	 * Two paths overlap for the common CS they contain  
 	 * 
+	 * Step 1-3 done in extractCandidatePathsSortedOnTripleNumber()  
+	 * 
+	 *  Step 4: We have Path1 = [cs1<--cs3<--cs4] and Path3 = [cs2<--cs3<--cs4], with Path1.cost>Path2.cost 
+	 *  		then remove from Path3 all cs that exist in Path1, i.e., paths become Path1 = [cs1<--cs3<--cs4] and Path3 = [cs2]
+	 *  		It removes only non-dense nodes, since a dense node can only belong to a single path.
+	 *  	Step 4 also updates the cardinality, i.e., cost,  of the small Path in order to remove the costs of the CSs that were removed and reorders the remaining Path list such that the small path is positioned lower in the order list
+	 *  	
 	 * @param orderedPaths
 	 */
 	private void removeNestedAndEmptyPaths(List<Path> orderedPaths) {
+		
+		
+		
+		
 		Path bigPath ;
 
 		int totalIterations = 0;					
@@ -1069,7 +1082,22 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
 
 		//UNCLEAR!!!!!!!!!!! TODO EXPLAIN
-		//		clean up internal paths and keep only longest ones  
+		
+		/***
+		 * Step1: 
+		 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
+		 * 			then 	Path1 = [cs1<--cs3<--cs4], Path2 = [cs1<--cs3]
+		 * 						Path3 = [cs2<--cs3<--cs4], Path4 = [cs2<--cs3] are the possible paths from the two dense nodes  
+		 * 			No other paths exist, since only cs1,cs2 are dense.
+		 * The collection of paths form a strongly connected component; i.e., the (undirected) paths in the connected subgraph connect every pair of CSs in the graph   
+		 *  
+		 * Step 2:	Keep longest paths only Path1 = [cs1<--cs3<--cs4] and Path3 = [cs2<--cs3<--cs4]  
+		 * 
+		 * Step 3: sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path 
+		 * 			If Path1.cost > Path2.cost  then Path1>>Path2>>....>>
+
+		 **/
+
 		for(Path outerPath : foundCandidatePaths){
 			for(Path innerPath : foundCandidatePaths){
 				if(outerPath.equals(innerPath)) continue;					
@@ -1098,8 +1126,8 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	/***
 	 * Computes a set of paths. A path is a list of CS between a dense node and its ancestors
 	 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
-	 * 			then 	Path1 = [cs1<--cs3<--cs4]
-	 * 					Path2 = [cs2<--cs3<--cs4]
+	 * 			then 	Path1 = [cs1<--cs3<--cs4], Path2 = [cs1<--cs3]
+	 * 					Path3 = [cs2<--cs3<--cs4], Path4 = [cs2<--cs3] are the possible paths from the two dense nodes  
 	 * 			No other paths exist, since only cs1,cs2 are dense.
 	 * The collection of paths form a strongly connected component; i.e., the (undirected) paths in the connected subgraph connect every pair of CSs in the graph   
 	 *  
