@@ -29,7 +29,7 @@ public class PVSimpleClient {
 
 		try{
 			Statement st = conn.createStatement();
-			String propertiesSetQuery = " SELECT id, uri FROM propertiesset ;";
+			String propertiesSetQuery = " SELECT id, uri FROM propertiesset ORDER BY id ASC;";
 			ResultSet rsProps = st.executeQuery(propertiesSetQuery);
 
 			int size =0;

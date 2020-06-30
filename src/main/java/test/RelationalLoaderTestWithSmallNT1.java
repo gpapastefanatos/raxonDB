@@ -96,4 +96,113 @@ class RelationalLoaderTestWithSmallNT1 {
 		assertEquals(2, rsSize);
 	}//end method
 
+	@Test
+	void testNumberOfEntriesTableCS0() {
+		int rsSize =0;
+		try{
+			Statement st = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);  //to allow the last() call
+			String propertiesSetQuery = " SELECT s, p_0, p_1 FROM cs_0 ORDER BY s ASC;";
+			ResultSet rsProps = st.executeQuery(propertiesSetQuery);
+
+//			while(rsProps.next()){
+//				System.out.println(rsProps.getInt(1) + "\t\t" + rsProps.getString(2));
+//			}
+			
+			if (rsProps != null) 
+			{
+			  rsProps.last();    // moves cursor to the last row
+			  rsSize = rsProps.getRow(); // get row id 
+			}
+			
+			rsProps.close();
+			st.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		assertEquals(2, rsSize);
+	}//end method
+	
+	@Test
+	void testNumberOfEntriesTableCS1() {
+		int rsSize =0;
+		try{
+			Statement st = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);  //to allow the last() call
+			String propertiesSetQuery = " SELECT s, p_0 FROM cs_1 ORDER BY s ASC;";
+			ResultSet rsProps = st.executeQuery(propertiesSetQuery);
+
+//			while(rsProps.next()){
+//				System.out.println(rsProps.getInt(1) + "\t\t" + rsProps.getString(2));
+//			}
+			
+			if (rsProps != null) 
+			{
+			  rsProps.last();    // moves cursor to the last row
+			  rsSize = rsProps.getRow(); // get row id 
+			}
+			
+			rsProps.close();
+			st.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		assertEquals(1, rsSize);
+	}//end method
+
+	@Test
+	void testNumberOfEntriesTableCSSCHEMA() {
+		int rsSize =0;
+		try{
+			Statement st = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);  //to allow the last() call
+			String propertiesSetQuery = " SELECT id, properties FROM cs_schema ORDER BY id ASC;";
+			ResultSet rsProps = st.executeQuery(propertiesSetQuery);
+
+//			while(rsProps.next()){
+//				System.out.println(rsProps.getInt(1) + "\t\t" + rsProps.getString(2));
+//			}
+			
+			if (rsProps != null) 
+			{
+			  rsProps.last();    // moves cursor to the last row
+			  rsSize = rsProps.getRow(); // get row id 
+			}
+			
+			rsProps.close();
+			st.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		assertEquals(2, rsSize);
+	}//end method	
+
+	@Test
+	void testNumberOfEntriesTableDICTIONARY() {
+		int rsSize =0;
+		try{
+			Statement st = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);  //to allow the last() call
+			String propertiesSetQuery = " SELECT id, label FROM dictionary ORDER BY id ASC;";
+			ResultSet rsProps = st.executeQuery(propertiesSetQuery);
+
+//			while(rsProps.next()){
+//				System.out.println(rsProps.getInt(1) + "\t\t" + rsProps.getString(2));
+//			}
+			
+			if (rsProps != null) 
+			{
+			  rsProps.last();    // moves cursor to the last row
+			  rsSize = rsProps.getRow(); // get row id 
+			}
+			
+			rsProps.close();
+			st.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		assertEquals(7, rsSize);
+	}//end method	
+
+	
 }//end class

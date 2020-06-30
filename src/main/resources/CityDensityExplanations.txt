@@ -1,0 +1,38 @@
+0		<belongsTo>
+1		<hasPopulation>
+2		<hasCountry>
+3		<hasAreaKm2>
+4		<hasAreaSqM>
+5		<hasDensityKm2>
+6		<hasDensitySqM>
+
+
+allCSAncestors
+-----------------------
+$$child: [0, 1, 2, 4, 6] parent [1, 2, 4, 6]
+$$child: [1, 2, 3, 5] parent [1, 2]
+$$child: [1, 2, 4, 6] parent [1, 2]
+$$child: [0, 1, 2] parent [1, 2]
+$$child: [0, 1, 2, 4, 6] parent [1, 2]
+$$child: [0, 1, 2, 3, 5] parent [1, 2]
+$$child: [0, 1, 2, 3, 5] parent [1, 2, 3, 5]
+$$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
+$$child: [0, 1, 2, 4, 6] parent [0, 1, 2]
+
+
+children and ancestors
+--------------------------------
+$$$child: [1, 2, 3, 5] parent [1, 2]
+$$$child: [1, 2, 4, 6] parent [1, 2]
+$$$child: [0, 1, 2] parent [1, 2]
+$$$child: [0, 1, 2, 3, 5] parent [1, 2, 3, 5]
+$$$child: [0, 1, 2, 4, 6] parent [1, 2, 4, 6]
+$$$child: [0, 1, 2, 4, 6] parent [0, 1, 2]
+$$$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
+
+
+Total number of triples: 197
+Mean size of CS extent: 32
+MaxCSsize: 75 
+meanMultiplier 2
+_DNS_THETA 1.0	//anyone who has more than 1 tuple is dense? Nonsense

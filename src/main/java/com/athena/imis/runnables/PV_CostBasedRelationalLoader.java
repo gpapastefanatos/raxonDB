@@ -167,7 +167,7 @@ public class PV_CostBasedRelationalLoader  {
 		System.out.println("Mean size of CS extent: " + totalNumOfTriples/csMap.size()) ;
 		
 		//extractDense nodes and calculate their number and the number of their triples
-		extractDenseNodes();
+		this.extractDenseNodes();
 		System.out.println("Dense CSs: " + numDenseCSs);
 		System.out.println("#Dense rows: " + numDenseRows);						
 
@@ -815,7 +815,7 @@ public class PV_CostBasedRelationalLoader  {
 	/**
 	 * Populates the all-, immediate-, reverseImmediate-, Ancestors maps, with the ancestors/mamas/children of each cs, the csExtentSizes with the number of tuples per cs
 	 * 
-	 * @return total number of triples, as the sume of the extents of all CSs
+	 * @return total number of triples, as the sum of the extents of all CSs
 	 */
 	private int extracteAncestorAndParentRelationships() {
 
@@ -838,7 +838,7 @@ public class PV_CostBasedRelationalLoader  {
 			csExtentSizes.put(a_cs, size);
 			maxCSSize = Math.max(maxCSSize, size);
 		}				
-		System.out.println("max CS Size: " + maxCSSize);
+		System.out.println("max CS Size: " + maxCSSize + "\n\n");
 		
 		//discover ancestry via pairwise checks
 		for(CharacteristicSet parent : csMap.keySet()){
@@ -849,7 +849,7 @@ public class PV_CostBasedRelationalLoader  {
 
 				//the condition for a parent-child is that the child CS must contain ALL properties of parent   
 				if(child.contains(parent)){
-System.out.println("\n\n$$child: " + child.toString() + " parent " + parent.toString()+ "\n\n");					
+//System.out.println("$$child: " + child.toString() + " parent " + parent.toString());					
 					Set<CharacteristicSet> children = allCsAncestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					allCsAncestors.put(parent, children);
@@ -868,7 +868,7 @@ System.out.println("\n\n$$child: " + child.toString() + " parent " + parent.toSt
 			}
 
 		}
-		System.out.println("Ancestor listing complete.");
+		System.out.println("Ancestor listing complete.\n\n");
 
 
 		this.children = getChildren(allCsAncestors);
@@ -882,7 +882,7 @@ System.out.println("\n\n$$child: " + child.toString() + " parent " + parent.toSt
 				Set<CharacteristicSet> set = parents.getOrDefault(child, new HashSet<CharacteristicSet>());
 				set.add(nextCS);
 				parents.put(child, set);
-System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toString()+ "\n\n");					
+//System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
 				
 			}
 		}
@@ -948,6 +948,8 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 		//			}
 		//		}
 
+		double _DENSITY_THRESHOLD = maxCSSize*meanMultiplier/100;
+System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
 		for(CharacteristicSet nextCS : csMap.keySet()) {
 			//if(children.containsKey(nextCS))
 			//	continue;
@@ -957,7 +959,9 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 			/* 
 			 * HERE IS THE DECISION ON DENSITY
 			 * */
-			if(csExtentSizes.get(nextCS) >= maxCSSize*meanMultiplier/100){ //Dolap definition
+System.out.println("Candidate dense: " + nextCS.toString());
+			if(csExtentSizes.get(nextCS) >= _DENSITY_THRESHOLD){ //Dolap definition
+System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
 				numDenseCSs++;
 				denseCSs.add(nextCS);
 				numDenseRows += csExtentSizes.get(nextCS);
@@ -986,10 +990,6 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	 * @param orderedPaths
 	 */
 	private void removeNestedAndEmptyPaths(List<Path> orderedPaths) {
-		
-		
-		
-		
 		Path bigPath ;
 
 		int totalIterations = 0;					
@@ -1080,7 +1080,12 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 	 */
 	private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
-
+		if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
+			System.err.println("There are no candidate paths found. Exiting");
+			System.exit(-1);
+		}
+		else
+			System.out.println("About to process " + foundCandidatePaths.size() + " candidate paths.");
 		//UNCLEAR!!!!!!!!!!! TODO EXPLAIN
 		
 		/***
@@ -1098,15 +1103,28 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 
 		 **/
 
-		for(Path outerPath : foundCandidatePaths){
-			for(Path innerPath : foundCandidatePaths){
+		Set<Path> toRemovePaths = new HashSet<Path>();
+		//The following shit crashes because of concurrent access. Wtf?
+		Iterator<Path> iterOuter = foundCandidatePaths.iterator();
+
+		while (iterOuter.hasNext()) {
+		    Path outerPath = iterOuter.next();
+		//for(Path outerPath : foundCandidatePaths){
+			Iterator<Path> iterInn = foundCandidatePaths.iterator();
+
+			while (iterInn.hasNext()) {
+			    Path innerPath = iterInn.next();
+			    
+//			for(Path innerPath : foundCandidatePaths){
 				if(outerPath.equals(innerPath)) continue;					
 				if(innerPath.containsAll(outerPath)){
-					foundCandidatePaths.remove(outerPath);
+//					foundCandidatePaths.remove(outerPath);
+					toRemovePaths.add(outerPath);
 					break;
 				}					
 			}
 		}	
+		foundCandidatePaths.removeAll(toRemovePaths);
 		
 		//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
 		List<Path> orderedPaths = new ArrayList<Path>(foundCandidatePaths);			
@@ -1173,6 +1191,8 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 				curCS = curPath.get(curPath.size()-1);
 
 				if(withSiblings && visited.contains(curCS)) continue;
+				
+				
 				//if no parents, is root, add path
 				if(immediateAncestors.get(curCS).isEmpty()){
 					//no parents and no dense node reached.
@@ -1192,7 +1212,7 @@ System.out.println("\n\n$$$child: " + child.toString() + " parent " + nextCS.toS
 
 					for(CharacteristicSet parent : immediateAncestors.get(curCS)){							
 						if(denseCheck && denseCSs.contains(parent)) {
-System.out.println("\n@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
+System.out.println("@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
 							//it already contains a dense node so just add it.
 							foundPaths.add(curPath);
 
