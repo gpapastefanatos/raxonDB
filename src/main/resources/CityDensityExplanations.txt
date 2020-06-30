@@ -26,7 +26,7 @@ $$child: [0, 1, 2, 3, 5] parent [0, 1, 2]
 $$child: [0, 1, 2, 4, 6] parent [0, 1, 2]
 
 
-children and ancestors
+children and parents
 --------------------------------
 $$$child: [1, 2, 3, 5] parent [1, 2]
 $$$child: [1, 2, 4, 6] parent [1, 2]

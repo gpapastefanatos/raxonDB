@@ -1079,27 +1079,19 @@ public class PV_CostBasedRelationalLoader  {
 	}
 	
 	
-	/**
-	 * Finds candidate paths and sorts them over their total number of triples
-	 * @return
-	 */
-	private List<Path> extractCandidatePathsSortedOnTripleNumber() {
-		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
-		if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
-			System.err.println("There are no candidate paths found. Exiting");
-			System.exit(-1);
-		}
-		else
-			System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
+		/**
+		 * Finds candidate paths and sorts them over their total number of triples
+		 * 
+ 		 * POST-CONDITION: at the end of this method
+		 * --------------------------------------------
+		 * each Path is a sequence of edges, in the typical graph-theoretic meaning,
+		 * starting from a dense node
+		 * containing non-dense nodes in the rest of the path's nodes, all forming a path
+		 * 
+		 *  At the end of the method, the returned Set<Path> contains, for each pair of dense node and non-dense ancestor,
+		 *  a Path in the above sense that connects the ancestor to the dense descendant
 
-		System.out.println("---------BEFORE CLEANUP-------");
-		for(Path path: foundCandidatePaths)
-			System.out.println("PATH: " + path.toString());
-		System.out.println("----------------\n");
-		
-		//UNCLEAR!!!!!!!!!!! TODO EXPLAIN
-		
-		/***
+		 * 
 		 * Step1: 
 		 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
 		 * 			then 	Path1 = [cs1<--cs3<--cs4], Path2 = [cs1<--cs3]
@@ -1111,13 +1103,25 @@ public class PV_CostBasedRelationalLoader  {
 		 * 
 		 * Step 3: sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path 
 		 * 			If Path1.cost > Path2.cost  then Path1>>Path2>>....>>
-
+		 * 
 		 **/
-
+	private List<Path> extractCandidatePathsSortedOnTripleNumber() {
+		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
+		if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
+			System.err.println("There are no candidate paths found. Exiting");
+			System.exit(-1);
+		}
+//PV COMMENTS
+//		else
+//			System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
+//
+//		System.out.println("---------BEFORE CLEANUP-------");
+//		for(Path path: foundCandidatePaths)
+//			System.out.println("PATH: " + path.toString());
+//		System.out.println("----------------\n");
+				
 		Set<Path> toRemovePaths = new HashSet<Path>();
-		//The following shit crashes because of concurrent access. Wtf?
 		Iterator<Path> iterOuter = foundCandidatePaths.iterator();
-
 		while (iterOuter.hasNext()) {
 		    Path outerPath = iterOuter.next();
 		//for(Path outerPath : foundCandidatePaths){
@@ -1148,11 +1152,11 @@ public class PV_CostBasedRelationalLoader  {
 
 			}
 		});
-
-		System.out.println("-------AFTER CLEANUP---------");
-		for(Path path: orderedPaths)
-			System.out.println("PATH: " + path.toString());
-		System.out.println("----------------\n");
+//PV COMMENTED OUT
+//		System.out.println("-------AFTER CLEANUP---------");
+//		for(Path path: orderedPaths)
+//			System.out.println("PATH: " + path.toString());
+//		System.out.println("----------------\n");
 		
 		return orderedPaths;
 	}//end extracteCandidatePathsSortedOnTripleNumber()
