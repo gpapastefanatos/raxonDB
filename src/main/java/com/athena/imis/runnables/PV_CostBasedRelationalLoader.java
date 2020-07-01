@@ -1021,16 +1021,31 @@ System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));
 	/**
 	 * Finds candidate paths and sorts them over their total number of triples
 	 * 
-		 * POST-CONDITION: at the end of this method
-	 * --------------------------------------------
-	 * each Path is a sequence of edges, in the typical graph-theoretic meaning,
-	 * starting from a dense node
-	 * containing non-dense nodes in the rest of the path's nodes, all forming a path
+	 * 			POST-CONDITION: at the end of this method
+	 * 		------------------------------------------------
+	 * each Path is 
+	 * a sequence of consecutive edges, in the typical graph-theoretic meaning,
+	 * obligatorily starting from a dense node, and 
+	 * obligatorily containing (a possibly empty) list of non-dense nodes in the rest of the path's nodes, 
+	 * s.t., the list is also forming a path on the graph
 	 * 
-	 *  At the end of the method, the returned Set<Path> contains, for each pair of dense node and non-dense ancestor,
+	 *  At the end of the method, the returned Set<Path> contains, for each pair of [dense node, non-dense ancestor],
 	 *  a Path in the above sense that connects the ancestor to the dense descendant
-
+	 *  
+	 *  a) Collection foundCandidatePaths contains all the possible Paths, each with one dense and a list of non-dense nodes
+	 *  attracted to the Path, s.t., they form a path in the traditional sense
+	 *  
+	 *  b) cleanup removes paths that are fully contained in other paths, i.e., if I have a 
+	 *  Path=denseNode with no ancestors and  another path starting from the same denseNode with ancestors, 
+	 *  then the first one is removed. This is e.g., why in cityDensity, you see 6 paths before and 4 after cleanup
+	 *  
+	 *  Given a & b above, The resulting paths have the following properties:
+	 *  [p1] Multiplicity of paths: a dense node may "rule" multiple paths of non-dense nodes, 
+	 *       i.e., two or more paths can share the same denseNode
+	 *  [p2] Exclusiveness of dense nodes:  a dense node cannot belong to a path "ruled" by another dense node, 
+	 *       i.e., a path cannot contain two dense nodes.
 	 * 
+	 * The steps taken in this method are as follows.
 	 * Step1: 
 	 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
 	 * 			then 	Path1 = [cs1<--cs3<--cs4], Path2 = [cs1<--cs3]
@@ -1217,6 +1232,15 @@ private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 	 * 			No other paths exist, since only cs1,cs2 are dense.
 	 * The collection of paths form a strongly connected component; i.e., the (undirected) paths in the connected subgraph connect every pair of CSs in the graph   
 	 *  
+	 *  a1. The collection foundPaths, creates a path starting from a denseNode and 
+	 *  moving upwards until it reaches another dense node or null root (empty stack). 
+	 *  The condition " if(denseCheck && denseCSs.contains(parent)) {" does this work.
+	 *  
+	 *  a2. Moving upwards in a lattice, the method creates multiple paths starting from a denseNode.
+	 *  
+	 *  a3. If a denseNode has an immediate dense parent, then it creates a new path only for the child denseNode 
+	 *  and starts a new path from its parent...
+	 *
 	 * @param denseCSs are the dense cs
 	 * @param pathCosts the cost of a path between two CSs. The cost of a path is the cardinality , i.e., the no of triples contained in ALL cs in the path 
 	 * @param csSizes the no of triples a cs contains

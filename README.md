@@ -5,6 +5,7 @@ In order to load data, you will need to use the class RelationalLoader (for no m
 
 Postgres needs to be installed and accessible in port 5432 of any machine. Hostname is defined in the parameters.
 
+##How to use
 Example parameter setup for SmartRelationalLoaderArray:
 
 localhost //host for postgres
@@ -21,4 +22,4 @@ postgres //password of postgres user
 
 2 //m factor as a multiplier of the mean
 
-To query the data, you will need to use the class RelationalQuerySimple
+To query the data, you will need to use the class RelationalQueryArray
