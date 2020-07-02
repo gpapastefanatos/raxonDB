@@ -162,6 +162,37 @@ public class PV_CostBasedRelationalLoader  {
 		int numCSs = extractExtentForAllCSs();
 		System.out.println("csMapFull size: " + numCSs);
 
+		
+//PV DIAGNOSTICS		
+System.out.println("\n-----------PROPERTIESSET: for each property string, an id--------------");
+for(String s: this.propertiesSet.keySet()) {
+	System.out.println("propertiesSet:" + s + " -> " + propertiesSet.get(s));
+}
+System.out.println("-------------------------\n");				
+//PV DIAGNOSTICS		
+System.out.println("\n-----------REVPROPERTIESSET: for each propertyId, a string--------------");
+for(Integer i: this.revPropertiesSet.keySet()) {
+	System.out.println("revPropertiesSet:" + i + " -> " + revPropertiesSet.get(i));
+}
+System.out.println("-------------------------\n");				
+
+//PV DIAGNOSTICS		
+System.out.println("\n-----------CSMAP<CS,int>: assigns an id to each cs--------------");
+for(CharacteristicSet cs: this.csMap.keySet()) {
+	System.out.println("csMap:" + cs.toString() + " -> " + csMap.get(cs));
+}
+System.out.println("-------------------------\n");		
+
+//PV DIAGNOSTICS		
+System.out.println("\n-----------REVERSECSMAP<int,CS>: assigns a cs to each csId--------------");
+for(Integer id: this.reverseCSMap.keySet()) {
+	System.out.println("revCsMap:" + id +  " -> " + reverseCSMap.get(id).toString() );
+}
+System.out.println("-------------------------\n");
+
+
+
+
 		this.totalNumOfTriples = extracteAncestorAndParentRelationships();
 		System.out.println("Total number of triples: " + totalNumOfTriples);
 		System.out.println("Mean size of CS extent: " + totalNumOfTriples/csMap.size()) ;
@@ -501,12 +532,18 @@ System.out.println("-------------------------\n");
 		System.out.println("merged map full: " + mergedMapFull.toString());
 		tripleGroups = mergedMapFull.entrySet().iterator();
 
+//PV DIAGNOSTICS
+System.out.println("\n-----------CSTOPATHMAP: for each cs, in which path it will go--------------");
+for(CharacteristicSet cs: csToPathMap.keySet()) {
+	System.out.println("csToPathMap:" + cs.toString() + " -> " + csToPathMap.get(cs).toString());
+}
+System.out.println("-------------------------\n");
 //PV DIAGNOSTICS		
-System.out.println("\n-----------PATHMAP--------------");
-		for(Path path: pathMap.keySet()) {
-			System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
-		}
-		System.out.println("-------------------------\n");
+System.out.println("\n-----------PATHMAP: an id for each path--------------");
+for(Path path: pathMap.keySet()) {
+	System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
+}
+System.out.println("-------------------------\n");
 		
 	}//end cannotRefactorStep5UnlessYouExplainItToMe()
 
