@@ -36,7 +36,14 @@ import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.DirectedGraph;
 
 import gnu.trove.map.hash.THashMap;
-
+/**
+ * This is the class that Meimaris has used for DOLAP 2020.
+ * 
+ * It is based on the idea of using arrays for multivalued cells in the relational implementation
+ * 
+ * @author meimaris
+ *
+ */
 public class SmartRelationalLoaderArray {
 
 	public static Map<String, Integer> propertiesSet = new THashMap<String, Integer>();
