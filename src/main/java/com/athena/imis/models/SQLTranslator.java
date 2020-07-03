@@ -18,8 +18,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
-import com.athena.imis.runnables.RelationalQueryArray;
-import com.athena.imis.runnables.RelationalQuerySimple;
+import com.athena.imis.querying.RelationalQueryArray;
+import com.athena.imis.querying.RelationalQuerySimple;
 
 public class SQLTranslator {
 

@@ -1,4 +1,4 @@
-package com.athena.imis.runnables;
+package com.athena.imis.querying;
 
 import java.sql.Array;
 import java.sql.Connection;

@@ -1,4 +1,4 @@
-package com.athena.imis.models;
+package com.athena.imis.deprecated.simpleRepresentation;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.set.hash.TIntHashSet;

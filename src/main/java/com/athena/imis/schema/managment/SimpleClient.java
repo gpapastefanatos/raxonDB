@@ -1,4 +1,4 @@
-package com.athena.imis.runnables;
+package com.athena.imis.schema.managment;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,10 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class PVSimpleClient {
+public class SimpleClient {
 
 	public static void main(String[] args) {
-		PV_CostBasedRelationalLoader schemaDecisionEngine = new PV_CostBasedRelationalLoader(args);
+		CostBasedSchemaManagementDOLAP20 schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
 		int result = schemaDecisionEngine.decideSchemaAndPopulate();
 
 		System.out.println("PVEngine returned " + result);

@@ -1,4 +1,4 @@
-package com.athena.imis.runnables;
+package com.athena.imis.deprecated.simpleRepresentation;
 
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.TIntHashSet;
@@ -29,8 +29,6 @@ import org.postgresql.PGConnection;
 import org.postgresql.copy.CopyManager;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.NxParser;
-
-import com.athena.imis.models.BigCharacteristicSet;
 
 public class RelationalLoader {
 

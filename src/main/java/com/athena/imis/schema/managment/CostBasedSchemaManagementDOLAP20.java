@@ -1,4 +1,4 @@
-package com.athena.imis.runnables;
+package com.athena.imis.schema.managment;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -45,7 +45,7 @@ import gnu.trove.map.hash.THashMap;
  * @author meimar, gpapas, pvassil
  * @version 0.3
  */
-public class PV_CostBasedRelationalLoader  {
+public class CostBasedSchemaManagementDOLAP20  {
 
 	private Map<String, Integer> propertiesSet;
 	private Map<Integer, String> revPropertiesSet;
@@ -95,7 +95,7 @@ public class PV_CostBasedRelationalLoader  {
 	 *	postgres 					 -- db password 
 	 *	2 						     -- density factor m
 	 */
-	public PV_CostBasedRelationalLoader(String[] args) {
+	public CostBasedSchemaManagementDOLAP20(String[] args) {
 		this.propertiesSet = new THashMap<String, Integer>();
 		this.revPropertiesSet = new THashMap<Integer, String>();
 		if(args.length > 6)
@@ -126,7 +126,7 @@ public class PV_CostBasedRelationalLoader  {
 		totalNumOfTriples=0;
 		//Commented out as useless
 		//revIntMap = new THashMap<Integer, String>();
-		//LOG = LogManager.getLogger(PV_CostBasedRelationalLoader.class);
+		//LOG = LogManager.getLogger(CostBasedSchemaManagementDOLAP20.class);
 
 	}//end constructor
 

@@ -1,4 +1,4 @@
-package com.athena.imis.runnables;
+package com.athena.imis.deprecated.dolap20alternativeloaders;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

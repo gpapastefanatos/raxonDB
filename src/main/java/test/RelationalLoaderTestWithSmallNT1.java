@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.athena.imis.runnables.PV_CostBasedRelationalLoader;
+import com.athena.imis.schema.managment.CostBasedSchemaManagementDOLAP20;
 
 /**
  * Just a very small data set lubm nt1
@@ -25,7 +25,7 @@ import com.athena.imis.runnables.PV_CostBasedRelationalLoader;
  */
 class RelationalLoaderTestWithSmallNT1 {
 
-	public static PV_CostBasedRelationalLoader schemaDecisionEngine;
+	public static CostBasedSchemaManagementDOLAP20 schemaDecisionEngine;
 	public static String[] args = {
 			"localhost", 
 			"resources/datasets/lubm/lubm2.nt", 
@@ -44,7 +44,7 @@ class RelationalLoaderTestWithSmallNT1 {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		
-		schemaDecisionEngine = new PV_CostBasedRelationalLoader(args);
+		schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
 		dbCreationResult = schemaDecisionEngine.decideSchemaAndPopulate();
 
 		conn = null;
@@ -64,7 +64,7 @@ class RelationalLoaderTestWithSmallNT1 {
 
 
 	/**
-	 * Test method for {@link com.athena.imis.runnables.PV_CostBasedRelationalLoader#decideSchemaAndPopulate()}.
+	 * Test method for {@link com.athena.imis.schema.managment.CostBasedSchemaManagementDOLAP20#decideSchemaAndPopulate()}.
 	 */
 	@Test
 	void testDecideSchemaAndPopulate() {

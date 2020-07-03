@@ -1,4 +1,4 @@
-package com.athena.imis.models;
+package com.athena.imis.deprecated.simpleRepresentation;
 
 import java.io.Serializable;
 import java.util.BitSet;
