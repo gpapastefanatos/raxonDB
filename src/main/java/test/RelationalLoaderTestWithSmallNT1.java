@@ -28,7 +28,7 @@ class RelationalLoaderTestWithSmallNT1 {
 	public static PV_CostBasedRelationalLoader schemaDecisionEngine;
 	public static String[] args = {
 			"localhost", 
-			"src/main/resources/lubm2.nt", 
+			"resources/datasets/lubm/lubm2.nt", 
 			"TestDBRaxonNT1", 
 			"100", 
 			"postgres", 
