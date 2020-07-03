@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -31,6 +32,14 @@ import java.util.List;
  * Joins = {{?x, ?y}, {?x,?z}, {?z,?w}}
  * Filters = {{?z hasBirthday}, {?w, hasNationality}} 
  * 
+ * 
+ * Usage: 
+ * ------
+ * constructor; 
+ * convertToPropertyIds() to translate strigns to integer id's;
+ * 
+ * 
+ * 
  * @author pvassil
  *
  */
@@ -42,6 +51,8 @@ public class AbstractQueryRepresentation {
 	private Map<String, List<String>> variableDependenciesAsStrings;
 	//for each query variables, a list of dependencies as integers, much like the propertyMap of the schema optimizer
 	private Map<String, List<Integer>> variableDependencies;
+	//oti leei
+	private Map<String, Set<CharacteristicSet>> candidateCSsPerVariable;
 	
 //	private Set<Set<String>> joins;
 
@@ -61,6 +72,16 @@ public class AbstractQueryRepresentation {
 		
 	}//end constructor
 
+	/*
+	 * Post-constructor method that gets the job done 
+	 */
+	public void computeAllNeededStuffForAQR(Map<String, Integer> propertiesSet, 
+			Map<CharacteristicSet, Integer> csMap) {
+		convertToPropertyIds(propertiesSet);
+		computeCSsPerVariable(csMap);
+	}
+	
+	
 	
 	/**
 	 * Populates the Map<String, List<Integer>> variableDependencies with integer values for each variable's property
@@ -83,17 +104,40 @@ public class AbstractQueryRepresentation {
 		}
 		return this.variableDependencies.size();
 	}//end convertToPropertyIds
+
+	
+	public int computeCSsPerVariable(Map<CharacteristicSet, Integer> csMap) {
+		this.candidateCSsPerVariable = new HashMap<String, Set<CharacteristicSet>>(); 
+		for(String vrbl: this.variableDependencies.keySet()) {
+			Set<CharacteristicSet> vrblCSset = new HashSet<CharacteristicSet>();
+			for (CharacteristicSet cs: csMap.keySet()) {
+				if(cs.getAsList().containsAll(this.variableDependencies.get(vrbl)))
+						vrblCSset.add(cs);
+			}
+			candidateCSsPerVariable.put(vrbl, vrblCSset);
+		}
+		return candidateCSsPerVariable.size();
+	}
 	
 	public Set<String> getVariables() {
 		return this.variableDependenciesAsStrings.keySet();
 	}
 
-	public Map<String, List<String>> getVariableDependencies() {
+	public Map<String, List<String>> getVariableDependenciesAsStrings() {
 		return variableDependenciesAsStrings;
 	}
+	public Map<String, List<Integer>> getVariableDependencies() {
+		return variableDependencies;
+	}
+	
+	
+	/**
+	 * @return the candidateCSsPerVariable
+	 */
+	public Map<String, Set<CharacteristicSet>> getCandidateCSsPerVariable() {
+		return candidateCSsPerVariable;
+	}
 
-	
-	
 	/**
 	 * Converts the shortcut prefixes to the ontology ones.
 	 * 
