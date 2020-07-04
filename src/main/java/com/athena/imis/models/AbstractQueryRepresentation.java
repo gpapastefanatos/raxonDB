@@ -233,6 +233,14 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 
 
 	/**
+	 * @return the cartesianProductOfCandidateCSs
+	 */
+	public Set<List<CharacteristicSet>> getCartesianProductOfCandidateCSs() {
+		return cartesianProductOfCandidateCSs;
+	}
+
+
+	/**
 	 * Converts the shortcut prefixes to the ontology ones.
 	 * 
 	 * See for example lubm queries
