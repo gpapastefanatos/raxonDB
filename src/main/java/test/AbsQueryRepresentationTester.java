@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -79,7 +81,7 @@ class AbsQueryRepresentationTester {
 		queryDependencies.put("?X",Arrays.asList("rdf:type", "ub:takesCourse"));
 		queryDependencies.put("?Y",Arrays.asList("rdf:type"));
 
-		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap);
+		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap, null);
 
 		int conVersionSize = aqr.convertToPropertyIds(propertiesSet);
 		assertEquals(2,conVersionSize);
@@ -99,7 +101,10 @@ class AbsQueryRepresentationTester {
 		queryDependencies.put("?X",Arrays.asList("rdf:type", "ub:takesCourse"));
 		queryDependencies.put("?Y",Arrays.asList("rdf:type"));
 
-		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap);
+		Set<List<String>> pjoins = new HashSet<List<String>>();
+		pjoins.add(Arrays.asList("?X","ub:takesCourse", "?Y"));
+		
+		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap, pjoins);
 
 		aqr.computeAllNeededStuffForAQR(propertiesSet,csMap);
 		for(String s: aqr.getVariableDependencies().keySet()) {
@@ -107,6 +112,8 @@ class AbsQueryRepresentationTester {
 			System.out.println(aqr.getCandidateCSsPerVariable().get(s).toString());
 		}
 		assertEquals(2, aqr.getCandidateCSsPerVariable().size());
+		assertEquals(1, aqr.getJoinsAsStrings().size());
+
 	}
 
 }

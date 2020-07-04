@@ -6,6 +6,7 @@ package com.athena.imis.models;
 import java.util.Set;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,11 +54,14 @@ public class AbstractQueryRepresentation {
 	private Map<String, List<Integer>> variableDependencies;
 	//oti leei
 	private Map<String, Set<CharacteristicSet>> candidateCSsPerVariable;
-	
-//	private Set<Set<String>> joins;
+	//a set of joins. Each join is a list of firstVariable joinProperty secondVariable
+	private Set<List<String>> joinsAsStrings;
+	private List<String> variablesList;
+	private Set<List<CharacteristicSet>> cartesianProductOfCandidateCSs;
 
 	public AbstractQueryRepresentation(Map<String, List<String>> pVariableDependencies,
-			Map<String, String> pprefixMap) {
+			Map<String, String> pprefixMap,
+			Set<List<String>> pjoins) {
 
 		if (pprefixMap != null)
 			this.prefixMap = pprefixMap;
@@ -70,15 +74,27 @@ public class AbstractQueryRepresentation {
 		else 
 			this.variableDependenciesAsStrings = new HashMap<String, List<String>>();
 		
+		if (pjoins == null)
+			this.joinsAsStrings = new HashSet<List<String>>();
+		else
+			this.joinsAsStrings = pjoins;
+		
+		this.variablesList = new ArrayList<String>(this.variableDependenciesAsStrings.keySet());
+		Collections.sort(this.variablesList);
+		
+		cartesianProductOfCandidateCSs = new HashSet<List<CharacteristicSet>>();
 	}//end constructor
 
+	
 	/*
 	 * Post-constructor method that gets the job done 
 	 */
 	public void computeAllNeededStuffForAQR(Map<String, Integer> propertiesSet, 
 			Map<CharacteristicSet, Integer> csMap) {
 		convertToPropertyIds(propertiesSet);
+		fixJoinStrings();
 		computeCSsPerVariable(csMap);
+		computeCartesianProductOfSubqueries();
 	}
 	
 	
@@ -105,7 +121,33 @@ public class AbstractQueryRepresentation {
 		return this.variableDependencies.size();
 	}//end convertToPropertyIds
 
+	/**
+	 * Joins are the form ?X ub:takesCourse ?Y and the aliases must be replaced
+	 * We ASSUME the input is the set<set<String>>, which is a set of join conditions, each with the format
+	 *       firstVariable alias:property secondVariable
+	 * if this is not the format of the string sets, this does not work. Can fix it by introducing a nested class at a later point
+	 * 
+	 * @return the size of the this.joins property
+	 */
+	public int fixJoinStrings() {
+		if (this.joinsAsStrings == null || this.joinsAsStrings.size() == 0)
+			return 0;
+		for(List<String> joinTriplet: this.joinsAsStrings) {
+			String oldString = joinTriplet.get(1);
+			String newString = this.replaceStringWithPrefix(oldString);
+			joinTriplet.set(1,  newString);
+System.out.println("Join: " + joinTriplet.toString() + "\n");			
+		}
+		return this.joinsAsStrings.size();
+	}
 	
+	/**
+	 * For each variable, this method computes the set of CSs that pertain to it.
+	 * Ths is assuming you are given a csMap that maps each CS to an integer via the parameter csMap 
+	 * 
+	 * @param csMap a Map of CharacteristcSets, mapped to integeers, as computed by the schema optimizer
+	 * @return the size of the Map candidateCSsPerVariable, mappings each variable to its candidate CSs
+	 */
 	public int computeCSsPerVariable(Map<CharacteristicSet, Integer> csMap) {
 		this.candidateCSsPerVariable = new HashMap<String, Set<CharacteristicSet>>(); 
 		for(String vrbl: this.variableDependencies.keySet()) {
@@ -119,6 +161,54 @@ public class AbstractQueryRepresentation {
 		return candidateCSsPerVariable.size();
 	}
 	
+	/**
+	 * Let VariableList be a LIST of the variables, s.t., each variable has a specific position
+	 * Let C be the result of the cartsian product. We take all the candidates from all the variables
+	 * The basic idea: 
+	 * C = {candidateSet of the first Variable}
+	 * For each variable after the first, say Xi 
+	 *    CandidateNewSet Cnew
+	 *    For each candidate set of Xi, say CSij,
+	 *        for each element of C, say ci 
+	 *           generate a new set {ci union CSij} and add it to Cnew
+	 *    C = Cnew 
+	 */
+	public void computeCartesianProductOfSubqueries() {
+		
+		for(String vrbl: this.variablesList) {
+			Set<List<CharacteristicSet>> cartesianProductNew = new HashSet<List<CharacteristicSet>>();
+			if (cartesianProductOfCandidateCSs.size() == 0) {
+				for (CharacteristicSet csVrlb: candidateCSsPerVariable.get(vrbl)) {
+					List<CharacteristicSet> csSetCrtNew = new ArrayList<CharacteristicSet>();
+					csSetCrtNew.add(csVrlb);
+					cartesianProductNew.add(csSetCrtNew);
+				}
+			
+			}
+			else {
+				for (CharacteristicSet csVrlb: candidateCSsPerVariable.get(vrbl)) {
+					for (List<CharacteristicSet> csSetCrt: cartesianProductOfCandidateCSs) {
+						List<CharacteristicSet> csSetCrtNew = new ArrayList<CharacteristicSet>();
+						csSetCrtNew.addAll(csSetCrt);
+						csSetCrtNew.add(csVrlb);
+						cartesianProductNew.add(csSetCrtNew);
+					}
+				}
+			}//end else = not the first vrbl
+			cartesianProductOfCandidateCSs = cartesianProductNew;
+		}//for vrbl
+		
+		System.out.println("=============================");
+		for(List<CharacteristicSet> ccs: this.cartesianProductOfCandidateCSs) {
+			for(CharacteristicSet cs: ccs) {
+				System.out.print(cs.toString() + ",");
+			}
+			System.out.println("||");
+		}
+		System.out.println("=============================");
+	}// end computeCartesianProductOfSubqueries()
+	
+	
 	public Set<String> getVariables() {
 		return this.variableDependenciesAsStrings.keySet();
 	}
@@ -126,17 +216,21 @@ public class AbstractQueryRepresentation {
 	public Map<String, List<String>> getVariableDependenciesAsStrings() {
 		return variableDependenciesAsStrings;
 	}
+	
 	public Map<String, List<Integer>> getVariableDependencies() {
 		return variableDependencies;
 	}
 	
-	
-	/**
-	 * @return the candidateCSsPerVariable
-	 */
 	public Map<String, Set<CharacteristicSet>> getCandidateCSsPerVariable() {
 		return candidateCSsPerVariable;
 	}
+
+	public Set<List<String>> getJoinsAsStrings() {
+		return joinsAsStrings;
+	}
+	
+
+
 
 	/**
 	 * Converts the shortcut prefixes to the ontology ones.
@@ -159,18 +253,7 @@ public class AbstractQueryRepresentation {
 			List<String> properties = pInputMap.get(key);
 			List<String> newProperties = new ArrayList<String>();
 			for(String sOld: properties) {
-				String s  = sOld;
-//System.out.println("s before: " + s);
-				String prefix = s.substring(0,s.indexOf(":")).trim();
-//System.out.println("prefix: " + prefix);
-
-				String replacement = this.prefixMap.get(prefix).trim();
-//System.out.println("repl: " + replacement);
-
-				if (replacement != null)
-					s= s.replace(prefix+":", replacement);
-				s = "<" + s + ">";
-//System.out.println("s after: " + s);
+				String s = replaceStringWithPrefix(sOld);
 				newProperties.add(s);
 			}
 			convertedMap.put(key, newProperties);
@@ -179,6 +262,28 @@ public class AbstractQueryRepresentation {
 		return convertedMap;
 
 	}//end convertViaPrefixes
+
+	/**
+	 * Converts a string of the form alias:property to the form <prefix#property>
+	 * 
+	 * @param sOld an input string with the alias, e.g., ub:Student
+	 * @return a new String, with the entrie prefix in the place of the alias, as well as the enclosing <>
+	 */
+	private String replaceStringWithPrefix(String sOld) {
+		String s  = sOld;
+//System.out.println("s before: " + s);
+		String prefix = s.substring(0,s.indexOf(":")).trim();
+//System.out.println("prefix: " + prefix);
+
+		String replacement = this.prefixMap.get(prefix).trim();
+//System.out.println("repl: " + replacement);
+
+		if (replacement != null)
+			s= s.replace(prefix+":", replacement);
+		s = "<" + s + ">";
+//System.out.println("s after: " + s);
+		return s;
+	}//end replaceStringWithPrefix()
 	
 		
 	
