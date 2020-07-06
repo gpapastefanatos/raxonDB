@@ -194,6 +194,8 @@ public class CostBasedSchemaManagementDOLAP20  {
 		}
 		System.out.println("-------------------------\n");
 
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------DBCSMAP<int,int> size: " + dbECSMap.size() + "\n\n");
 
 
 
@@ -261,6 +263,13 @@ public class CostBasedSchemaManagementDOLAP20  {
 System.out.println("Separated:\t" + cs.toString());			
 		}
 		System.out.println();		
+
+		/* *************************************************************************************************************		
+		 *  TODO: how to update pathMap, csToPathMap, reversePathMap with the new data?
+		 *  Be careful: can be already solo!!!!
+		 * ************************************************************************************************************ */
+
+		
 		
 		/* *************************************************************************************************************		
 		 *   Finally, populate the db with the triples stored as tuples	
@@ -655,6 +664,15 @@ System.out.println("Separated:\t" + cs.toString());
 		}
 		System.out.println("-------------------------\n");
 
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------REVPATHMAP: an id for each path--------------");
+		for(Integer id: this.reversePathMap.keySet() ) {
+			System.out.println("PathMap: " + id + " -> " + reversePathMap.get(id).toString());
+		}
+		System.out.println("-------------------------\n");
+
+		
+		
 		//PV DIAGNOSTICS, commented out as not really impotrant
 		System.out.println("\n-----------MERGEDMAP: tuples per path --------------");
 		for(Integer id: mergedMapFull.keySet()) {
