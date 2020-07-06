@@ -254,15 +254,7 @@ public class CostBasedSchemaManagementDOLAP20  {
 		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
 		
 		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
-		Iterator<CharacteristicSet> iter = sortedCSMapByQueries.keySet().iterator();
-		int i = 0;
-		while(iter.hasNext() && i< howManyToSeparate) {
-			CharacteristicSet cs = iter.next(); 
-			csToSeparate.add(cs);
-			i++;
-System.out.println("Separated:\t" + cs.toString());			
-		}
-		System.out.println();		
+		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
 
 		/* *************************************************************************************************************		
 		 *  TODO: how to update pathMap, csToPathMap, reversePathMap with the new data?
@@ -280,10 +272,34 @@ System.out.println("Separated:\t" + cs.toString());
 		return 0;
 	}//end decideSchemaAndPopulate()   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+	
 
 	// /////////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Copy the appropriate CS's to a separate list
+	 * 
+	 * @param sortedCSMapByQueries the map of CS and their frequencies in the query workload
+	 * @param howManyToSeparate the number of CS's to separate, as already calculated
+	 * @param csToSeparate the list of CS's to populate
+	 */
+	private int extractCSToIsolate(Map<CharacteristicSet, Integer> sortedCSMapByQueries, int howManyToSeparate,
+			List<CharacteristicSet> csToSeparate) {
+		Iterator<CharacteristicSet> iter = sortedCSMapByQueries.keySet().iterator();
+		int i = 0;
+		while(iter.hasNext() && i< howManyToSeparate) {
+			CharacteristicSet cs = iter.next(); 
+			csToSeparate.add(cs);
+			i++;
+System.out.println("Separated:\t" + cs.toString());			
+		}
+System.out.println();
+		return csToSeparate.size();
+	}
+
+
 
 	/**
 	 * Returns a sorted map of frequencies for each characteristic set of a workflow.
@@ -324,6 +340,7 @@ System.out.println("Separated:\t" + cs.toString());
 		return queryFrequenciesSorted;
 	}//end highlightPopularCSs
 
+	
 	/**
 	 * We have a sorted list of frequencies. We want to keep separately a set of them that make a difference.
 	 * We continue keeping as long as the difference rate is not dropping.
