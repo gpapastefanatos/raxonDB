@@ -93,7 +93,7 @@ class AbsQueryRepresentationTester {
 		queryDependencies.put("?X",Arrays.asList("rdf:type", "ub:takesCourse"));
 		queryDependencies.put("?Y",Arrays.asList("rdf:type"));
 
-		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap, null);
+		aqr = new AbstractQueryRepresentation("q100", queryDependencies, prefixMap, null);
 
 		int conVersionSize = aqr.convertToPropertyIds(propertiesSet);
 		assertEquals(2,conVersionSize);
@@ -116,7 +116,7 @@ class AbsQueryRepresentationTester {
 		Set<List<String>> pjoins = new HashSet<List<String>>();
 		pjoins.add(Arrays.asList("?X","ub:takesCourse", "?Y"));
 		
-		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap, pjoins);
+		aqr = new AbstractQueryRepresentation("q101",queryDependencies, prefixMap, pjoins);
 
 		aqr.computeAllNeededStuffForAQR(propertiesSet,csMap);
 //		for(String s: aqr.getVariableDependencies().keySet()) {
@@ -126,6 +126,7 @@ class AbsQueryRepresentationTester {
 		assertEquals(2, aqr.getCandidateCSsPerVariable().size());
 		assertEquals(1, aqr.getJoinsAsStrings().size());
 		assertEquals(52,aqr.getCartesianProductOfCandidateCSs().size());
+		assertEquals(13, aqr.getCsFrequencies().size());
 
 	}//testComputeAllNeededStuffForAQR2Vrbls()
 
@@ -158,7 +159,7 @@ class AbsQueryRepresentationTester {
 		pjoins.add(Arrays.asList("?Y", "ub:teacherOf", "?Z"));
 		pjoins.add(Arrays.asList("?X","ub:takesCourse", "?Z"));
 		
-		aqr = new AbstractQueryRepresentation(queryDependencies, prefixMap, pjoins);
+		aqr = new AbstractQueryRepresentation("q102",queryDependencies, prefixMap, pjoins);
 
 		aqr.computeAllNeededStuffForAQR(propertiesSet,csMap);
 		System.out.println("\n\n\n");
@@ -170,9 +171,10 @@ class AbsQueryRepresentationTester {
 		assertEquals(3, aqr.getCandidateCSsPerVariable().size());
 		assertEquals(3, aqr.getJoinsAsStrings().size());
 		assertEquals(117,aqr.getCartesianProductOfCandidateCSs().size());
-	}	
+		assertEquals(13, aqr.getCsFrequencies().size());
+	}	//end test
 	
-}
+}//end class
 
 /*
 

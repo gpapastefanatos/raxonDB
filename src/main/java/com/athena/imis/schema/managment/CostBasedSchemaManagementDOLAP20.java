@@ -17,17 +17,21 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.postgresql.PGConnection;
 import org.postgresql.copy.CopyManager;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.NxParser;
+
+import com.athena.imis.models.AbstractQueryRepresentation;
 
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
@@ -78,7 +82,7 @@ public class CostBasedSchemaManagementDOLAP20  {
 	private Map<CharacteristicSet, Path> csToPathMap;
 	private Map<Path, Integer> pathMap;
 	private int totalNumOfTriples;
-	
+
 	//private Logger LOG;
 	//private Map<Integer, String> revIntMap;
 
@@ -146,7 +150,7 @@ public class CostBasedSchemaManagementDOLAP20  {
 			System.err.println("Lost db Connection; exiting...");
 			System.exit(-1);
 		}
-		
+
 		//log start time 
 		long start = System.nanoTime();
 		//long end = -1;
@@ -162,33 +166,33 @@ public class CostBasedSchemaManagementDOLAP20  {
 		int numCSs = extractExtentForAllCSs();
 		System.out.println("csMapFull size: " + numCSs);
 
-		
-//PV DIAGNOSTICS		
-System.out.println("\n-----------PROPERTIESSET: for each property string, an id--------------");
-for(String s: this.propertiesSet.keySet()) {
-	System.out.println("propertiesSet:" + s + " -> " + propertiesSet.get(s));
-}
-System.out.println("-------------------------\n");				
-//PV DIAGNOSTICS		
-System.out.println("\n-----------REVPROPERTIESSET: for each propertyId, a string--------------");
-for(Integer i: this.revPropertiesSet.keySet()) {
-	System.out.println("revPropertiesSet:" + i + " -> " + revPropertiesSet.get(i));
-}
-System.out.println("-------------------------\n");				
 
-//PV DIAGNOSTICS		
-System.out.println("\n-----------CSMAP<CS,int>: assigns an id to each cs--------------");
-for(CharacteristicSet cs: this.csMap.keySet()) {
-	System.out.println("csMap:" + cs.toString() + " -> " + csMap.get(cs));
-}
-System.out.println("-------------------------\n");		
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------PROPERTIESSET: for each property string, an id--------------");
+		for(String s: this.propertiesSet.keySet()) {
+			System.out.println("propertiesSet:" + s + " -> " + propertiesSet.get(s));
+		}
+		System.out.println("-------------------------\n");				
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------REVPROPERTIESSET: for each propertyId, a string--------------");
+		for(Integer i: this.revPropertiesSet.keySet()) {
+			System.out.println("revPropertiesSet:" + i + " -> " + revPropertiesSet.get(i));
+		}
+		System.out.println("-------------------------\n");				
 
-//PV DIAGNOSTICS		
-System.out.println("\n-----------REVERSECSMAP<int,CS>: assigns a cs to each csId--------------");
-for(Integer id: this.reverseCSMap.keySet()) {
-	System.out.println("revCsMap:" + id +  " -> " + reverseCSMap.get(id).toString() );
-}
-System.out.println("-------------------------\n");
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------CSMAP<CS,int>: assigns an id to each cs--------------");
+		for(CharacteristicSet cs: this.csMap.keySet()) {
+			System.out.println("csMap:" + cs.toString() + " -> " + csMap.get(cs));
+		}
+		System.out.println("-------------------------\n");		
+
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------REVERSECSMAP<int,CS>: assigns a cs to each csId--------------");
+		for(Integer id: this.reverseCSMap.keySet()) {
+			System.out.println("revCsMap:" + id +  " -> " + reverseCSMap.get(id).toString() );
+		}
+		System.out.println("-------------------------\n");
 
 
 
@@ -196,7 +200,7 @@ System.out.println("-------------------------\n");
 		this.totalNumOfTriples = extracteAncestorAndParentRelationships();
 		System.out.println("Total number of triples: " + totalNumOfTriples);
 		System.out.println("Mean size of CS extent: " + totalNumOfTriples/csMap.size()) ;
-		
+
 		//extractDense nodes and calculate their number and the number of their triples
 		this.extractDenseNodes();
 		System.out.println("Dense CSs: " + numDenseCSs);
@@ -223,18 +227,44 @@ System.out.println("-------------------------\n");
 		 *    
 		 */
 
-//steps [1 .. 4]
-/* *************************************************************************************************************		
- *   TODO: HERE, AFTER THE EXTRACTION OF ORDERED PATHS, WE NEED TO CALCULATE THE COST OF EACH PATH AND RE-SORT	
- * ************************************************************************************************************ */	
+		//steps [1 .. 4]
+		/* *************************************************************************************************************		
+		 *   TODO: HERE, AFTER THE EXTRACTION OF ORDERED PATHS, WE NEED TO CALCULATE THE COST OF EACH PATH AND RE-SORT	
+		 * ************************************************************************************************************ */	
 		List<Path> orderedPaths = this.extractCandidatePathsSortedOnTripleNumber();
 		this.removeNestedAndEmptyPaths(orderedPaths);
-		
-		
-//steps 5 and 6, before we refactor this mega-method, must explain to me. 		
-		cannotRefactorStep5UnlessYouExplainItToMe();
 
-		//Finally, populate the db with triples.
+
+		//steps 5 and 6, before we refactor this mega-method, must explain to me. 		
+		createCSMergersInPaths();
+
+
+		/* *************************************************************************************************************		
+		 *   HERE, SORT THE CSs BY POPULARITY. Can be pushed upwards	
+		 * ************************************************************************************************************ */	
+		AQRManagerLubm aqrMgr = new AQRManagerLubm();
+		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
+		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
+		Map<CharacteristicSet, Integer> sortedCSMapByQueries = this.computeFrequencies(querySet);
+
+		int _MinCSKeptSeparately = 2;
+		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
+		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
+		
+		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
+		Iterator<CharacteristicSet> iter = sortedCSMapByQueries.keySet().iterator();
+		int i = 0;
+		while(iter.hasNext() && i< howManyToSeparate) {
+			CharacteristicSet cs = iter.next(); 
+			csToSeparate.add(cs);
+			i++;
+System.out.println("Separated:\t" + cs.toString());			
+		}
+		System.out.println();		
+		
+		/* *************************************************************************************************************		
+		 *   Finally, populate the db with the triples stored as tuples	
+		 * ************************************************************************************************************ */
 		int dbPopulationResult = createTablesPopulateDatabase(dbECSMap, reverseCSMap, pathMap, csToPathMap, reversePathMap, tripleGroups);
 		System.out.println("Ending time: " + new Date().toString());
 
@@ -245,12 +275,92 @@ System.out.println("-------------------------\n");
 	// /////////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Returns a sorted map of frequencies for each characteristic set of a workflow.
+	 * 
+	 * @param querySet
+	 * @return
+	 */
+	private Map<CharacteristicSet, Integer> computeFrequencies(Set<AbstractQueryRepresentation> querySet) {
+		//Set<CharacteristicSet> result = new HashSet<CharacteristicSet>();
+		Map<CharacteristicSet, Integer> queryFrequencies = new HashMap<CharacteristicSet, Integer>();
+
+		for (AbstractQueryRepresentation aqr: querySet) {
+			aqr.computeAllNeededStuffForAQR(this.propertiesSet,this.csMap); 
+			Map<CharacteristicSet, Integer> localQueryFrequencies = aqr.getCsFrequencies();
+
+			for(CharacteristicSet cs: localQueryFrequencies.keySet()) {
+				int localCounter = localQueryFrequencies.get(cs);
+				if(!queryFrequencies.containsKey(cs))
+					queryFrequencies.put(cs,localCounter);
+				else {
+					int counterOld = queryFrequencies.get(cs); 
+					queryFrequencies.replace(cs, counterOld+localCounter);
+				}
+			}
+		}//for each query
+
+		//now sort the map desc by value
+		Map<CharacteristicSet, Integer> queryFrequenciesSorted = queryFrequencies
+		        .entrySet()
+		        .stream()
+		        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+		        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+		                LinkedHashMap::new));
+		
+		System.out.println("\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Sorted Map: + &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+		System.out.println( Arrays.toString(queryFrequenciesSorted.entrySet().toArray()));
+		System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n\n");	
+		return queryFrequenciesSorted;
+	}//end highlightPopularCSs
+
+	/**
+	 * We have a sorted list of frequencies. We want to keep separately a set of them that make a difference.
+	 * We continue keeping as long as the difference rate is not dropping.
+	 * We also give as a parameter (to allow exp's) a min number of CS's we gonna keep separate.
+	 * Whichever of the two is bigger, we retain
+	 * 
+	 * @param sortedQueryFrequenciesDesc the map of CSs which is sorted desc by frequency values
+	 * @param minNumberOfCSs the minimum number of CS that we will obligatorily separate
+	 * @return how many CS's to separate
+	 */
+	private int whichCSToKeepUntouchedSimple(Map<CharacteristicSet, Integer> sortedQueryFrequenciesDesc, int minNumberOfCSs) {
+		
+		ArrayList<Integer> sortedValues =  new ArrayList<Integer>(sortedQueryFrequenciesDesc.values());
+		int position = 0;
+		int currentValue; int nextValue;
+		double stoppingDropPct = Double.MIN_VALUE;
+		while (position < sortedValues.size()-1) {
+			currentValue = sortedValues.get(position);
+			nextValue = sortedValues.get(position+1);
+			int delta = currentValue - nextValue;
+			if(delta == 0) {
+				position++;
+			}
+			else {
+				double dropPct = (delta) / ((double)currentValue);
+				if (dropPct >= stoppingDropPct) {   //we are dropping at least as fast as before, continue
+					stoppingDropPct = dropPct;
+					position++;
+				}
+				else { //we stopped dropping, stop
+					break;
+				}//else: we are dropping as a fraction
+			}//else: not equal to previous value
+		}//end while
+
+		return Math.max(minNumberOfCSs, position);
+	
+	}//end whichCSToKeepUntouched()
+
+	
 	
 	
 	/**
-	 * TODO FIX ME FIX ME FIX ME
+	 * TODO REFACTOR ME REFACTOR ME REFACTOR ME
 	 */
-	private void cannotRefactorStep5UnlessYouExplainItToMe() {
+	private void createCSMergersInPaths() {
 		/**
 		 * Process CS not contained or covered in paths  
 		 */
@@ -258,8 +368,8 @@ System.out.println("-------------------------\n");
 		Set<CharacteristicSet> notContained = new HashSet<CharacteristicSet>();
 		for(CharacteristicSet nextCS : csMap.keySet()){
 			if(!finalUniqueCandidatePathsMap.contains(nextCS)){
-//PV DIAGNOSTICS
-System.out.println("Id of CS not contained: " + nextCS.toString()) ;
+				//PV DIAGNOSTICS
+				System.out.println("Id of CS not contained: " + nextCS.toString()) ;
 				notCovered += csExtentSizes.get(nextCS);
 				notContained.add(nextCS);
 			}
@@ -303,10 +413,10 @@ System.out.println("Id of CS not contained: " + nextCS.toString()) ;
 		}
 
 		System.out.println("Remaining ancestor listing complete.\n\n");
-		
-		
-		
-		
+
+
+
+
 		Map<CharacteristicSet, Set<CharacteristicSet>> remainingImmediateAncestors = getChildren(remainingAncestors);
 		Map<CharacteristicSet, Set<CharacteristicSet>> reverseImmediateAncestorsNotContained = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 		for(CharacteristicSet f : notContained){
@@ -324,12 +434,12 @@ System.out.println("Id of CS not contained: " + nextCS.toString()) ;
 		for(CharacteristicSet nextCS : notContained) {
 			//if(children.containsKey(nextCS))
 			//	continue;
-			
-			
+
+
 			/*
 			 * DECIDE IF DENSE !!!!! MUST ALIGN TO THE OTHER DEF.
 			 */
-			
+
 			if(csExtentSizes.get(nextCS) >= Math.max((notCovered)/notContained.size()*meanMultiplier, totalNumOfTriples/1000)){
 				//denseCS++;
 				remainingDenseCSs.add(nextCS);
@@ -337,16 +447,16 @@ System.out.println("Id of CS not contained: " + nextCS.toString()) ;
 			}
 		}
 		Set<Path> remainingPaths = findPaths(remainingDenseCSs, remainingCosts, csExtentSizes, reverseImmediateAncestorsNotContained, true, true);
-//PV DIAGNOSTICS
-System.out.println("\n---------REM. DENSE----------------");		
-for(CharacteristicSet cs: remainingDenseCSs) {
-	System.out.println("Remaining Dense:" + cs.toString());
-}
-System.out.println("\n-----------REM. PATH--------------");
-for(Path path: remainingPaths) {
-	System.out.println("Remaining Path:" + path.toString());
-}
-System.out.println("-------------------------\n");
+		//PV DIAGNOSTICS
+		System.out.println("\n---------REM. DENSE----------------");		
+		for(CharacteristicSet cs: remainingDenseCSs) {
+			System.out.println("Remaining Dense:" + cs.toString());
+		}
+		System.out.println("\n-----------REM. PATH--------------");
+		for(Path path: remainingPaths) {
+			System.out.println("Remaining Path:" + path.toString());
+		}
+		System.out.println("-------------------------\n");
 
 
 		int totalCovered = 0;
@@ -434,7 +544,7 @@ System.out.println("-------------------------\n");
 		}
 		System.out.println("Done.");
 
-		
+
 		Iterator<Path> finalIt;
 		finalIt = remainingOrderedPaths.iterator();
 		while(finalIt.hasNext()){
@@ -468,10 +578,10 @@ System.out.println("-------------------------\n");
 		System.out.println("Remaining Unique: " + remainingFinalUnique.size());
 		//end remaining cleanup
 
-		
-		
-		
-		
+
+
+
+
 		int coveredSoFar = totalCovered + totalRemaining;
 
 		System.out.println("Dataset coverage: "  +  ((double)coveredSoFar/(double)totalNumOfTriples));
@@ -532,19 +642,27 @@ System.out.println("-------------------------\n");
 		System.out.println("merged map full: " + mergedMapFull.toString());
 		tripleGroups = mergedMapFull.entrySet().iterator();
 
-//PV DIAGNOSTICS
-System.out.println("\n-----------CSTOPATHMAP: for each cs, in which path it will go--------------");
-for(CharacteristicSet cs: csToPathMap.keySet()) {
-	System.out.println("csToPathMap:" + cs.toString() + " -> " + csToPathMap.get(cs).toString());
-}
-System.out.println("-------------------------\n");
-//PV DIAGNOSTICS		
-System.out.println("\n-----------PATHMAP: an id for each path--------------");
-for(Path path: pathMap.keySet()) {
-	System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
-}
-System.out.println("-------------------------\n");
-		
+		//PV DIAGNOSTICS
+		System.out.println("\n-----------CSTOPATHMAP: for each cs, in which path it will go--------------");
+		for(CharacteristicSet cs: csToPathMap.keySet()) {
+			System.out.println("csToPathMap:" + cs.toString() + " -> " + csToPathMap.get(cs).toString());
+		}
+		System.out.println("-------------------------\n");
+		//PV DIAGNOSTICS		
+		System.out.println("\n-----------PATHMAP: an id for each path--------------");
+		for(Path path: pathMap.keySet()) {
+			System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
+		}
+		System.out.println("-------------------------\n");
+
+		//PV DIAGNOSTICS, commented out as not really impotrant
+		System.out.println("\n-----------MERGEDMAP: tuples per path --------------");
+		for(Integer id: mergedMapFull.keySet()) {
+			System.out.println("MergedMap:" + id + " -> " + mergedMapFull.get(id).length);
+		}
+		System.out.println("-------------------------\n");
+
+
 	}//end cannotRefactorStep5UnlessYouExplainItToMe()
 
 
@@ -552,10 +670,10 @@ System.out.println("-------------------------\n");
 
 
 
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Creates the database to store the triples. if its exists already, it drops it.
 	 * 	
@@ -578,7 +696,7 @@ System.out.println("-------------------------\n");
 			System.out.println("Database creation returned " + resDBC);
 			cre.close();
 			conn.close();
-			
+
 			conn = DriverManager
 					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + this.dbname, args[4], args[5]);			         			        				
 
@@ -594,7 +712,6 @@ System.out.println("-------------------------\n");
 	}//end createDB
 
 
-	
 	/**
 	 * Reads a file and stores the triples in an array.
 	 * 
@@ -636,9 +753,9 @@ System.out.println("-------------------------\n");
 
 		System.out.println("triplesParsed: " + triplesParsed2);
 		System.out.println(System.nanoTime()-start);
-		
+
 		this.triplesArray = new int[triplesParsed2][4];
-				
+
 		intMap = new THashMap<String, Integer>(triplesParsed2);
 		String s, p, o;
 
@@ -677,7 +794,7 @@ System.out.println("-------------------------\n");
 				ar[1] = propertiesSet.get(p);//spLong;
 				ar[2] = intMap.get(o);//spLong;			
 				ar[3] = -1;
-				
+
 				//Populate the triplesArray with the data for the next Triple
 				triplesArray[next++] = ar;
 				//next++;
@@ -706,12 +823,12 @@ System.out.println("-------------------------\n");
 		});
 		end = System.nanoTime();
 		System.out.println("sorting: " + (end-start));
-		
+
 		return triplesArray.length;
 	}//end loadTriplesInSortedTriplesArray
 
 
-	
+
 	/**
 	 * A method that iterate over the triples,and creates Characteristics CSs which are stored in 3 HashMaps
 	 * CSMap<CharacteristicSet,Integer> : assigns an index (e.g., csID) to each cs; a CS is a list of properties {p1,p2,...,pn} (int representation)
@@ -727,7 +844,7 @@ System.out.println("-------------------------\n");
 		this.dbECSMap = new THashMap<Integer, Integer>(triplesArray.length/10);
 		int previousSubject = Integer.MIN_VALUE;
 
-	
+
 		//gp addition for graph-based management of CS
 		//		DirectedGraph<CharacteristicSet> csGraph = new DirectedGraph<CharacteristicSet>();
 		//		ArrayList<int[]> csTriples;
@@ -739,7 +856,7 @@ System.out.println("-------------------------\n");
 		int previousStart = 0;
 		CharacteristicSet cs = null;
 
-		
+
 		int subject ;
 		int prop ;
 
@@ -819,9 +936,7 @@ System.out.println("-------------------------\n");
 		end = System.nanoTime();
 		System.out.println("CS collection done. ucs time: " + (end-start));
 	} //end createCharacteristicSetCollections
-	
-	
-	
+
 
 	/**
 	 * Populates the this.csMapFull map which keeps mapping between a csID and all  triples ArrayList<int[4]> assigned to it.
@@ -893,13 +1008,13 @@ System.out.println("-------------------------\n");
 
 		//init refs
 		int total = 0;
-		
-//Commented out by PV
-//		int idx, min;
-//		PushbackReader reader ;
-//		StringBuilder createTableQuery ;
-//		HashSet<Integer> propertiesMap ;
-//		HashMap<Integer, HashMap<Integer, HashSet<Integer>>> spoValues ;
+
+		//Commented out by PV
+		//		int idx, min;
+		//		PushbackReader reader ;
+		//		StringBuilder createTableQuery ;
+		//		HashSet<Integer> propertiesMap ;
+		//		HashMap<Integer, HashMap<Integer, HashSet<Integer>>> spoValues ;
 
 		//do the merging stuff
 		//System.out.println("csMap: " + csMap.toString());
@@ -911,7 +1026,7 @@ System.out.println("-------------------------\n");
 			maxCSSize = Math.max(maxCSSize, size);
 		}				
 		System.out.println("max CS Size: " + maxCSSize + "\n\n");
-		
+
 		//discover ancestry via pairwise checks
 		for(CharacteristicSet parent : csMap.keySet()){
 
@@ -921,8 +1036,8 @@ System.out.println("-------------------------\n");
 
 				//the condition for a parent-child is that the child CS must contain ALL properties of parent   
 				if(child.contains(parent)){
-//PV DIAGNOSTICS COMMENTED OUT						
-System.out.println("$$child: " + child.toString() + " parent " + parent.toString());					
+					//PV DIAGNOSTICS COMMENTED OUT						
+					System.out.println("$$child: " + child.toString() + " parent " + parent.toString());					
 					Set<CharacteristicSet> children = allCsAncestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					allCsAncestors.put(parent, children);
@@ -955,9 +1070,9 @@ System.out.println("$$child: " + child.toString() + " parent " + parent.toString
 				Set<CharacteristicSet> set = parents.getOrDefault(child, new HashSet<CharacteristicSet>());
 				set.add(nextCS);
 				parents.put(child, set);
-//PV DIAGNOSTICS COMMENTED OUT		
-System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
-				
+				//PV DIAGNOSTICS COMMENTED OUT		
+				System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
+
 			}
 		}
 		//System.out.println("\n\n No children: ") ;
@@ -1024,23 +1139,23 @@ System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toStrin
 
 		double _DENSITY_THRESHOLD = maxCSSize*meanMultiplier/100;
 
-//PV DIAGNOSTICS COMMENTED OUT		
-System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
+		//PV DIAGNOSTICS COMMENTED OUT		
+		System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
 		for(CharacteristicSet nextCS : csMap.keySet()) {
 			//if(children.containsKey(nextCS))
 			//	continue;
 			//			int bb = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 			//			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier*2, total/100)){ //-initial Marios Implementation
 
-//PV DIAGNOSTICS COMMENTED OUT
-System.out.println("Candidate dense: " + nextCS.toString());			
-			
+			//PV DIAGNOSTICS COMMENTED OUT
+			System.out.println("Candidate dense: " + nextCS.toString());			
+
 			/* ********************************************* 
 			 * 		HERE IS THE DECISION ON DENSITY
 			 * *********************************************/
 			if(csExtentSizes.get(nextCS) >= _DENSITY_THRESHOLD){ //Dolap definition
-//PV DIAGNOSTICS COMMENTED OUT			
-System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
+				//PV DIAGNOSTICS COMMENTED OUT			
+				System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
 				numDenseCSs++;
 				denseCSs.add(nextCS);
 				numDenseRows += csExtentSizes.get(nextCS);
@@ -1053,8 +1168,8 @@ System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));
 		//				}
 	}// end extracteDenseNodes
 
-	
-	
+
+
 	/**
 	 * Finds candidate paths and sorts them over their total number of triples
 	 * 
@@ -1096,61 +1211,61 @@ System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));
 	 * 			If Path1.cost > Path2.cost  then Path1>>Path2>>....>>
 	 * 
 	 **/
-private List<Path> extractCandidatePathsSortedOnTripleNumber() {
-	foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
-	if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
-		System.err.println("There are no candidate paths found. Exiting");
-		System.exit(-1);
-	}
-//PV DIAGNOSTICS COMMENTED OUT
-	else
-		System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
-
-	System.out.println("---------BEFORE CLEANUP-------");
-	for(Path path: foundCandidatePaths)
-		System.out.println("PATH: " + path.toString());
-	System.out.println("----------------\n");
-			
-	Set<Path> toRemovePaths = new HashSet<Path>();
-	Iterator<Path> iterOuter = foundCandidatePaths.iterator();
-	while (iterOuter.hasNext()) {
-	    Path outerPath = iterOuter.next();
-	//for(Path outerPath : foundCandidatePaths){
-		Iterator<Path> iterInn = foundCandidatePaths.iterator();
-
-		while (iterInn.hasNext()) {
-		    Path innerPath = iterInn.next();
-		    
-//		for(Path innerPath : foundCandidatePaths){
-			if(outerPath.equals(innerPath)) continue;					
-			if(innerPath.containsAll(outerPath)){
-//				foundCandidatePaths.remove(outerPath);
-				toRemovePaths.add(outerPath);
-				break;
-			}					
+	private List<Path> extractCandidatePathsSortedOnTripleNumber() {
+		foundCandidatePaths = findPaths(denseCSs, pathCosts, csExtentSizes, parents, true, false);
+		if (foundCandidatePaths==null || foundCandidatePaths.isEmpty()) {
+			System.err.println("There are no candidate paths found. Exiting");
+			System.exit(-1);
 		}
-	}	
-	foundCandidatePaths.removeAll(toRemovePaths);
-	
-	//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
-	List<Path> orderedPaths = new ArrayList<Path>(foundCandidatePaths);			
-	Collections.sort(orderedPaths, new Comparator<Path>() {
+		//PV DIAGNOSTICS COMMENTED OUT
+		else
+			System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
 
-		public int compare(Path o1, Path o2) {
-			if (pathCosts.get(o1) > pathCosts.get(o2)) return -11; //tell sorting that if o1>o2 then o1 should come before o2
-			else if (pathCosts.get(o1) < pathCosts.get(o2)) return 1; //tell sorting that if o1<o2 then o1 should come after o2
-			else return 0;
+		System.out.println("---------BEFORE CLEANUP-------");
+		for(Path path: foundCandidatePaths)
+			System.out.println("PATH: " + path.toString());
+		System.out.println("----------------\n");
 
-		}
-	});
-//PV DIAGNOSTICS COMMENTED OUT
-	System.out.println("-------AFTER CLEANUP---------");
-	for(Path path: orderedPaths)
-		System.out.println("PATH: " + path.toString());
-	System.out.println("----------------\n");
-	
-	return orderedPaths;
-}//end extracteCandidatePathsSortedOnTripleNumber()
+		Set<Path> toRemovePaths = new HashSet<Path>();
+		Iterator<Path> iterOuter = foundCandidatePaths.iterator();
+		while (iterOuter.hasNext()) {
+			Path outerPath = iterOuter.next();
+			//for(Path outerPath : foundCandidatePaths){
+			Iterator<Path> iterInn = foundCandidatePaths.iterator();
+
+			while (iterInn.hasNext()) {
+				Path innerPath = iterInn.next();
+
+				//		for(Path innerPath : foundCandidatePaths){
+				if(outerPath.equals(innerPath)) continue;					
+				if(innerPath.containsAll(outerPath)){
+					//				foundCandidatePaths.remove(outerPath);
+					toRemovePaths.add(outerPath);
+					break;
+				}					
+			}
+		}	
+		foundCandidatePaths.removeAll(toRemovePaths);
+
+		//sort paths based on cost DESCENDING  order. Cost of a path is the #triples contained in all CSs in path  
+		List<Path> orderedPaths = new ArrayList<Path>(foundCandidatePaths);			
+		Collections.sort(orderedPaths, new Comparator<Path>() {
+
+			public int compare(Path o1, Path o2) {
+				if (pathCosts.get(o1) > pathCosts.get(o2)) return -11; //tell sorting that if o1>o2 then o1 should come before o2
+				else if (pathCosts.get(o1) < pathCosts.get(o2)) return 1; //tell sorting that if o1<o2 then o1 should come after o2
+				else return 0;
+
+			}
+		});
+		//PV DIAGNOSTICS COMMENTED OUT
+		System.out.println("-------AFTER CLEANUP---------");
+		for(Path path: orderedPaths)
+			System.out.println("PATH: " + path.toString());
+		System.out.println("----------------\n");
+
+		return orderedPaths;
+	}//end extracteCandidatePathsSortedOnTripleNumber()
 
 
 	/**
@@ -1200,12 +1315,12 @@ private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 			});
 
 		}
-//PV DIAGNOSTICS COMMENTED OUT
+		//PV DIAGNOSTICS COMMENTED OUT
 		System.out.println("-------------------------------------\n\n");
 		for(Path path: orderedPaths) {
 			System.out.println("Survives Nested Removal: " + path.toString());
 		}
-		
+
 		//remove empty paths
 		Iterator<Path> finalIt = orderedPaths.iterator();
 		while(finalIt.hasNext()){
@@ -1229,13 +1344,13 @@ private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 	}//end method removeNestedAndEmptyPaths
 
 
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
 	/***
 	 * Takes as input a path and updates its cost based on the CS it contains.  
 	 * 
@@ -1258,9 +1373,9 @@ private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 		return pathCosts;
 
 	}
-	
 
-	
+
+
 	/***
 	 * Computes a set of paths. A path is a list of CS between a dense node and its ancestors
 	 * e.g., cs1[0,1,2,3], cs2[0,1,2,4], cs3=[0,1,2], cs4[0,1] are four CSs and cs1,cs2 are dense, 
@@ -1320,8 +1435,8 @@ private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 				curCS = curPath.get(curPath.size()-1);
 
 				if(withSiblings && visited.contains(curCS)) continue;
-				
-				
+
+
 				//if no parents, is root, add path
 				if(immediateAncestors.get(curCS).isEmpty()){
 					//no parents and no dense node reached.
@@ -1341,7 +1456,7 @@ private List<Path> extractCandidatePathsSortedOnTripleNumber() {
 
 					for(CharacteristicSet parent : immediateAncestors.get(curCS)){							
 						if(denseCheck && denseCSs.contains(parent)) {
-//System.out.println("@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
+							//System.out.println("@@@@@cur: " + curCS.toString() + "\t@@@@@par: " + parent.toString() + "\n");
 							//it already contains a dense node so just add it.
 							foundPaths.add(curPath);
 

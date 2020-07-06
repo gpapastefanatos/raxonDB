@@ -45,6 +45,7 @@ import java.util.List;
  *
  */
 public class AbstractQueryRepresentation {
+	private String queryName;
 	//because instead of full domainspaces, queries come with aliases as prefixes, 
 	//which need to be translated to the prefixes that the data have
 	private Map<String, String> prefixMap;
@@ -58,11 +59,14 @@ public class AbstractQueryRepresentation {
 	private Set<List<String>> joinsAsStrings;
 	private List<String> variablesList;
 	private Set<List<CharacteristicSet>> cartesianProductOfCandidateCSs;
-
-	public AbstractQueryRepresentation(Map<String, List<String>> pVariableDependencies,
+	private Map<CharacteristicSet, Integer> csFrequencies;
+	
+	public AbstractQueryRepresentation(String pqName,
+			Map<String, List<String>> pVariableDependencies,
 			Map<String, String> pprefixMap,
 			Set<List<String>> pjoins) {
 
+		this.queryName = pqName;
 		if (pprefixMap != null)
 			this.prefixMap = pprefixMap;
 		else
@@ -83,6 +87,7 @@ public class AbstractQueryRepresentation {
 		Collections.sort(this.variablesList);
 		
 		cartesianProductOfCandidateCSs = new HashSet<List<CharacteristicSet>>();
+		csFrequencies = new HashMap<CharacteristicSet, Integer>();
 	}//end constructor
 
 	
@@ -95,6 +100,7 @@ public class AbstractQueryRepresentation {
 		fixJoinStrings();
 		computeCSsPerVariable(csMap);
 		computeCartesianProductOfSubqueries();
+		computeCSFrequencies();
 	}
 	
 	
@@ -208,37 +214,25 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 		System.out.println("=============================");
 	}// end computeCartesianProductOfSubqueries()
 	
-	
-	public Set<String> getVariables() {
-		return this.variableDependenciesAsStrings.keySet();
-	}
+	public int computeCSFrequencies() {
+		for(List<CharacteristicSet> nextList: this.cartesianProductOfCandidateCSs)
+			for (CharacteristicSet cs: nextList) {
+				if(!this.csFrequencies.containsKey(cs))
+					this.csFrequencies.put(cs, 1);
+				else {
+					int previousCount = this.csFrequencies.get(cs);
+					this.csFrequencies.replace(cs, previousCount+1);
+				}
+			}
+//PV DIAGNOSTICS
+System.out.println("\n-------------CS FREQUENCIES ------------");
+for (CharacteristicSet cs: this.csFrequencies.keySet()) {
+	System.out.println(cs.toString() + "\t" + this.csFrequencies.get(cs));
+}
+System.out.println("-------------------------\n");
 
-	public Map<String, List<String>> getVariableDependenciesAsStrings() {
-		return variableDependenciesAsStrings;
-	}
-	
-	public Map<String, List<Integer>> getVariableDependencies() {
-		return variableDependencies;
-	}
-	
-	public Map<String, Set<CharacteristicSet>> getCandidateCSsPerVariable() {
-		return candidateCSsPerVariable;
-	}
-
-	public Set<List<String>> getJoinsAsStrings() {
-		return joinsAsStrings;
-	}
-	
-
-
-
-	/**
-	 * @return the cartesianProductOfCandidateCSs
-	 */
-	public Set<List<CharacteristicSet>> getCartesianProductOfCandidateCSs() {
-		return cartesianProductOfCandidateCSs;
-	}
-
+		return this.csFrequencies.size();
+	}//end computeCSFrrequencies
 
 	/**
 	 * Converts the shortcut prefixes to the ontology ones.
@@ -294,6 +288,40 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 	}//end replaceStringWithPrefix()
 	
 		
+
+	
+	///////////////////////////// GETTERS ////////////////
+	public Set<String> getVariables() {
+		return this.variableDependenciesAsStrings.keySet();
+	}
+
+	public Map<String, List<String>> getVariableDependenciesAsStrings() {
+		return variableDependenciesAsStrings;
+	}
+	
+	public Map<String, List<Integer>> getVariableDependencies() {
+		return variableDependencies;
+	}
+	
+	public Map<String, Set<CharacteristicSet>> getCandidateCSsPerVariable() {
+		return candidateCSsPerVariable;
+	}
+
+	public Set<List<String>> getJoinsAsStrings() {
+		return joinsAsStrings;
+	}
+	
+	public Set<List<CharacteristicSet>> getCartesianProductOfCandidateCSs() {
+		return cartesianProductOfCandidateCSs;
+	}
+
+
+
+	public Map<CharacteristicSet, Integer> getCsFrequencies() {
+		return csFrequencies;
+	}
+
+
 	
 	
 }//end class
