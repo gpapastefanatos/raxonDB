@@ -31,6 +31,9 @@ public class RelationalQueryArray {
 	
 	public static void main(String[] args) {
 		
+		/***
+		 * init dictionary db
+		 */
 		
 		 c = null;
 	      Statement stmt = null;
@@ -111,7 +114,13 @@ public class RelationalQueryArray {
 			st.close();
 			
 			System.out.println("propMap: " + propMap.toString()) ;
+			
+			
+			/***
+			 * start processing queries from static class
+			 */
 			Queries queries = new Queries();
+			List<String> FinalSqlQueries = new ArrayList<String>(); 
 			for(String sparql : queries.queries){
 				int res = 0;
 				StringBuilder union = new StringBuilder();
@@ -195,6 +204,12 @@ public class RelationalQueryArray {
 				Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
 				
 				Set<CharacteristicSet> undangled = new HashSet<CharacteristicSet>();
+				
+				
+				/***
+				 * Map CS from query to Data CS via the ecs index
+				 */
+				
 				//get ecs from db for each pair of SO joins
 				for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 					
@@ -245,7 +260,7 @@ public class RelationalQueryArray {
 						csQueryMatches.clear();
 					}				
 					
-				}			
+				}	 	
 				for(CharacteristicSet nextCSS : csSet){
 					
 					if(csJoinMap.get(nextCSS) != null || undangled.contains(nextCSS))
@@ -253,7 +268,10 @@ public class RelationalQueryArray {
 					//System.out.println("Dangling: " + nextCSS.toString());													
 					//fetch all cs joins (ecs) that contain the 
 					String schema = " SELECT DISTINCT * FROM ecs_schema as e "
-							+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;											
+							+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;
+					
+					// schema = " SELECT DISTINCT * FROM cs_schema as e "+ "WHERE e.properties @> ARRAY" + nextCSS.toString() ;			
+					
 					st = c.createStatement();
 					//System.out.println(schema);
 					ResultSet rsS = st.executeQuery(schema);
@@ -271,6 +289,11 @@ public class RelationalQueryArray {
 				for(CharacteristicSet nextCS : csMatches.keySet()){
 					nextCS.setMatches(csMatches.get(nextCS));
 				}
+				
+				
+				/***
+				 * Build SQL syntax
+				 */
 				
 				//prepare WHERE clause
 				String finalQuery = "";
@@ -340,7 +363,8 @@ public class RelationalQueryArray {
 						
 						//check for all nulls??
 						String nonNull = "";
-						
+						// All properties contained in the triple graph (i.e.contained in a query CS)  must be not null, 
+						// either they are part of a restriction or a join
 						for(Integer property : nextCS.getAsList()){
 							if(isCovered.contains(property)) continue; 
 							nonNull = csAliases.get(nextCS) + ".p_" +property+" IS NOT NULL ";
@@ -370,6 +394,9 @@ public class RelationalQueryArray {
 				}
 				//System.out.println("CS list index map: " + csListIndexMap.toString());
 				List<List<String>> perms = cartesianProduct(csAsList);
+				
+				
+				//Build the projection part , i.e., SELECT Clause....
 				
 				Map<CharacteristicSet, List<Triple>> vars = sqlTranslator.getCsVars();
 				//System.out.println("vars " + vars.toString()) ;
@@ -401,6 +428,10 @@ public class RelationalQueryArray {
 					csProjection = csProjection.substring(0, csProjection.length()-2);
 					csProjectionsOrdered.add(csProjection);
 				}
+				
+				
+				//Build the FROM Part
+				
 				//System.out.println(csProjectionsOrdered.toString());
 				//are there any joins? 
 				String noJoins = ""; boolean joinsExist = false;
@@ -412,21 +443,21 @@ public class RelationalQueryArray {
 					}
 				}
 				
-				
 				//Map<List<Integer>, List<Integer>> permToListMap = new HashMap<List<Integer>, List<Integer>>();
 				
 				
 				//how do we build a query graph representation?
 				DirectedGraph<CharacteristicSet> queryGraph = sqlTranslator.getQueryGraph();
-				Iterator<CharacteristicSet> it = queryGraph.iterator();
 				
-				while(it.hasNext()){
-					
-					CharacteristicSet node = it.next();
-					//System.out.println("Next node: " + node.toString());
-					//System.out.println("\tChildren: " + queryGraph.edgesFrom(node).toString());
-					
-				}
+				
+				//Iterator<CharacteristicSet> it = queryGraph.iterator();
+				//while(it.hasNext()){
+				//
+				//CharacteristicSet node = it.next();
+				////System.out.println("Next node: " + node.toString());
+				////System.out.println("\tChildren: " + queryGraph.edgesFrom(node).toString());
+				//
+				//}
 				int permIndex = 0;
 				
 				/*for(List<String> nextPerm : perms){
@@ -437,8 +468,14 @@ public class RelationalQueryArray {
 					}
 					permToListMap.put(asIntList, csMatchesOrdered.get(permIndex++));
 				}*/
+				
+				/**
+				 * If the query has no joins then only a single query CS exists and it may be mapped to multiple data CSs (permutations)
+				 * 	For each permutation a SQL is created 
+				 *  All permutations are concatenated with UNION  
+				 */
 				if(!joinsExist){
-					//one query for each permutation
+					//one query with no joins for each permutation
 					for(List<String> nextPerm : perms){
 															
 						int idx = 0;
@@ -465,6 +502,8 @@ public class RelationalQueryArray {
 //							templateQ += where ;	
 						//int idx = 0;
 						//System.out.println("nextPerm: " + nextPerm.toString()) ;						
+						
+						
 						for(String nextIntString : nextPerm) {
 							CharacteristicSet nextCSToTransform = csMatchesOrdered.get(idx++);
 							templateQ = templateQ.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
@@ -549,6 +588,7 @@ public class RelationalQueryArray {
 				    	String explain = "EXPLAIN ANALYZE " ;
 				    	//explain = "" ;
 				    	finalQuery = explain + finalQuery;
+				    	FinalSqlQueries.add(finalQuery);
 				    	System.out.println("\t" + finalQuery);
 				    	
 				    	//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
@@ -584,6 +624,12 @@ public class RelationalQueryArray {
 						e.printStackTrace();
 					}
 				}
+				
+				
+				/**
+				 * If the query has joins then 
+				 */
+				
 				else{
 					
 					Set<CharacteristicSet> graphRoots = queryGraph.findRoots() ;
@@ -783,11 +829,11 @@ public class RelationalQueryArray {
 									break;
 								}
 							}
-							if(!isContained){
+							/*if(!isContained){
 //								System.out.println("IS NOT CONTAINED!!!");
 //								System.out.println(nextPermInt);
 								continue;
-							}
+							}*/
 							String templateQ = nextQS ;
 							if(!where.equals(" WHERE "))
 								templateQ += where ;	
@@ -879,7 +925,6 @@ public class RelationalQueryArray {
 						    		templateQ = explain + templateQ + " ";
 						    	}
 						    	System.out.println("\t" + templateQ);
-						    	
 						    	//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
 						    	ResultSet rs2 = st2.executeQuery(templateQ); //
 						    	long start = System.nanoTime();
@@ -940,6 +985,8 @@ public class RelationalQueryArray {
 			    		templateQ = explain + union.toString() + " ";
 			    	}
 			    	//System.out.println("\t" + templateQ);
+			    	FinalSqlQueries.add(templateQ);
+
 			    	
 			    	//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
 			    	ResultSet rs2 = st2.executeQuery(templateQ); //
@@ -971,6 +1018,11 @@ public class RelationalQueryArray {
 				}
 				//if(true) return ;
 			}
+			
+	    	for (String s : FinalSqlQueries)
+			    System.out.println(s);
+
+ 
 			
 			
 		}catch (Exception e){

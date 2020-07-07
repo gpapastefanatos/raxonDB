@@ -12,12 +12,12 @@ public final class Queries {
 	public static List<String> geonames_queries = new ArrayList<String>();
 	
 	{
-		//queries.add(q1_ext);
-				queries.add(q1);
+		queries.add(q_ex);
+				/*queries.add(q1);
 				queries.add(q1_ext);
 				queries.add(q3_ext);
 				queries.add(q11_ext);
-				queries.add(q13_ext);
+				//queries.add(q13_ext);
 				queries.add(q10_ext);	
 				queries.add(q12);
 				queries.add(q4_ext);
@@ -25,8 +25,8 @@ public final class Queries {
 				queries.add(q2);
 				queries.add(qm1);
 				queries.add(qm2);	
-				//queries.add(qm3);
-				queries.add(qm4);		
+				queries.add(qm3);
+				queries.add(qm4);		*/
 											
 		
 				//reactome_queries.add(reactomePrefixes + " " + r10);
@@ -54,6 +54,14 @@ public final class Queries {
 			return Queries.geonames_queries;
 		return Queries.queries;
 	}
+	
+	public static String q_ex = "PREFIX ex: <http://www.example.com/> SELECT ?x ?y ?z ?w "
+				+ "WHERE { 	?x ex:worksFor ?y."       
+					+"?x ex:supervises ?z."    
+					+"?z ex:hasBirthday <http://www.example.com/DateA>."        
+					+"?z ex:isMarriedTo ?w."        
+					+"?w ex:hasNationality <http://www.example.com/Gr>}" ;
+	
 	public static String prefix = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 			+ "PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> ";
 	
@@ -143,7 +151,8 @@ public final class Queries {
 			+ "?Y rdf:type ?someFaculty . "
 			+ "?Z rdf:type ub:Course . "
 			+ "?X ub:advisor ?Y . "
-			+ "?Y ub:teacherOf ?Z . ?X ub:takesCourse ?Z}";
+			+ "?Y ub:teacherOf ?Z . "
+			+ "?X ub:takesCourse ?Z}";
 	
 	public static String q9_ext = prefix 
 			+ "SELECT ?X ?Y ?Z "
@@ -153,7 +162,8 @@ public final class Queries {
 			+ "?Y rdf:type ?x2 . "
 			+ "?Z rdf:type ?x3 . "
 			+ "?X ub:advisor ?Y . "
-			+ "?Y ub:teacherOf ?Z . ?X ub:takesCourse ?Z}";
+			+ "?Y ub:teacherOf ?Z . "
+			+ "?X ub:takesCourse ?Z}";
 	
 	public static String q10 = prefix + "SELECT ?X WHERE "
 			+ "{?X rdf:type ub:UndergraduateStudent . "
