@@ -37,6 +37,8 @@ import com.athena.imis.models.AbstractQueryRepresentation;
 //import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.CharacteristicSet;
+import com.athena.imis.models.ModeOfWork;
+import com.athena.imis.models.ModeOfWork.WorkMode;
 //import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.Path;
 
@@ -166,48 +168,51 @@ public class CostBasedSchemaManagementDOLAP20  {
 		int numCSs = extractExtentForAllCSs();
 		System.out.println("csMapFull size: " + numCSs);
 
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------PROPERTIESSET: for each property string, an id--------------");
+			for(String s: this.propertiesSet.keySet()) {
+				System.out.println("propertiesSet:" + s + " -> " + propertiesSet.get(s));
+			}
+			System.out.println("-------------------------\n");				
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------REVPROPERTIESSET: for each propertyId, a string--------------");
+			for(Integer i: this.revPropertiesSet.keySet()) {
+				System.out.println("revPropertiesSet:" + i + " -> " + revPropertiesSet.get(i));
+			}
+			System.out.println("-------------------------\n");				
 
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------PROPERTIESSET: for each property string, an id--------------");
-		for(String s: this.propertiesSet.keySet()) {
-			System.out.println("propertiesSet:" + s + " -> " + propertiesSet.get(s));
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------CSMAP<CS,int>: assigns an id to each cs--------------");
+			for(CharacteristicSet cs: this.csMap.keySet()) {
+				System.out.println("csMap:" + cs.toString() + " -> " + csMap.get(cs));
+			}
+			System.out.println("-------------------------\n");		
+
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------REVERSECSMAP<int,CS>: assigns a cs to each csId--------------");
+			for(Integer id: this.reverseCSMap.keySet()) {
+				System.out.println("revCsMap:" + id +  " -> " + reverseCSMap.get(id).toString() );
+			}
+			System.out.println("-------------------------\n");
+
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------DBCSMAP<int,int> size: " + dbECSMap.size() + "\n\n");
+
 		}
-		System.out.println("-------------------------\n");				
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------REVPROPERTIESSET: for each propertyId, a string--------------");
-		for(Integer i: this.revPropertiesSet.keySet()) {
-			System.out.println("revPropertiesSet:" + i + " -> " + revPropertiesSet.get(i));
-		}
-		System.out.println("-------------------------\n");				
-
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------CSMAP<CS,int>: assigns an id to each cs--------------");
-		for(CharacteristicSet cs: this.csMap.keySet()) {
-			System.out.println("csMap:" + cs.toString() + " -> " + csMap.get(cs));
-		}
-		System.out.println("-------------------------\n");		
-
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------REVERSECSMAP<int,CS>: assigns a cs to each csId--------------");
-		for(Integer id: this.reverseCSMap.keySet()) {
-			System.out.println("revCsMap:" + id +  " -> " + reverseCSMap.get(id).toString() );
-		}
-		System.out.println("-------------------------\n");
-
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------DBCSMAP<int,int> size: " + dbECSMap.size() + "\n\n");
-
-
 
 		this.totalNumOfTriples = extracteAncestorAndParentRelationships();
-		System.out.println("Total number of triples: " + totalNumOfTriples);
-		System.out.println("Mean size of CS extent: " + totalNumOfTriples/csMap.size()) ;
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Total number of triples: " + totalNumOfTriples);
+			System.out.println("Mean size of CS extent: " + totalNumOfTriples/csMap.size()) ;
+		}
 
 		//extractDense nodes and calculate their number and the number of their triples
 		this.extractDenseNodes();
-		System.out.println("Dense CSs: " + numDenseCSs);
-		System.out.println("#Dense rows: " + numDenseRows);						
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Dense CSs: " + numDenseCSs);
+			System.out.println("#Dense rows: " + numDenseRows);						
+		}
 
 		/**
 		 * Merging paths into Dense Nodes and move merged CSs properties to the merged Dense nodes
@@ -252,7 +257,7 @@ public class CostBasedSchemaManagementDOLAP20  {
 		int _MinCSKeptSeparately = 2;
 		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
 		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
-		
+
 		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
 		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
 
@@ -261,8 +266,8 @@ public class CostBasedSchemaManagementDOLAP20  {
 		 *  Be careful: can be already solo!!!!
 		 * ************************************************************************************************************ */
 
-		
-		
+
+
 		/* *************************************************************************************************************		
 		 *   Finally, populate the db with the triples stored as tuples	
 		 * ************************************************************************************************************ */
@@ -272,7 +277,7 @@ public class CostBasedSchemaManagementDOLAP20  {
 		return 0;
 	}//end decideSchemaAndPopulate()   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-	
+
 
 	// /////////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
@@ -293,9 +298,13 @@ public class CostBasedSchemaManagementDOLAP20  {
 			CharacteristicSet cs = iter.next(); 
 			csToSeparate.add(cs);
 			i++;
-System.out.println("Separated:\t" + cs.toString());			
+			if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+				System.out.println("Separated:\t" + cs.toString());
+			}
 		}
-System.out.println();
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println();
+		}
 		return csToSeparate.size();
 	}
 
@@ -328,19 +337,20 @@ System.out.println();
 
 		//now sort the map desc by value
 		Map<CharacteristicSet, Integer> queryFrequenciesSorted = queryFrequencies
-		        .entrySet()
-		        .stream()
-		        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-		        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
-		                LinkedHashMap::new));
-		
-		System.out.println("\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Sorted Map: + &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-		System.out.println( Arrays.toString(queryFrequenciesSorted.entrySet().toArray()));
-		System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n\n");	
+				.entrySet()
+				.stream()
+				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+						LinkedHashMap::new));
+		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
+			System.out.println("\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Sorted Map: + &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+			System.out.println( Arrays.toString(queryFrequenciesSorted.entrySet().toArray()));
+			System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n\n");	
+		}
 		return queryFrequenciesSorted;
 	}//end highlightPopularCSs
 
-	
+
 	/**
 	 * We have a sorted list of frequencies. We want to keep separately a set of them that make a difference.
 	 * We continue keeping as long as the difference rate is not dropping.
@@ -352,7 +362,7 @@ System.out.println();
 	 * @return how many CS's to separate
 	 */
 	private int whichCSToKeepUntouchedSimple(Map<CharacteristicSet, Integer> sortedQueryFrequenciesDesc, int minNumberOfCSs) {
-		
+
 		ArrayList<Integer> sortedValues =  new ArrayList<Integer>(sortedQueryFrequenciesDesc.values());
 		int position = 0;
 		int currentValue; int nextValue;
@@ -377,12 +387,12 @@ System.out.println();
 		}//end while
 
 		return Math.max(minNumberOfCSs, position);
-	
+
 	}//end whichCSToKeepUntouched()
 
-	
-	
-	
+
+
+
 	/**
 	 * TODO REFACTOR ME REFACTOR ME REFACTOR ME
 	 */
@@ -394,8 +404,10 @@ System.out.println();
 		Set<CharacteristicSet> notContained = new HashSet<CharacteristicSet>();
 		for(CharacteristicSet nextCS : csMap.keySet()){
 			if(!finalUniqueCandidatePathsMap.contains(nextCS)){
-				//PV DIAGNOSTICS
-				System.out.println("Id of CS not contained: " + nextCS.toString()) ;
+				if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
+					//PV DIAGNOSTICS
+					System.out.println("Id of CS not contained: " + nextCS.toString()) ;
+				}
 				notCovered += csExtentSizes.get(nextCS);
 				notContained.add(nextCS);
 			}
@@ -437,9 +449,9 @@ System.out.println();
 			}
 
 		}
-
-		System.out.println("Remaining ancestor listing complete.\n\n");
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Remaining ancestor listing complete.\n\n");
+		}
 
 
 
@@ -473,17 +485,18 @@ System.out.println();
 			}
 		}
 		Set<Path> remainingPaths = findPaths(remainingDenseCSs, remainingCosts, csExtentSizes, reverseImmediateAncestorsNotContained, true, true);
-		//PV DIAGNOSTICS
-		System.out.println("\n---------REM. DENSE----------------");		
-		for(CharacteristicSet cs: remainingDenseCSs) {
-			System.out.println("Remaining Dense:" + cs.toString());
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			//PV DIAGNOSTICS
+			System.out.println("\n---------REM. DENSE----------------");		
+			for(CharacteristicSet cs: remainingDenseCSs) {
+				System.out.println("Remaining Dense:" + cs.toString());
+			}
+			System.out.println("\n-----------REM. PATH--------------");
+			for(Path path: remainingPaths) {
+				System.out.println("Remaining Path:" + path.toString());
+			}
+			System.out.println("-------------------------\n");
 		}
-		System.out.println("\n-----------REM. PATH--------------");
-		for(Path path: remainingPaths) {
-			System.out.println("Remaining Path:" + path.toString());
-		}
-		System.out.println("-------------------------\n");
-
 
 		int totalCovered = 0;
 
@@ -492,7 +505,9 @@ System.out.println();
 			totalCovered += pathCosts.get(nextPath);
 
 		}
-		System.out.println("Total coverage: " + totalCovered) ;
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Total coverage: " + totalCovered) ;
+		}
 
 		int totalRemaining = 0;
 
@@ -501,9 +516,10 @@ System.out.println();
 			totalRemaining  += remainingCosts.get(nextPath);
 
 		}
-		System.out.println("Total remaining:" + totalRemaining) ;
-		System.out.println("Size of remaining Paths: " + remainingPaths.size());
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Total remaining:" + totalRemaining) ;
+			System.out.println("Size of remaining Paths: " + remainingPaths.size());
+		}
 		//		start remaining cleanup
 		for(Path outerPath : remainingPaths){
 			for(Path innerPath : remainingPaths){
@@ -514,14 +530,16 @@ System.out.println();
 				}					
 			}
 		}	
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Removed contained.");
 
-		System.out.println("Removed contained.");
-		//				for(Path nextPath : foundPaths){
-		//					System.out.println(pathCosts.get(nextPath)+": " + nextPath.toString()) ;
-		//				}
-		//System.out.println("\n\n\n\n");
+			//				for(Path nextPath : foundPaths){
+			//					System.out.println(pathCosts.get(nextPath)+": " + nextPath.toString()) ;
+			//				}
+			//System.out.println("\n\n\n\n");
 
-		System.out.println("Sorting...");
+			System.out.println("Sorting...");
+		}
 		List<Path> remainingOrderedPaths = new ArrayList<Path>(remainingPaths);			
 		Collections.sort(remainingOrderedPaths, new Comparator<Path>() {
 
@@ -532,15 +550,19 @@ System.out.println();
 
 			}
 		});
-		System.out.println("Done.");
-		//				for(Path nextPath : orderedPaths){
-		//					System.out.println(pathCosts.get(nextPath)+": " + nextPath.toString()) ;
-		//				}
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Done.");
+			//				for(Path nextPath : orderedPaths){
+			//					System.out.println(pathCosts.get(nextPath)+": " + nextPath.toString()) ;
+			//				}
+		}
 		List<Path> remainingFinalList = new ArrayList<Path>();
 
 		//int totalIterations = 0;					
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Pruning...");
+		}
 
-		System.out.println("Pruning...");
 		Path bigPath;
 
 		for(int i = 0; i < remainingOrderedPaths.size(); i++){
@@ -568,8 +590,9 @@ System.out.println();
 			});
 
 		}
-		System.out.println("Done.");
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Done.");
+		}
 
 		Iterator<Path> finalIt;
 		finalIt = remainingOrderedPaths.iterator();
@@ -600,8 +623,10 @@ System.out.println();
 			totalRemaining  += remainingCosts.get(nextPath);
 
 		}
-		System.out.println("Total remaining:" + totalRemaining) ;
-		System.out.println("Remaining Unique: " + remainingFinalUnique.size());
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Total remaining:" + totalRemaining) ;
+			System.out.println("Remaining Unique: " + remainingFinalUnique.size());
+		}
 		//end remaining cleanup
 
 
@@ -609,9 +634,9 @@ System.out.println();
 
 
 		int coveredSoFar = totalCovered + totalRemaining;
-
-		System.out.println("Dataset coverage: "  +  ((double)coveredSoFar/(double)totalNumOfTriples));
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Dataset coverage: "  +  ((double)coveredSoFar/(double)totalNumOfTriples));
+		}
 		int pathIndex = 0;
 
 		//contains all paths. Maps a path id to a list of triples 
@@ -668,36 +693,33 @@ System.out.println();
 		System.out.println("merged map full: " + mergedMapFull.toString());
 		tripleGroups = mergedMapFull.entrySet().iterator();
 
-		//PV DIAGNOSTICS
-		System.out.println("\n-----------CSTOPATHMAP: for each cs, in which path it will go--------------");
-		for(CharacteristicSet cs: csToPathMap.keySet()) {
-			System.out.println("csToPathMap:" + cs.toString() + " -> " + csToPathMap.get(cs).toString());
-		}
-		System.out.println("-------------------------\n");
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------PATHMAP: an id for each path--------------");
-		for(Path path: pathMap.keySet()) {
-			System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
-		}
-		System.out.println("-------------------------\n");
+		if(ModeOfWork.mode == WorkMode.EXPERIMENT) {
+			//PV DIAGNOSTICS
+			System.out.println("\n-----------CSTOPATHMAP: for each cs, in which path it will go--------------");
+			for(CharacteristicSet cs: csToPathMap.keySet()) {
+				System.out.println("csToPathMap:" + cs.toString() + " -> " + csToPathMap.get(cs).toString());
+			}
+			System.out.println("-------------------------\n");
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------PATHMAP: an id for each path--------------");
+			for(Path path: pathMap.keySet()) {
+				System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
+			}
+			System.out.println("-------------------------\n");
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------REVPATHMAP: an id for each path--------------");
+			for(Integer id: this.reversePathMap.keySet() ) {
+				System.out.println("PathMap: " + id + " -> " + reversePathMap.get(id).toString());
+			}
+			System.out.println("-------------------------\n");		
+			//PV DIAGNOSTICS
+			System.out.println("\n-----------MERGEDMAP: tuples per path --------------");
+			for(Integer id: mergedMapFull.keySet()) {
+				System.out.println("MergedMap:" + id + " -> " + mergedMapFull.get(id).length);
+			}
+			System.out.println("-------------------------\n");
 
-		//PV DIAGNOSTICS		
-		System.out.println("\n-----------REVPATHMAP: an id for each path--------------");
-		for(Integer id: this.reversePathMap.keySet() ) {
-			System.out.println("PathMap: " + id + " -> " + reversePathMap.get(id).toString());
 		}
-		System.out.println("-------------------------\n");
-
-		
-		
-		//PV DIAGNOSTICS, commented out as not really impotrant
-		System.out.println("\n-----------MERGEDMAP: tuples per path --------------");
-		for(Integer id: mergedMapFull.keySet()) {
-			System.out.println("MergedMap:" + id + " -> " + mergedMapFull.get(id).length);
-		}
-		System.out.println("-------------------------\n");
-
-
 	}//end cannotRefactorStep5UnlessYouExplainItToMe()
 
 
@@ -1071,8 +1093,10 @@ System.out.println();
 
 				//the condition for a parent-child is that the child CS must contain ALL properties of parent   
 				if(child.contains(parent)){
-					//PV DIAGNOSTICS COMMENTED OUT						
-					System.out.println("$$child: " + child.toString() + " parent " + parent.toString());					
+					if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+						//PV DIAGNOSTICS COMMENTED OUT						
+						System.out.println("$$child: " + child.toString() + " parent " + parent.toString());
+					}
 					Set<CharacteristicSet> children = allCsAncestors.getOrDefault(parent, new HashSet<CharacteristicSet>());
 					children.add(child);
 					allCsAncestors.put(parent, children);
@@ -1105,9 +1129,10 @@ System.out.println();
 				Set<CharacteristicSet> set = parents.getOrDefault(child, new HashSet<CharacteristicSet>());
 				set.add(nextCS);
 				parents.put(child, set);
-				//PV DIAGNOSTICS COMMENTED OUT		
-				System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
-
+				if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+					//PV DIAGNOSTICS COMMENTED OUT		
+					System.out.println("$$$child: " + child.toString() + " parent " + nextCS.toString());					
+				}
 			}
 		}
 		//System.out.println("\n\n No children: ") ;
@@ -1173,34 +1198,39 @@ System.out.println();
 		//		}
 
 		double _DENSITY_THRESHOLD = maxCSSize*meanMultiplier/100;
-
-		//PV DIAGNOSTICS COMMENTED OUT		
-		System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			//PV DIAGNOSTICS COMMENTED OUT		
+			System.out.println("MaxCSsize: " + maxCSSize + "\tmeanMultiplier " + meanMultiplier + "\t_DNS_THETA " + _DENSITY_THRESHOLD +"\n");		
+		}
 		for(CharacteristicSet nextCS : csMap.keySet()) {
 			//if(children.containsKey(nextCS))
 			//	continue;
 			//			int bb = Math.max(total/csMap.size()*meanMultiplier*2, total/100);
 			//			if(csSizes.get(nextCS) >= Math.max(total/csMap.size()*meanMultiplier*2, total/100)){ //-initial Marios Implementation
-
-			//PV DIAGNOSTICS COMMENTED OUT
-			System.out.println("Candidate dense: " + nextCS.toString());			
-
+			if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+				//PV DIAGNOSTICS COMMENTED OUT
+				System.out.println("Candidate dense: " + nextCS.toString());			
+			}
 			/* ********************************************* 
 			 * 		HERE IS THE DECISION ON DENSITY
 			 * *********************************************/
 			if(csExtentSizes.get(nextCS) >= _DENSITY_THRESHOLD){ //Dolap definition
-				//PV DIAGNOSTICS COMMENTED OUT			
-				System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
+				if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+					//PV DIAGNOSTICS 			
+					System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
+				}
 				numDenseCSs++;
 				denseCSs.add(nextCS);
 				numDenseRows += csExtentSizes.get(nextCS);
 			}
 
 		}
-		System.out.println("Total CSs: " + csMap.size());
-		//				for(NewCS nextDense : denseCSs){
-		//					System.out.println("\t"+nextDense.toString());
-		//				}
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("Total CSs: " + csMap.size());
+			//				for(NewCS nextDense : denseCSs){
+			//					System.out.println("\t"+nextDense.toString());
+			//				}
+		}
 	}// end extracteDenseNodes
 
 
@@ -1252,14 +1282,17 @@ System.out.println();
 			System.err.println("There are no candidate paths found. Exiting");
 			System.exit(-1);
 		}
-		//PV DIAGNOSTICS COMMENTED OUT
+		//PV DIAGNOSTICS 
 		else
-			System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
-
-		System.out.println("---------BEFORE CLEANUP-------");
-		for(Path path: foundCandidatePaths)
-			System.out.println("PATH: " + path.toString());
-		System.out.println("----------------\n");
+			if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+				System.out.println("\n[extractCandidatePathsSortedOnTripleNumber] About to process " + foundCandidatePaths.size() + " candidate paths.");
+			}
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("---------BEFORE CLEANUP-------");
+			for(Path path: foundCandidatePaths)
+				System.out.println("PATH: " + path.toString());
+			System.out.println("----------------\n");
+		}
 
 		Set<Path> toRemovePaths = new HashSet<Path>();
 		Iterator<Path> iterOuter = foundCandidatePaths.iterator();
@@ -1293,12 +1326,13 @@ System.out.println();
 
 			}
 		});
-		//PV DIAGNOSTICS COMMENTED OUT
-		System.out.println("-------AFTER CLEANUP---------");
-		for(Path path: orderedPaths)
-			System.out.println("PATH: " + path.toString());
-		System.out.println("----------------\n");
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			//PV DIAGNOSTICS COMMENTED OUT
+			System.out.println("-------AFTER CLEANUP---------");
+			for(Path path: orderedPaths)
+				System.out.println("PATH: " + path.toString());
+			System.out.println("----------------\n");
+		}
 		return orderedPaths;
 	}//end extracteCandidatePathsSortedOnTripleNumber()
 
@@ -1350,10 +1384,12 @@ System.out.println();
 			});
 
 		}
-		//PV DIAGNOSTICS COMMENTED OUT
-		System.out.println("-------------------------------------\n\n");
-		for(Path path: orderedPaths) {
-			System.out.println("Survives Nested Removal: " + path.toString());
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			//PV DIAGNOSTICS 
+			System.out.println("-------------------------------------\n\n");
+			for(Path path: orderedPaths) {
+				System.out.println("Survives Nested Removal: " + path.toString());
+			}
 		}
 
 		//remove empty paths
@@ -1372,10 +1408,11 @@ System.out.println();
 		for(Path finalCS : finalListCandidatePAths){
 			finalUniqueCandidatePathsMap.addAll(finalCS);
 		}
-
-		System.out.println("After removalOfNestedAndEmptyPaths,finalUniqueCandidatePathsMap.size: " + finalUniqueCandidatePathsMap.size());
-		System.out.println("finalListCandidatePAths size is: " + finalListCandidatePAths.size() + "...\n\t.. and the actual paths: " + finalListCandidatePAths.toString());
-		System.out.println("-------------------------------------\n\n");
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			System.out.println("After removalOfNestedAndEmptyPaths,finalUniqueCandidatePathsMap.size: " + finalUniqueCandidatePathsMap.size());
+			System.out.println("finalListCandidatePAths size is: " + finalListCandidatePAths.size() + "...\n\t.. and the actual paths: " + finalListCandidatePAths.toString());
+			System.out.println("-------------------------------------\n\n");
+		}
 	}//end method removeNestedAndEmptyPaths
 
 
