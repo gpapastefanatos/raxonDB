@@ -283,115 +283,115 @@ public class CostBasedSchemaManagementDOLAP20 implements ICostBasedSchemaManager
 	// /////////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Copy the appropriate CS's to a separate list
-	 * 
-	 * @param sortedCSMapByQueries the map of CS and their frequencies in the query workload
-	 * @param howManyToSeparate the number of CS's to separate, as already calculated
-	 * @param csToSeparate the list of CS's to populate
-	 */
-	private int extractCSToIsolate(Map<CharacteristicSet, Integer> sortedCSMapByQueries, int howManyToSeparate,
-			List<CharacteristicSet> csToSeparate) {
-		Iterator<CharacteristicSet> iter = sortedCSMapByQueries.keySet().iterator();
-		int i = 0;
-		while(iter.hasNext() && i< howManyToSeparate) {
-			CharacteristicSet cs = iter.next(); 
-			csToSeparate.add(cs);
-			i++;
-			if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
-				System.out.println("Separated:\t" + cs.toString());
-			}
-		}
-		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
-			System.out.println();
-		}
-		return csToSeparate.size();
-	}
-
-
-
-	/**
-	 * Returns a sorted map of frequencies for each characteristic set of a workflow.
-	 * 
-	 * @param querySet
-	 * @return
-	 */
-	private Map<CharacteristicSet, Integer> computeFrequencies(Set<AbstractQueryRepresentation> querySet) {
-		//Set<CharacteristicSet> result = new HashSet<CharacteristicSet>();
-		Map<CharacteristicSet, Integer> queryFrequencies = new HashMap<CharacteristicSet, Integer>();
-
-		for (AbstractQueryRepresentation aqr: querySet) {
-			aqr.computeAllNeededStuffForAQR(this.propertiesSet,this.csMap); 
-			Map<CharacteristicSet, Integer> localQueryFrequencies = aqr.getCsFrequencies();
-
-			for(CharacteristicSet cs: localQueryFrequencies.keySet()) {
-				int localCounter = localQueryFrequencies.get(cs);
-				if(!queryFrequencies.containsKey(cs))
-					queryFrequencies.put(cs,localCounter);
-				else {
-					int counterOld = queryFrequencies.get(cs); 
-					queryFrequencies.replace(cs, counterOld+localCounter);
-				}
-			}
-		}//for each query
-
-		//now sort the map desc by value
-		Map<CharacteristicSet, Integer> queryFrequenciesSorted = queryFrequencies
-				.entrySet()
-				.stream()
-				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
-						LinkedHashMap::new));
-		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
-			System.out.println("\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Sorted Map: + &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-			System.out.println( Arrays.toString(queryFrequenciesSorted.entrySet().toArray()));
-			System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n\n");	
-		}
-		return queryFrequenciesSorted;
-	}//end highlightPopularCSs
-
-
-	/**
-	 * We have a sorted list of frequencies. We want to keep separately a set of them that make a difference.
-	 * We continue keeping as long as the difference rate is not dropping.
-	 * We also give as a parameter (to allow exp's) a min number of CS's we gonna keep separate.
-	 * Whichever of the two is bigger, we retain
-	 * 
-	 * @param sortedQueryFrequenciesDesc the map of CSs which is sorted desc by frequency values
-	 * @param minNumberOfCSs the minimum number of CS that we will obligatorily separate
-	 * @return how many CS's to separate
-	 */
-	private int whichCSToKeepUntouchedSimple(Map<CharacteristicSet, Integer> sortedQueryFrequenciesDesc, int minNumberOfCSs) {
-
-		ArrayList<Integer> sortedValues =  new ArrayList<Integer>(sortedQueryFrequenciesDesc.values());
-		int position = 0;
-		int currentValue; int nextValue;
-		double stoppingDropPct = Double.MIN_VALUE;
-		while (position < sortedValues.size()-1) {
-			currentValue = sortedValues.get(position);
-			nextValue = sortedValues.get(position+1);
-			int delta = currentValue - nextValue;
-			if(delta == 0) {
-				position++;
-			}
-			else {
-				double dropPct = (delta) / ((double)currentValue);
-				if (dropPct >= stoppingDropPct) {   //we are dropping at least as fast as before, continue
-					stoppingDropPct = dropPct;
-					position++;
-				}
-				else { //we stopped dropping, stop
-					break;
-				}//else: we are dropping as a fraction
-			}//else: not equal to previous value
-		}//end while
-
-		return Math.max(minNumberOfCSs, position);
-
-	}//end whichCSToKeepUntouched()
-
-
+//
+//	/**
+//	 * Copy the appropriate CS's to a separate list
+//	 * 
+//	 * @param sortedCSMapByQueries the map of CS and their frequencies in the query workload
+//	 * @param howManyToSeparate the number of CS's to separate, as already calculated
+//	 * @param csToSeparate the list of CS's to populate
+//	 */
+//	private int extractCSToIsolate(Map<CharacteristicSet, Integer> sortedCSMapByQueries, int howManyToSeparate,
+//			List<CharacteristicSet> csToSeparate) {
+//		Iterator<CharacteristicSet> iter = sortedCSMapByQueries.keySet().iterator();
+//		int i = 0;
+//		while(iter.hasNext() && i< howManyToSeparate) {
+//			CharacteristicSet cs = iter.next(); 
+//			csToSeparate.add(cs);
+//			i++;
+//			if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+//				System.out.println("Separated:\t" + cs.toString());
+//			}
+//		}
+//		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+//			System.out.println();
+//		}
+//		return csToSeparate.size();
+//	}
+//
+//
+//
+//	/**
+//	 * Returns a sorted map of frequencies for each characteristic set of a workflow.
+//	 * 
+//	 * @param querySet
+//	 * @return
+//	 */
+//	private Map<CharacteristicSet, Integer> computeFrequencies(Set<AbstractQueryRepresentation> querySet) {
+//		//Set<CharacteristicSet> result = new HashSet<CharacteristicSet>();
+//		Map<CharacteristicSet, Integer> queryFrequencies = new HashMap<CharacteristicSet, Integer>();
+//
+//		for (AbstractQueryRepresentation aqr: querySet) {
+//			aqr.computeAllNeededStuffForAQR(this.propertiesSet,this.csMap); 
+//			Map<CharacteristicSet, Integer> localQueryFrequencies = aqr.getCsFrequencies();
+//
+//			for(CharacteristicSet cs: localQueryFrequencies.keySet()) {
+//				int localCounter = localQueryFrequencies.get(cs);
+//				if(!queryFrequencies.containsKey(cs))
+//					queryFrequencies.put(cs,localCounter);
+//				else {
+//					int counterOld = queryFrequencies.get(cs); 
+//					queryFrequencies.replace(cs, counterOld+localCounter);
+//				}
+//			}
+//		}//for each query
+//
+//		//now sort the map desc by value
+//		Map<CharacteristicSet, Integer> queryFrequenciesSorted = queryFrequencies
+//				.entrySet()
+//				.stream()
+//				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+//				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+//						LinkedHashMap::new));
+//		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
+//			System.out.println("\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Sorted Map: + &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+//			System.out.println( Arrays.toString(queryFrequenciesSorted.entrySet().toArray()));
+//			System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n\n");	
+//		}
+//		return queryFrequenciesSorted;
+//	}//end highlightPopularCSs
+//
+//
+//	/**
+//	 * We have a sorted list of frequencies. We want to keep separately a set of them that make a difference.
+//	 * We continue keeping as long as the difference rate is not dropping.
+//	 * We also give as a parameter (to allow exp's) a min number of CS's we gonna keep separate.
+//	 * Whichever of the two is bigger, we retain
+//	 * 
+//	 * @param sortedQueryFrequenciesDesc the map of CSs which is sorted desc by frequency values
+//	 * @param minNumberOfCSs the minimum number of CS that we will obligatorily separate
+//	 * @return how many CS's to separate
+//	 */
+//	private int whichCSToKeepUntouchedSimple(Map<CharacteristicSet, Integer> sortedQueryFrequenciesDesc, int minNumberOfCSs) {
+//
+//		ArrayList<Integer> sortedValues =  new ArrayList<Integer>(sortedQueryFrequenciesDesc.values());
+//		int position = 0;
+//		int currentValue; int nextValue;
+//		double stoppingDropPct = Double.MIN_VALUE;
+//		while (position < sortedValues.size()-1) {
+//			currentValue = sortedValues.get(position);
+//			nextValue = sortedValues.get(position+1);
+//			int delta = currentValue - nextValue;
+//			if(delta == 0) {
+//				position++;
+//			}
+//			else {
+//				double dropPct = (delta) / ((double)currentValue);
+//				if (dropPct >= stoppingDropPct) {   //we are dropping at least as fast as before, continue
+//					stoppingDropPct = dropPct;
+//					position++;
+//				}
+//				else { //we stopped dropping, stop
+//					break;
+//				}//else: we are dropping as a fraction
+//			}//else: not equal to previous value
+//		}//end while
+//
+//		return Math.max(minNumberOfCSs, position);
+//
+//	}//end whichCSToKeepUntouched()
+//
+//
 
 
 	/**
