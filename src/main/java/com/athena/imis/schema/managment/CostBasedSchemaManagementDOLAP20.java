@@ -236,9 +236,6 @@ public class CostBasedSchemaManagementDOLAP20 implements ICostBasedSchemaManager
 		 */
 
 		//steps [1 .. 4]
-		/* *************************************************************************************************************		
-		 *   TODO: HERE, AFTER THE EXTRACTION OF ORDERED PATHS, WE NEED TO CALCULATE THE COST OF EACH PATH AND RE-SORT	
-		 * ************************************************************************************************************ */	
 		List<Path> orderedPaths = this.extractCandidatePathsSortedOnTripleNumber();
 		this.removeNestedAndEmptyPaths(orderedPaths);
 
@@ -262,10 +259,6 @@ public class CostBasedSchemaManagementDOLAP20 implements ICostBasedSchemaManager
 //		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
 //		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
 
-		/* *************************************************************************************************************		
-		 *  TODO: how to update pathMap, csToPathMap, reversePathMap with the new data?
-		 *  Be careful: can be already solo!!!!
-		 * ************************************************************************************************************ */
 
 
 
