@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.deprecated;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
