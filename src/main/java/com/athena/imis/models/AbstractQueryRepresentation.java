@@ -123,7 +123,7 @@ public class AbstractQueryRepresentation {
 				if (id !=null)
 					idList.add(id);
 				else
-					System.err.println("No mapping to id for property " + property);
+					System.err.println("[AQR] No mapping to id for property " + property);
 			}
 			this.variableDependencies.put(s, idList);
 		}

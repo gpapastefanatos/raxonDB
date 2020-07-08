@@ -51,7 +51,7 @@ import gnu.trove.map.hash.THashMap;
  * @author meimar, gpapas, pvassil
  * @version 0.3
  */
-public class CostBasedSchemaManagementDOLAP20 implements ICostBasedSchemaManager  {
+public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 
 	private Map<String, Integer> propertiesSet;
 	private Map<Integer, String> revPropertiesSet;
@@ -101,7 +101,7 @@ public class CostBasedSchemaManagementDOLAP20 implements ICostBasedSchemaManager
 	 *	postgres 					 -- db password 
 	 *	2 						     -- density factor m
 	 */
-	public CostBasedSchemaManagementDOLAP20(String[] args) {
+	public CostBasedSchemaManagementIS20(String[] args) {
 		this.propertiesSet = new THashMap<String, Integer>();
 		this.revPropertiesSet = new THashMap<Integer, String>();
 		if(args.length > 6)
@@ -247,20 +247,20 @@ public class CostBasedSchemaManagementDOLAP20 implements ICostBasedSchemaManager
 		createCSMergersInPaths();
 
 
-//		/* *************************************************************************************************************		
-//		 *   HERE, SORT THE CSs BY POPULARITY. Can be pushed upwards	
-//		 * ************************************************************************************************************ */	
-//		AQRManagerLubm aqrMgr = new AQRManagerLubm();
-//		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
-//		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
-//		Map<CharacteristicSet, Integer> sortedCSMapByQueries = this.computeFrequencies(querySet);
-//
-//		int _MinCSKeptSeparately = 2;
-//		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
-//		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
-//
-//		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
-//		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
+		/* *************************************************************************************************************		
+		 *   HERE, SORT THE CSs BY POPULARITY. Can be pushed upwards	
+		 * ************************************************************************************************************ */	
+		AQRManagerLubm aqrMgr = new AQRManagerLubm();
+		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
+		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
+		Map<CharacteristicSet, Integer> sortedCSMapByQueries = this.computeFrequencies(querySet);
+
+		int _MinCSKeptSeparately = 2;
+		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
+		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
+
+		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
+		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
 
 		/* *************************************************************************************************************		
 		 *  TODO: how to update pathMap, csToPathMap, reversePathMap with the new data?

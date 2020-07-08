@@ -6,10 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class SimpleClient {
+public class SimpleClientDOLAP {
 
 	public static void main(String[] args) {
-		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementIS20(args);
+		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
 		int result = schemaDecisionEngine.decideSchemaAndPopulate();
 
 		System.out.println("PVEngine returned " + result);
@@ -48,7 +48,7 @@ public class SimpleClient {
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
-		System.out.println("\n---------------\nSystem Catalog ESTIMATES (not exact numbers\n----------------\n");
+		System.out.println("\n---------------\nSystem Catalog ESTIMATES (not exact numbers)\n----------------\n");
 		try{
 			Statement st = conn.createStatement();
 			String propertiesSetQuery = " SELECT\r\n" + 
