@@ -60,7 +60,8 @@ public final class Queries {
 					+"?x ex:supervises ?z."    
 					+"?z ex:hasBirthday <http://www.example.com/DateA>."        
 					+"?z ex:isMarriedTo ?w."        
-					+"?w ex:hasNationality <http://www.example.com/Gr>}" ;
+					//+"?w ex:hasNationality <http://www.example.com/Gr>"
+					+ "?w ?prop <http://www.example.com/Gr>}" ;
 	
 	public static String prefix = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 			+ "PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> ";
