@@ -244,17 +244,17 @@ public class CostBasedSchemaManagementDOLAP20  {
 		/* *************************************************************************************************************		
 		 *   HERE, SORT THE CSs BY POPULARITY. Can be pushed upwards	
 		 * ************************************************************************************************************ */	
-		AQRManagerLubm aqrMgr = new AQRManagerLubm();
-		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
-		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
-		Map<CharacteristicSet, Integer> sortedCSMapByQueries = this.computeFrequencies(querySet);
-
-		int _MinCSKeptSeparately = 2;
-		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
-		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
-		
-		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
-		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
+//		AQRManagerLubm aqrMgr = new AQRManagerLubm();
+//		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
+//		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
+//		Map<CharacteristicSet, Integer> sortedCSMapByQueries = this.computeFrequencies(querySet);
+//
+//		int _MinCSKeptSeparately = 2;
+//		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
+//		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
+//		
+//		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
+//		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
 
 		/* *************************************************************************************************************		
 		 *  TODO: how to update pathMap, csToPathMap, reversePathMap with the new data?
