@@ -4,6 +4,9 @@
 package com.athena.imis.models;
 
 import java.util.Set;
+
+import com.athena.imis.models.ModeOfWork.WorkMode;
+
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,7 +63,7 @@ public class AbstractQueryRepresentation {
 	private List<String> variablesList;
 	private Set<List<CharacteristicSet>> cartesianProductOfCandidateCSs;
 	private Map<CharacteristicSet, Integer> csFrequencies;
-	
+
 	public AbstractQueryRepresentation(String pqName,
 			Map<String, List<String>> pVariableDependencies,
 			Map<String, String> pprefixMap,
@@ -71,26 +74,26 @@ public class AbstractQueryRepresentation {
 			this.prefixMap = pprefixMap;
 		else
 			this.prefixMap 	= new HashMap<String,String>();
-		
+
 		Map<String, List<String>> prefixedVariableDependencies =  convertViaPrefixes(pVariableDependencies);
 		if (prefixedVariableDependencies != null)
 			this.variableDependenciesAsStrings =  prefixedVariableDependencies;
 		else 
 			this.variableDependenciesAsStrings = new HashMap<String, List<String>>();
-		
+
 		if (pjoins == null)
 			this.joinsAsStrings = new HashSet<List<String>>();
 		else
 			this.joinsAsStrings = pjoins;
-		
+
 		this.variablesList = new ArrayList<String>(this.variableDependenciesAsStrings.keySet());
 		Collections.sort(this.variablesList);
-		
+
 		cartesianProductOfCandidateCSs = new HashSet<List<CharacteristicSet>>();
 		csFrequencies = new HashMap<CharacteristicSet, Integer>();
 	}//end constructor
 
-	
+
 	/*
 	 * Post-constructor method that gets the job done 
 	 */
@@ -102,9 +105,9 @@ public class AbstractQueryRepresentation {
 		computeCartesianProductOfSubqueries();
 		computeCSFrequencies();
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Populates the Map<String, List<Integer>> variableDependencies with integer values for each variable's property
 	 * 
@@ -120,7 +123,7 @@ public class AbstractQueryRepresentation {
 				if (id !=null)
 					idList.add(id);
 				else
-					System.err.println("No mapping to id for property " + property);
+					System.err.println("[AQR] No mapping to id for property " + property);
 			}
 			this.variableDependencies.put(s, idList);
 		}
@@ -142,11 +145,11 @@ public class AbstractQueryRepresentation {
 			String oldString = joinTriplet.get(1);
 			String newString = this.replaceStringWithPrefix(oldString);
 			joinTriplet.set(1,  newString);
-System.out.println("Join: " + joinTriplet.toString() + "\n");			
+			System.out.println("Join: " + joinTriplet.toString() + "\n");			
 		}
 		return this.joinsAsStrings.size();
 	}
-	
+
 	/**
 	 * For each variable, this method computes the set of CSs that pertain to it.
 	 * Ths is assuming you are given a csMap that maps each CS to an integer via the parameter csMap 
@@ -160,13 +163,13 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 			Set<CharacteristicSet> vrblCSset = new HashSet<CharacteristicSet>();
 			for (CharacteristicSet cs: csMap.keySet()) {
 				if(cs.getAsList().containsAll(this.variableDependencies.get(vrbl)))
-						vrblCSset.add(cs);
+					vrblCSset.add(cs);
 			}
 			candidateCSsPerVariable.put(vrbl, vrblCSset);
 		}
 		return candidateCSsPerVariable.size();
 	}
-	
+
 	/**
 	 * Let VariableList be a LIST of the variables, s.t., each variable has a specific position
 	 * Let C be the result of the cartsian product. We take all the candidates from all the variables
@@ -180,7 +183,7 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 	 *    C = Cnew 
 	 */
 	public void computeCartesianProductOfSubqueries() {
-		
+
 		for(String vrbl: this.variablesList) {
 			Set<List<CharacteristicSet>> cartesianProductNew = new HashSet<List<CharacteristicSet>>();
 			if (cartesianProductOfCandidateCSs.size() == 0) {
@@ -189,7 +192,7 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 					csSetCrtNew.add(csVrlb);
 					cartesianProductNew.add(csSetCrtNew);
 				}
-			
+
 			}
 			else {
 				for (CharacteristicSet csVrlb: candidateCSsPerVariable.get(vrbl)) {
@@ -203,17 +206,18 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 			}//end else = not the first vrbl
 			cartesianProductOfCandidateCSs = cartesianProductNew;
 		}//for vrbl
-		
-		System.out.println("=============================");
-		for(List<CharacteristicSet> ccs: this.cartesianProductOfCandidateCSs) {
-			for(CharacteristicSet cs: ccs) {
-				System.out.print(cs.toString() + ",");
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {		
+			System.out.println("=============================");
+			for(List<CharacteristicSet> ccs: this.cartesianProductOfCandidateCSs) {
+				for(CharacteristicSet cs: ccs) {
+					System.out.print(cs.toString() + ",");
+				}
+				System.out.println("||");
 			}
-			System.out.println("||");
+			System.out.println("=============================");
 		}
-		System.out.println("=============================");
 	}// end computeCartesianProductOfSubqueries()
-	
+
 	public int computeCSFrequencies() {
 		for(List<CharacteristicSet> nextList: this.cartesianProductOfCandidateCSs)
 			for (CharacteristicSet cs: nextList) {
@@ -224,13 +228,14 @@ System.out.println("Join: " + joinTriplet.toString() + "\n");
 					this.csFrequencies.replace(cs, previousCount+1);
 				}
 			}
-//PV DIAGNOSTICS
-System.out.println("\n-------------CS FREQUENCIES ------------");
-for (CharacteristicSet cs: this.csFrequencies.keySet()) {
-	System.out.println(cs.toString() + "\t" + this.csFrequencies.get(cs));
-}
-System.out.println("-------------------------\n");
-
+		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			//PV DIAGNOSTICS
+			System.out.println("\n-------------CS FREQUENCIES ------------");
+			for (CharacteristicSet cs: this.csFrequencies.keySet()) {
+				System.out.println(cs.toString() + "\t" + this.csFrequencies.get(cs));
+			}
+			System.out.println("-------------------------\n");
+		}
 		return this.csFrequencies.size();
 	}//end computeCSFrrequencies
 
@@ -249,7 +254,7 @@ System.out.println("-------------------------\n");
 	private Map<String, List<String>> convertViaPrefixes(Map<String, List<String>> pInputMap) {
 		if(pInputMap == null || pInputMap.size() == 0)
 			return null;
-		
+
 		Map<String, List<String>> convertedMap = new HashMap<String, List<String>>();
 		for(String key: pInputMap.keySet()) {
 			List<String> properties = pInputMap.get(key);
@@ -273,23 +278,23 @@ System.out.println("-------------------------\n");
 	 */
 	private String replaceStringWithPrefix(String sOld) {
 		String s  = sOld;
-//System.out.println("s before: " + s);
+		//System.out.println("s before: " + s);
 		String prefix = s.substring(0,s.indexOf(":")).trim();
-//System.out.println("prefix: " + prefix);
+		//System.out.println("prefix: " + prefix);
 
 		String replacement = this.prefixMap.get(prefix).trim();
-//System.out.println("repl: " + replacement);
+		//System.out.println("repl: " + replacement);
 
 		if (replacement != null)
 			s= s.replace(prefix+":", replacement);
 		s = "<" + s + ">";
-//System.out.println("s after: " + s);
+		//System.out.println("s after: " + s);
 		return s;
 	}//end replaceStringWithPrefix()
-	
-		
 
-	
+
+
+
 	///////////////////////////// GETTERS ////////////////
 	public Set<String> getVariables() {
 		return this.variableDependenciesAsStrings.keySet();
@@ -298,11 +303,11 @@ System.out.println("-------------------------\n");
 	public Map<String, List<String>> getVariableDependenciesAsStrings() {
 		return variableDependenciesAsStrings;
 	}
-	
+
 	public Map<String, List<Integer>> getVariableDependencies() {
 		return variableDependencies;
 	}
-	
+
 	public Map<String, Set<CharacteristicSet>> getCandidateCSsPerVariable() {
 		return candidateCSsPerVariable;
 	}
@@ -310,7 +315,7 @@ System.out.println("-------------------------\n");
 	public Set<List<String>> getJoinsAsStrings() {
 		return joinsAsStrings;
 	}
-	
+
 	public Set<List<CharacteristicSet>> getCartesianProductOfCandidateCSs() {
 		return cartesianProductOfCandidateCSs;
 	}
@@ -322,8 +327,8 @@ System.out.println("-------------------------\n");
 	}
 
 
-	
-	
+
+
 }//end class
 
 
@@ -343,4 +348,4 @@ public static String q1_ext = prefix +
 		+ "{?X rdf:type ub:GraduateStudent . "
 		+ "?X ub:takesCourse ?Y . "
 		+ "?Y rdf:type ?gr}"; 
-*/
+ */
