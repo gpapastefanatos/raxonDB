@@ -84,7 +84,11 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	private Map<CharacteristicSet, Path> csToPathMap;
 	private Map<Path, Integer> pathMap;
 	private int totalNumOfTriples;
-
+	private HashMap <String,String> createTableStatements = new HashMap <String,String>();
+	private Map<Integer, int[][]> mergedMapFull;
+	private Map<CharacteristicSet, Integer> sortedCSMapByQueries;
+	private List<CharacteristicSet> csToSeparate;
+	
 	//private Logger LOG;
 	//private Map<Integer, String> revIntMap;
 
@@ -128,7 +132,7 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		finalUniqueCandidatePathsMap = new HashSet<CharacteristicSet>();
 		reversePathMap = new HashMap<Integer, Path>();
 		csToPathMap = new HashMap<CharacteristicSet, Path>();
-		pathMap = new HashMap<Path, Integer>();
+		this.pathMap = new HashMap<Path, Integer>();
 		totalNumOfTriples=0;
 		//Commented out as useless
 		//revIntMap = new THashMap<Integer, String>();
@@ -189,7 +193,7 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 				System.out.println("csMap:" + cs.toString() + " -> " + csMap.get(cs));
 			}
 			System.out.println("-------------------------\n");		
-
+		
 			//PV DIAGNOSTICS		
 			System.out.println("\n-----------REVERSECSMAP<int,CS>: assigns a cs to each csId--------------");
 			for(Integer id: this.reverseCSMap.keySet()) {
@@ -236,9 +240,6 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		 */
 
 		//steps [1 .. 4]
-		/* *************************************************************************************************************		
-		 *   TODO: HERE, AFTER THE EXTRACTION OF ORDERED PATHS, WE NEED TO CALCULATE THE COST OF EACH PATH AND RE-SORT	
-		 * ************************************************************************************************************ */	
 		List<Path> orderedPaths = this.extractCandidatePathsSortedOnTripleNumber();
 		this.removeNestedAndEmptyPaths(orderedPaths);
 
@@ -246,35 +247,28 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		//steps 5 and 6, before we refactor this mega-method, must explain to me. 		
 		createCSMergersInPaths();
 
+		//compute which CSs to isolate
+		this.extracteCSToIsolate();		
 
-		/* *************************************************************************************************************		
-		 *   HERE, SORT THE CSs BY POPULARITY. Can be pushed upwards	
-		 * ************************************************************************************************************ */	
-		AQRManagerLubm aqrMgr = new AQRManagerLubm();
-		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
-		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
-		Map<CharacteristicSet, Integer> sortedCSMapByQueries = this.computeFrequencies(querySet);
+		//create separate paths for them
+		this.extractSeparatistCSToSeparatePaths();
 
-		int _MinCSKeptSeparately = 2;
-		int howManyToSeparate = whichCSToKeepUntouchedSimple(sortedCSMapByQueries, _MinCSKeptSeparately);
-		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
-
-		List<CharacteristicSet> csToSeparate = new ArrayList<CharacteristicSet>(); 
-		extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, csToSeparate);		
-
-		/* *************************************************************************************************************		
-		 *  TODO: how to update pathMap, csToPathMap, reversePathMap with the new data?
-		 *  Be careful: can be already solo!!!!
-		 * ************************************************************************************************************ */
-
-
-
+		// for each path (i.e., table to be created), compute its triples via the map mergedMapFull 
+		assignTuplesToTheirPath();
+		
 		/* *************************************************************************************************************		
 		 *   Finally, populate the db with the triples stored as tuples	
 		 * ************************************************************************************************************ */
 		int dbPopulationResult = createTablesPopulateDatabase(dbECSMap, reverseCSMap, pathMap, csToPathMap, reversePathMap, tripleGroups);
 		System.out.println("Ending time: " + new Date().toString());
 
+		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {		
+			//PV DIAGNOSTICS		
+			System.out.println("\n-----------CREATE TABLE--------------");
+			for(String stmt: this.createTableStatements.keySet() ) {
+				System.out.println("CREATE TABLE: " + stmt + " -> " + this.createTableStatements.get(stmt));
+			}	
+		}
 		return 0;
 	}//end decideSchemaAndPopulate()   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -283,6 +277,97 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	// /////////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
 	// ///////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * For each path (i.e., table to be created), compute its triples via the map mergedMapFull
+	 */
+	private int assignTuplesToTheirPath() {
+		mergedMapFull = new HashMap<Integer, int[][]>();
+		
+		for(Path pathP : pathMap.keySet()) {
+			int[][] concat = csMapFull.get(csMap.get(pathP.get(0)));
+			for(int i = 0; i < pathP.size(); i++){
+				concat = ArrayUtils.addAll(concat, csMapFull.get(csMap.get(pathP.get(i)))) ;
+			}
+			int pathId = pathMap.get(pathP);
+			mergedMapFull.put(pathId, concat);
+		}
+		tripleGroups = mergedMapFull.entrySet().iterator();
+		
+		return mergedMapFull.size();
+	}
+
+
+	
+	/**
+	 * Give the set of CSs to be separated and the csToPathMap which has already been populated, removes the separatist CSs from their previous paths
+	 * and puts them into new, isolated paths
+	 */
+	private int extractSeparatistCSToSeparatePaths() {
+		System.out.println("\nComputing SEPARATISTS: ");
+		for (CharacteristicSet cs: csToSeparate) {
+			Path path = csToPathMap.get(cs);
+			int pathSize = path.size();
+			//if it is already on its own
+			if (pathSize == 1) {
+			System.out.println("Omit path: " + path.toString());
+				continue;
+			}
+			//if merged with others
+			Path soloPath = new Path();
+			soloPath.add(cs);
+			System.out.println("\t" + soloPath.size() + " New path: " + soloPath.toString());
+
+			//Replace the path of the cs in the collective path maps with a new
+			csToPathMap.replace(cs, soloPath);
+			int newPathId = this.pathMap.size();
+			this.pathMap.put(soloPath, newPathId);
+			this.reversePathMap.put(newPathId, soloPath);
+			
+			path.remove(cs);
+			//this.pathMap.put(path, oldPathId);
+		}
+		
+		this.pathMap = new HashMap<Path,Integer>();
+		for(Integer id: reversePathMap.keySet()) {
+			Path path = reversePathMap.get(id);
+			this.pathMap.put(path, id);
+		}
+		
+		//PV DIAGNOSTICS
+		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
+			System.out.println("\n-----------AGAIN PATHMAP: an id for each path--------------");
+			for(Path path: pathMap.keySet()) {
+				System.out.println("PathMap:" + path.toString() + " -> " + pathMap.get(path));
+			}
+			System.out.println("-------------------------\n");	
+			System.out.println("\n-----------AGAIN REVPATHMAP: an id for each path--------------");
+			for(Integer id: this.reversePathMap.keySet() ) {
+				System.out.println("RPathMap: " + id + " -> " + reversePathMap.get(id).toString());
+			}
+		}
+		System.out.println("\nDone with Computing SEPARATISTS. ");
+		return pathMap.size();
+	}// endextractSeparatistCSToSeparatePaths()
+
+
+	/**
+	 * Computes which CS's to isolate  as separate tables, in the collection csToSeparate
+	 */
+	private int  extracteCSToIsolate() {
+		AQRManagerLubm aqrMgr = new AQRManagerLubm();
+		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
+		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
+		this.sortedCSMapByQueries = this.computeFrequencies(querySet);
+
+		int _MinCSKeptSeparately = 2;
+		int howManyToSeparate = whichCSToKeepUntouchedSimple(this.sortedCSMapByQueries, _MinCSKeptSeparately);
+		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
+
+		this.csToSeparate = new ArrayList<CharacteristicSet>(); 
+		return extractCSToIsolate(sortedCSMapByQueries, howManyToSeparate, this.csToSeparate);
+	}
+
 
 	/**
 	 * Copy the appropriate CS's to a separate list
@@ -299,11 +384,11 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 			CharacteristicSet cs = iter.next(); 
 			csToSeparate.add(cs);
 			i++;
-			if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+			if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
 				System.out.println("Separated:\t" + cs.toString());
 			}
 		}
-		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
+		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
 			System.out.println();
 		}
 		return csToSeparate.size();
@@ -343,11 +428,11 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
 						LinkedHashMap::new));
-		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
+		//if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
 			System.out.println("\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Sorted Map: + &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 			System.out.println( Arrays.toString(queryFrequenciesSorted.entrySet().toArray()));
 			System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n\n");	
-		}
+		//}
 		return queryFrequenciesSorted;
 	}//end highlightPopularCSs
 
@@ -638,15 +723,13 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
 			System.out.println("Dataset coverage: "  +  ((double)coveredSoFar/(double)totalNumOfTriples));
 		}
-		int pathIndex = 0;
+		
 
-		//contains all paths. Maps a path id to a list of triples 
-		Map<Integer, int[][]> mergedMapFull = new HashMap<Integer, int[][]>();
+		
 		finalListCandidatePAths.addAll(remainingFinalList);
 
 		Set<CharacteristicSet> finalNotCovered = new HashSet<CharacteristicSet>();
-
-		Path finalNotCoveredList = new Path();
+		Path finalNotCoveredPath = new Path();
 
 		for(CharacteristicSet abandoned : csMap.keySet()){
 			if(finalUniqueCandidatePathsMap.contains(abandoned) || remainingFinalUnique.contains(abandoned)){
@@ -654,10 +737,13 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 			}
 			else{
 				finalNotCovered.add(abandoned);
-				finalNotCoveredList.add(abandoned);
+				finalNotCoveredPath.add(abandoned);
 			}
 		}
+		
 		//also compute new density factor
+		int pathIndex = 0;
+		mergedMapFull = new HashMap<Integer, int[][]>();
 		int totalCSInPaths = 0;
 		for(Path pathP : finalListCandidatePAths){
 			pathMap.put(pathP, pathIndex++);
@@ -669,32 +755,42 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 				concat = ArrayUtils.addAll(concat, csMapFull.get(csMap.get(pathP.get(i)))) ;
 				csToPathMap.put(pathP.get(i), pathP);						
 			}
-			mergedMapFull.put(pathMap.get(pathP), concat);
+			int pathId = pathMap.get(pathP);
+//OEO
+			//			mergedMapFull.put(pathId, concat);
 
 		}
+
 		//now for the abandoned
-		if (finalNotCoveredList.size()>0) {
-			pathMap.put(finalNotCoveredList, pathIndex++);
-			int[][] triples = csMapFull.get(csMap.get(finalNotCoveredList.get(0)));
+		if (finalNotCoveredPath.size()>0) {
+			pathMap.put(finalNotCoveredPath, pathIndex++);
+			int[][] triples = csMapFull.get(csMap.get(finalNotCoveredPath.get(0)));
 			int[][] concat = triples;
-			csToPathMap.put(finalNotCoveredList.get(0), finalNotCoveredList);				
-			for(int i = 1; i < finalNotCoveredList.size(); i++){
-				concat = ArrayUtils.addAll(concat, csMapFull.get(csMap.get(finalNotCoveredList.get(i)))) ;
-				csToPathMap.put(finalNotCoveredList.get(i), finalNotCoveredList);						
+			csToPathMap.put(finalNotCoveredPath.get(0), finalNotCoveredPath);				
+			for(int i = 1; i < finalNotCoveredPath.size(); i++){
+				concat = ArrayUtils.addAll(concat, csMapFull.get(csMap.get(finalNotCoveredPath.get(i)))) ;
+				csToPathMap.put(finalNotCoveredPath.get(i), finalNotCoveredPath);						
 			}
-			mergedMapFull.put(pathMap.get(finalNotCoveredList), concat);
-			//end abandoned
+//OEO
+			//mergedMapFull.put(pathMap.get(finalNotCoveredPath), concat);
+			
 		}
 
+		for(Integer pathId: mergedMapFull.keySet()) {
+			System.out.println("&&& " + pathId); //+ " &&& " + this.reversePathMap.get(pathId).toString());
+		}
+	
 		double density = (double) coveredSoFar / totalCSInPaths ;  
 		System.out.println("Density: " + density);
 		for(Path pathP : pathMap.keySet())
 			reversePathMap.put(pathMap.get(pathP), pathP);
 		//if(true) return ;
 		System.out.println("merged map full: " + mergedMapFull.toString());
-		tripleGroups = mergedMapFull.entrySet().iterator();
+		
+//OEO
+		//tripleGroups = mergedMapFull.entrySet().iterator();
 
-		if(ModeOfWork.mode == WorkMode.EXPERIMENT) {
+		if(ModeOfWork.mode != WorkMode.EXPERIMENT) {
 			//PV DIAGNOSTICS
 			System.out.println("\n-----------CSTOPATHMAP: for each cs, in which path it will go--------------");
 			for(CharacteristicSet cs: csToPathMap.keySet()) {
@@ -1784,10 +1880,11 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 				createTableQuery.deleteCharAt(createTableQuery.length()-2);
 				createTableQuery.append(')');
 				createTableQuery.append(';');
-
+				this.createTableStatements.put(createTableQuery.toString(),Integer.toString(nextPathIndex));
 				try{				
 					//c.setAutoCommit(false);
 					stmt = conn.createStatement();
+
 					stmt.executeUpdate(createTableQuery.toString());
 					stmt.close();		       
 
@@ -1874,16 +1971,25 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 					oValues = poValues.getOrDefault(tripleNext[1], new HashSet<Integer>());
 					oValues.add(tripleNext[2]);			
 					if(dbECSMap.containsKey(tripleNext[2])){
+						CharacteristicSet refCS = reverseCSMap.get(dbECSMap.get(tripleNext[2]));
 						//System.out.println("1"  + rucs.get(dbECSMap.get(tripleNext[2])));
 						//System.out.println("2" + csToPathMap.get(rucs.get(dbECSMap.get(tripleNext[2]))));
-						if(csToPathMap.containsKey(reverseCSMap.get(dbECSMap.get(tripleNext[2])))){
-							int pairedPathIndex = pathMap.get(csToPathMap.get(reverseCSMap.get(dbECSMap.get(tripleNext[2]))));
-							String pairString = ""+nextPathIndex +"_"+pairedPathIndex;
-							pathPairs.add(pairString);
-							Set<Integer> ecsProp = pathPairProperties.getOrDefault(pairString, new HashSet<Integer>());
-							ecsProp.add(tripleNext[1]) ;
-							pathPairProperties.put(pairString, ecsProp) ;																																			
-
+						if(csToPathMap.containsKey(refCS)){
+							Path chkPath = csToPathMap.get(refCS);
+							Integer pairedPathIndex = pathMap.get(chkPath);
+							//int pairedPathIndex = pathMap.get(csToPathMap.get(reverseCSMap.get(dbECSMap.get(tripleNext[2]))));
+							if (pairedPathIndex == null) {
+								System.err.println("\t^^^^CS^^^ " + refCS.toString());
+								System.err.println("\t^^P^^ " + chkPath.toString());
+								System.err.println("\t^^PPI^^ is NULL");
+							}
+							else {
+								String pairString = ""+nextPathIndex +"_"+pairedPathIndex;
+								pathPairs.add(pairString);
+								Set<Integer> ecsProp = pathPairProperties.getOrDefault(pairString, new HashSet<Integer>());
+								ecsProp.add(tripleNext[1]) ;
+								pathPairProperties.put(pairString, ecsProp) ;																																			
+							}
 						}
 
 					}
