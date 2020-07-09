@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.postgresql.PGConnection;
@@ -39,6 +40,8 @@ import com.athena.imis.models.AbstractQueryRepresentation;
 import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.ModeOfWork;
 import com.athena.imis.models.ModeOfWork.WorkMode;
+import com.athena.imis.schema.managment.aqr.AQRFactory;
+import com.athena.imis.schema.managment.aqr.IAQRManager;
 //import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.Path;
 
@@ -52,7 +55,7 @@ import gnu.trove.map.hash.THashMap;
  * @version 0.3
  */
 public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
-
+	private String projectClassName;
 	private Map<String, Integer> propertiesSet;
 	private Map<Integer, String> revPropertiesSet;
 	private Set<Integer> multiValuedProperties ;
@@ -137,6 +140,22 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		//Commented out as useless
 		//revIntMap = new THashMap<Integer, String>();
 		//LOG = LogManager.getLogger(CostBasedSchemaManagementIS20.class);
+
+		Map<String,String> familyIndicatorStrings = Stream.of(new String[][] {
+			  { "lubm", "LUBM" }, 
+			  { "watdiv", "WATDIV" },
+			  { "reactom", "REACTOME" },
+			  { "geonam", "GEONAMES" },
+			}).collect(Collectors.toMap(data -> data[0], data -> data[1]));
+		for (String key: familyIndicatorStrings.keySet()) {
+			if(args[1].trim().toLowerCase().contains(key)) {
+				this.projectClassName = familyIndicatorStrings.get(key);
+				break;
+			}
+			else
+				this.projectClassName = "UNKNOWN";
+		}
+		System.out.println("PRJ CLASS: " + this.projectClassName);
 
 	}//end constructor
 
@@ -355,7 +374,8 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	 * Computes which CS's to isolate  as separate tables, in the collection csToSeparate
 	 */
 	private int  extracteCSToIsolate() {
-		AQRManagerLubm aqrMgr = new AQRManagerLubm();
+		IAQRManager aqrMgr = AQRFactory.createAQRManager(this.projectClassName); 
+				//new AQRManagerLubm();
 		List<AbstractQueryRepresentation> queryList = aqrMgr.getQueryList();
 		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
 		this.sortedCSMapByQueries = this.computeFrequencies(querySet);
