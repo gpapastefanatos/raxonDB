@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.schema.managment.aqr;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +13,7 @@ import com.athena.imis.models.AbstractQueryRepresentation;
 
 
 
-public class AQRManagerLubm {
+public class AQRManagerLubm implements IAQRManager {
 	private List<AbstractQueryRepresentation> queryList;
 	private Map<String, String> prefixMap;
 
@@ -27,7 +27,8 @@ public class AQRManagerLubm {
 		this.createQueries();
 	}
 
-	public void createQueries() {
+	@Override
+	public int createQueries() {
 		Map<String, List<String>> queryDependencies = new HashMap<String, List<String>>();
 		Set<List<String>> pjoins = new HashSet<List<String>>();
 
@@ -67,11 +68,13 @@ public class AQRManagerLubm {
 		pjoins.add(Arrays.asList("?X","ub:worksFor", "?Y"));
 		queryList.add(new AbstractQueryRepresentation("q4_ext",queryDependencies, prefixMap, pjoins));
 		
+		return queryList.size();
 	}//end createQueries()
 
 	/**
 	 * @return the queryList
 	 */
+	@Override
 	public List<AbstractQueryRepresentation> getQueryList() {
 		return queryList;
 	}
