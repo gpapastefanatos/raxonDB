@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class SimpleClient {
+public class SimpleClientIS {
 
 	public static void main(String[] args) {
 		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementIS20(args);
@@ -45,7 +45,6 @@ public class SimpleClient {
 			
 			rsProps.close();
 			st.close();
-			conn.close();
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
@@ -78,6 +77,12 @@ public class SimpleClient {
 			rsProps.close();
 			st.close();
 		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
