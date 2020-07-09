@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.athena.imis.schema.managment.CostBasedSchemaManagementIS20;
