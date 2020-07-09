@@ -18,18 +18,18 @@ import org.junit.jupiter.api.Test;
 import com.athena.imis.schema.managment.CostBasedSchemaManagementIS20;
 
 /**
- * Just a very small data set lubm nt1
+ * Just a very small data set lubm nt 2
  * 
  * @author pvassil
  *
  */
-class RelationalLoaderTestWithSmallNT1 {
+class RelationalLoaderTestWithSmallLUBM {
 
 	public static CostBasedSchemaManagementIS20 schemaDecisionEngine;
 	public static String[] args = {
 			"localhost", 
 			"resources/datasets/lubm/lubm2.nt", 
-			"TestDBRaxonNT1", 
+			"TestDBRaxonLubm2", 
 			"100", 
 			"postgres", 
 			"postgres", 
