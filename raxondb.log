@@ -1,0 +1,5 @@
+--DENSITY FACTOR = 0: Best NullCost=2147483647 and Current CS Cost =0
+--DENSITY FACTOR = 25: Best NullCost=0 and Current CS Cost =22101
+--DENSITY FACTOR = 50: Best NullCost=0 and Current CS Cost =47574
+--DENSITY FACTOR = 75: Best NullCost=0 and Current CS Cost =141440
+--DENSITY FACTOR = 100: Best NullCost=0 and Current CS Cost =141440
