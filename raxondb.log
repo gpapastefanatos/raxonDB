@@ -1,5 +1,3 @@
 --DENSITY FACTOR = 0: Best NullCost=2147483647 and Current CS Cost =0
---DENSITY FACTOR = 25: Best NullCost=0 and Current CS Cost =22101
---DENSITY FACTOR = 50: Best NullCost=0 and Current CS Cost =47574
---DENSITY FACTOR = 75: Best NullCost=0 and Current CS Cost =141440
---DENSITY FACTOR = 100: Best NullCost=0 and Current CS Cost =141440
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> SELECT ?X WHERE{?X rdf:type ub:Student . ?X ub:takesCourse <http://www.Department1.University1.edu/GraduateCourse1>}
+ (SELECT c0.s FROM cs_0 AS c0  WHERE c0.p_0 = null AND c0.p_14 = null)  UNION  (SELECT c0.s FROM cs_2 AS c0  WHERE c0.p_0 = null AND c0.p_14 = null)  UNION  (SELECT c0.s FROM cs_3 AS c0  WHERE c0.p_0 = null AND c0.p_14 = null)  UNION  (SELECT c0.s FROM cs_5 AS c0  WHERE c0.p_0 = null AND c0.p_14 = null) 

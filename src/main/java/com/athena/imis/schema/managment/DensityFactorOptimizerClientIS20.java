@@ -1,7 +1,6 @@
 package com.athena.imis.schema.managment;
 
 
-
 public class DensityFactorOptimizerClientIS20 {
 
 	public static void main(String[] args) {
@@ -11,4 +10,5 @@ public class DensityFactorOptimizerClientIS20 {
 
 		System.out.println("Density Factor returned " + result);
 	}
+	
 }
