@@ -1632,7 +1632,7 @@ public class CostBasedSchemaManagementDOLAP20  implements ICostBasedSchemaManage
 
 
 			cpManager2 = ((PGConnection)conn).getCopyAPI();
-			PushbackReader reader2 = new PushbackReader( new StringReader(""), 100000 );
+			PushbackReader reader2 = new PushbackReader( new StringReader(""), 1000000);
 			Iterator<Map.Entry<String, Integer>> keyIt = intMap.entrySet().iterator();
 			int iter = 0;
 			while(keyIt.hasNext())
