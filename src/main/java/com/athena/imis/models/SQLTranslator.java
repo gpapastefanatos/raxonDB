@@ -21,7 +21,7 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
-import com.athena.imis.querying.RelationalQueryArray;
+import com.athena.imis.querying.RelationalQueryArrayDOLAP20;
 
 public class SQLTranslator {
 
@@ -317,7 +317,7 @@ public class SQLTranslator {
 		for(Node nextObject : objects) {
 			
 			try{
-				Statement st = RelationalQueryArray.c.createStatement();
+				Statement st = RelationalQueryArrayDOLAP20.c.createStatement();
 				
 				String value = nextObject.toString();
 				if(!nextObject.isLiteral())									
@@ -348,7 +348,7 @@ public class SQLTranslator {
 		for(Node nextSubject : subjectCSMap.keySet()) {
 			
 			try{
-				Statement st = RelationalQueryArray.c.createStatement();
+				Statement st = RelationalQueryArrayDOLAP20.c.createStatement();
 				
 				String value = nextSubject.toString();
 				if(!nextSubject.isURI())									

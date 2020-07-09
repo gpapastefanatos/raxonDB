@@ -22,7 +22,7 @@ import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
 
-public class SQLTranslatorIS20 {
+public class QueryParserIS20 {
 
 	Connection conn;
 	
@@ -40,11 +40,11 @@ public class SQLTranslatorIS20 {
 	
 	Map<CharacteristicSet, Integer> subjectMap = new HashMap<CharacteristicSet, Integer>() ;
 	
-	public SQLTranslatorIS20() {
+	public QueryParserIS20() {
 		
 	}
 	
-	public SQLTranslatorIS20(Connection conn) {
+	public QueryParserIS20(Connection conn) {
 		this.conn= conn;
 	}
 	

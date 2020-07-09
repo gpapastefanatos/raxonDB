@@ -14,6 +14,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.athena.imis.querying.IRelationalQueryArray;
 import com.athena.imis.querying.QueriesIS20;
 import com.athena.imis.querying.RelationalQueryArrayIS20;
 import com.athena.imis.querying.QueriesIS20.Dataset;
@@ -43,7 +44,7 @@ import com.athena.imis.querying.QueriesIS20.Dataset;
 public class DensityFactorOptimizerIS20 {
 
 	private CostBasedSchemaManagementDOLAP20 schemaBuilder; 
-	private RelationalQueryArrayIS20 queryBuilder; 
+	private IRelationalQueryArray queryBuilder; 
 	private int densityFactor ; 
 	private String[] args ;
 	private Connection conn;
@@ -64,7 +65,7 @@ public class DensityFactorOptimizerIS20 {
 	}
 
 
-	public RelationalQueryArrayIS20 getQueryBuilder() {
+	public IRelationalQueryArray getQueryBuilder() {
 		return queryBuilder;
 	}
 
@@ -239,7 +240,7 @@ public class DensityFactorOptimizerIS20 {
 		this.queryBuilder = new RelationalQueryArrayIS20(args);
 
 		for(String sparql : queries.getQueries(dataset)){
-			String sql = queryBuilder.processQuery(sparql);
+			String sql = queryBuilder.generateSQLQuery(sparql);
 			
 			Statement st2;
 			try {

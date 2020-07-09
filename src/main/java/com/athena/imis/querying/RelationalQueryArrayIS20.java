@@ -19,14 +19,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.jena.graph.Triple;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
-import com.athena.imis.models.SQLTranslatorIS20;
+import com.athena.imis.models.QueryParserIS20;
+import com.athena.imis.schema.managment.SimpleClientQueryIS;
 
-public class RelationalQueryArrayIS20 {
+public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 
-	
+	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
+
 	public static Connection conn ;
 	private String[] args;
 	private double execTime , planTime ;
@@ -39,7 +43,6 @@ public class RelationalQueryArrayIS20 {
 	Map<CharacteristicSet, String> csVarMap = new HashMap<CharacteristicSet, String>();
 	Map<CharacteristicSet, Set<String>> csMatches = new HashMap<CharacteristicSet, Set<String>>();
 	Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
-	Set<CharacteristicSet> undangled = new HashSet<CharacteristicSet>();
 
 	private Statement st;
 	
@@ -146,50 +149,46 @@ public class RelationalQueryArrayIS20 {
 	}
 	
 	
-	/***
-	 * It translates the sparql string in an SQL query over a database of CS
-	 * 
-	 * @param sparql: the input SPARQL query
-	 * @return the sql string
+	/* (non-Javadoc)
+	 * @see com.athena.imis.querying.IRelationalQueryArray#generateSQLQuery(java.lang.String)
 	 */
 	
-	public String processQuery(String sparql) {
-		String sqlExpression = "";
+	@Override
+	public String generateSQLQuery(String sparql) {
+		String finalQuery = "";
 		try{
 			
-			int res = 0;
-			StringBuilder union = new StringBuilder();
+			
 			execTime = 0d;
 			planTime = 0d;
-			SQLTranslatorIS20 sqlTranslator = new SQLTranslatorIS20(conn);
-		 
-			sqlTranslator.setSparql(sparql);
 
-			sqlTranslator.setPropertyMap(propMap);
-
-			sqlTranslator.parseSPARQL();
+			//initialize SPARQL extractor
+			QueryParserIS20 sparqlParser = new QueryParserIS20(conn);
+			sparqlParser.setSparql(sparql);
+			sparqlParser.setPropertyMap(propMap);
+			sparqlParser.parseSPARQL();
 
 			//extract CSs and ECS
-			csJoinMap = sqlTranslator.getCsJoinMap();
-			csSet = sqlTranslator.getCsSet();
+			csJoinMap = sparqlParser.getCsJoinMap();
+			csSet = sparqlParser.getCsSet();
 
 			
 			///map cs to data 
 			this.mapCS();
 
-			
 			/***
 			 * Build SQL syntax
 			 */
 
 			//prepare WHERE clause
-			String finalQuery = "";
+			String sqlExpression = "";
 			String where = " WHERE ";
-
+			StringBuilder unionClause = new StringBuilder();
+			
 			//sqlTranslator.getObjectMap() ;
 			//List<String> resList = new ArrayList<String>();
 
-			Map<CharacteristicSet, List<Triple>> csRestrictions = sqlTranslator.getCsRestrictions();
+			Map<CharacteristicSet, List<Triple>> csRestrictions = sparqlParser.getCsRestrictions();
 
 			//generate aliases for CSs
 			Map<CharacteristicSet, String> csAliases = new HashMap<CharacteristicSet, String>();
@@ -220,12 +219,12 @@ public class RelationalQueryArrayIS20 {
 						if(nextRes.getObject().isURI()){
 							restriction = csAliases.get(nextCS) + ".p_" + 
 									propMap.get("<" + nextRes.getPredicate().toString()+">") + " = " + 
-									sqlTranslator.getObjectMap().get("<" + nextRes.getObject().toString()+">");
+									sparqlParser.getObjectMap().get("<" + nextRes.getObject().toString()+">");
 						}
 						else if(nextRes.getObject().isLiteral()){
 							restriction = csAliases.get(nextCS) + ".p_" + 
 									propMap.get("<" + nextRes.getPredicate().toString()+">") + " = " + 
-									sqlTranslator.getObjectMap().get(nextRes.getObject().toString());
+									sparqlParser.getObjectMap().get(nextRes.getObject().toString());
 						}
 
 						isCovered.add(propMap.get("<" + nextRes.getPredicate().toString()+">"));
@@ -236,9 +235,9 @@ public class RelationalQueryArrayIS20 {
 
 					}
 				}
-				else if(sqlTranslator.getSubjectMap().containsKey(nextCS)){
+				else if(sparqlParser.getSubjectMap().containsKey(nextCS)){
 					String restriction = csAliases.get(nextCS) + ".s = " + 
-							sqlTranslator.getSubjectMap().get(nextCS);
+							sparqlParser.getSubjectMap().get(nextCS);
 
 					if(!where.equals(" WHERE "))
 						where += " AND ";
@@ -284,7 +283,7 @@ public class RelationalQueryArrayIS20 {
 		
 			//Build the projection part , i.e., SELECT Clause....
 
-			Map<CharacteristicSet, List<Triple>> vars = sqlTranslator.getCsVars();
+			Map<CharacteristicSet, List<Triple>> vars = sparqlParser.getCsVars();
 			//System.out.println("vars " + vars.toString()) ;
 			List<String> csProjectionsOrdered = new ArrayList<String>();
 			//System.out.println("CS MATCHES ORDERED " + csMatchesOrdered.toString());
@@ -318,10 +317,9 @@ public class RelationalQueryArrayIS20 {
 
 			//Build the FROM Part
 
-			//System.out.println(csProjectionsOrdered.toString());
 			//are there any joins? 
-			String noJoins = ""; boolean joinsExist = false;
-
+ 
+			boolean joinsExist = false;
 			for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 				if(csJoinMap.get(nextCSS) != null){
 					joinsExist = true;
@@ -329,31 +327,8 @@ public class RelationalQueryArrayIS20 {
 				}
 			}
 
-			//Map<List<Integer>, List<Integer>> permToListMap = new HashMap<List<Integer>, List<Integer>>();
-
-
-			//how do we build a query graph representation?
-			DirectedGraph<CharacteristicSet> queryGraph = sqlTranslator.getQueryGraph();
-
-
-			//Iterator<CharacteristicSet> it = queryGraph.iterator();
-			//while(it.hasNext()){
-			//
-			//CharacteristicSet node = it.next();
-			////System.out.println("Next node: " + node.toString());
-			////System.out.println("\tChildren: " + queryGraph.edgesFrom(node).toString());
-			//
-			//}
-			int permIndex = 0;
-
-			/*for(List<String> nextPerm : perms){
-
-			List<Integer> asIntList = new ArrayList<Integer>();
-			for(String nextCS : nextPerm){
-				asIntList.add(Integer.parseInt(nextCS));
-			}
-			permToListMap.put(asIntList, csMatchesOrdered.get(permIndex++));
-		}*/
+			//get the query graph representation?
+			DirectedGraph<CharacteristicSet> queryGraph = sparqlParser.getQueryGraph();
 
 			/**
 			 * If the query has no joins then only a single query CS exists and it may be mapped to multiple data CSs (permutations)
@@ -374,22 +349,18 @@ public class RelationalQueryArrayIS20 {
 					for(Integer nextCS : asIntList){
 
 						String varList = csProjectionsOrdered.get(idx++);
-						if(!noJoins.equals("")){
-							noJoins += " UNION ";			
+						if(!sqlExpression.equals("")){
+							sqlExpression += " UNION ";			
 						}
 						if(!where.equals(" WHERE "))
-							noJoins += " (SELECT " + varList + " FROM cs_" + nextCS + " AS " + csIdAliases.get(nextCS+"")+ " " + where + ") ";
+							sqlExpression += " (SELECT " + varList + " FROM cs_" + nextCS + " AS " + csIdAliases.get(nextCS+"")+ " " + where + ") ";
 						else
-							noJoins += " (SELECT " + varList + " FROM cs_" + nextCS + " AS " + csIdAliases.get(nextCS+"")+ ") ";
+							sqlExpression += " (SELECT " + varList + " FROM cs_" + nextCS + " AS " + csIdAliases.get(nextCS+"")+ ") ";
 					}
 					idx = 0;
-					sqlExpression = noJoins ;
-					//				if(!where.equals(" WHERE "))
-					//					templateQ += where ;	
-					//int idx = 0;
-					//System.out.println("nextPerm: " + nextPerm.toString()) ;						
+					
 
-
+					//since it is single table (no joins) replace c_* pattern with the index of each permutation and build the query
 					for(String nextIntString : nextPerm) {
 						CharacteristicSet nextCSToTransform = csMatchesOrdered.get(idx++);
 						sqlExpression = sqlExpression.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
@@ -453,61 +424,12 @@ public class RelationalQueryArrayIS20 {
 									//System.out.println("replaced: " + templateQ);
 								}
 							}
-							//System.out.println(realCSIds.get(nextInt));
-
-
 						}
-
 					}
-					noJoins = sqlExpression ;
-				
 				}	
 
-				finalQuery = noJoins;// + where ;
-
-				//one query is enough
-				//System.out.println(finalQuery);
-				try{
-
-					Statement st2 = conn.createStatement();
-					String explain = "EXPLAIN ANALYZE " ;
-					//explain = "" ;
-					finalQuery = explain + finalQuery;
-					FinalSqlQueries.add(finalQuery);
-					System.out.println("\t" + finalQuery);
-
-					//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
-					ResultSet rs2 = st2.executeQuery(finalQuery); //
-					long start = System.nanoTime();
-					while (rs2.next())
-					{				    	
-						//System.out.println(rs2.getString(1));
-						if(rs2.getString(1).contains("Execution time: ")){
-							String exec = rs2.getString(1).replaceAll("Execution time: ", "").replaceAll("ms", "").trim();
-							execTime += Double.parseDouble(exec);
-
-						}
-						else if(rs2.getString(1).contains("Planning time: ")){
-							String plan = rs2.getString(1).replaceAll("Planning time: ", "").replaceAll("ms", "").trim();
-							execTime += Double.parseDouble(plan);
-							planTime += Double.parseDouble(plan);
-
-						}					   
-
-						res++;
-					}
-					rs2.close();
-					//System.out.println(execTime);
-					time += System.nanoTime() - start;
-					System.out.println(res);
-					//			    System.out.println("time: " + time);
-					//			    System.out.println("execTime: " + execTime + " ms ");
-					//			    System.out.println("planTime: " + planTime + " ms ");
-
-				}
-				catch(SQLException e){
-					e.printStackTrace();
-				}
+				finalQuery = sqlExpression; 
+				
 			}
 		
 		
@@ -599,18 +521,14 @@ public class RelationalQueryArrayIS20 {
 						Set<CharacteristicSet> values = reverseJoinMap.getOrDefault(nextValue, new HashSet<CharacteristicSet>());
 						values.add(key) ;
 						reverseJoinMap.put(nextValue, values) ;				
-
 					}
-
 				}
-
-
 
 				for(LinkedHashSet<CharacteristicSet> nextQueue : uniqueQueues){
 
 					List<CharacteristicSet> qAsList = new ArrayList<CharacteristicSet>(nextQueue) ;
 					int jid = 0;
-					String nextQS = "";
+					sqlExpression = "";
 
 					HashSet<CharacteristicSet> visited = new HashSet<CharacteristicSet>();
 
@@ -623,12 +541,12 @@ public class RelationalQueryArrayIS20 {
 						//NewCS toJoinCS = qAsList.get(i+1);
 
 						if(jid++ == 0){
-							nextQS = " SELECT " + varList + " FROM cs_ AS " +csAliases.get(nextCS) + " " ;  
+							sqlExpression = " SELECT " + varList + " FROM cs_ AS " +csAliases.get(nextCS) + " " ;  
 						}
 						else {
 							if(reverseJoinMap.get(nextCS) != null) {
 								//System.out.println("here!") ;
-								nextQS += " INNER JOIN cs_ AS " + csAliases.get(nextCS) + " ON " ;
+								sqlExpression += " INNER JOIN cs_ AS " + csAliases.get(nextCS) + " ON " ;
 
 								for(CharacteristicSet nextReverseJoin : reverseJoinMap.get(nextCS)){
 									if(visited.contains(nextReverseJoin)){
@@ -642,29 +560,22 @@ public class RelationalQueryArrayIS20 {
 
 										List<Integer> joinProps = new ArrayList<Integer>();
 										//System.out.println("joinKey: " + joinKey.toString());
-										for(Triple nextJoinTriple : sqlTranslator.getCsJoinProperties().get(joinKey)){
+										for(Triple nextJoinTriple : sparqlParser.getCsJoinProperties().get(joinKey)){
 
 											joinProps.add(propMap.get("<" + nextJoinTriple.getPredicate().toString()+">"));
-
 										}
-
 										for(int j = 0; j < joinProps.size(); j++){
-
-											nextQS += csAliases.get(nextReverseJoin)+".p_"+joinProps.get(j) + " = " + csAliases.get(nextCS)+".s AND ";												
-
-
+											sqlExpression += csAliases.get(nextReverseJoin)+".p_"+joinProps.get(j) + " = " + csAliases.get(nextCS)+".s AND ";												
 										}	
-										//nextQS = nextQS.substring(0, nextQS.length()-4);
-
 									}										
 								}
-								nextQS = nextQS.substring(0, nextQS.length()-4);
+								sqlExpression = sqlExpression.substring(0, sqlExpression.length()-4);
 							}
 
 							else if(csJoinMap.get(nextCS) != null) {
 								//System.out.println("here2!") ;
 								//if(!visited.contains(nextCS))
-								nextQS += " INNER JOIN cs_ AS " + csAliases.get(nextCS) + " ON " ;
+								sqlExpression += " INNER JOIN cs_ AS " + csAliases.get(nextCS) + " ON " ;
 
 								for(CharacteristicSet nextReverseJoin : csJoinMap.get(nextCS)){
 									if(visited.contains(nextReverseJoin)){
@@ -678,7 +589,7 @@ public class RelationalQueryArrayIS20 {
 
 										List<Integer> joinProps = new ArrayList<Integer>();
 
-										for(Triple nextJoinTriple : sqlTranslator.getCsJoinProperties().get(joinKey)){
+										for(Triple nextJoinTriple : sparqlParser.getCsJoinProperties().get(joinKey)){
 
 											joinProps.add(propMap.get("<" + nextJoinTriple.getPredicate().toString()+">"));
 
@@ -686,19 +597,19 @@ public class RelationalQueryArrayIS20 {
 
 										for(int j = 0; j < joinProps.size(); j++){	
 
-											nextQS += csAliases.get(nextCS)+".p_"+joinProps.get(j) + " = " + csAliases.get(nextReverseJoin)+".s AND ";												
+											sqlExpression += csAliases.get(nextCS)+".p_"+joinProps.get(j) + " = " + csAliases.get(nextReverseJoin)+".s AND ";												
 
 										}
 
 									}										
 								}
-								nextQS = nextQS.substring(0, nextQS.length()-4);
+								sqlExpression = sqlExpression.substring(0, sqlExpression.length()-4);
 							}
 
 						}
 					}
-					//System.out.println(nextQS);
-					//System.out.println("REAL IDS: " + realCSIds.toString());
+					
+					//replace for each join queue the aliases for the CS involved 
 					System.out.println("Number of permutations: " + perms.size());
 					for(List<String> nextPerm : perms){
 						String nextPermInt = "";
@@ -708,32 +619,26 @@ public class RelationalQueryArrayIS20 {
 						nextPermInt = nextPermInt.substring(0, nextPermInt.length()-1);
 						boolean isContained = false;
 						for(String nextPathList : pathSet){
-
 							if(nextPathList.contains((nextPermInt))){
 								isContained = true;
 								break;
 							}
 						}
-						/*if(!isContained){
-//						System.out.println("IS NOT CONTAINED!!!");
-//						System.out.println(nextPermInt);
-						continue;
-					}*/
-						sqlExpression = nextQS ;
+						String sqlTemp =  sqlExpression;
 						if(!where.equals(" WHERE "))
-							sqlExpression += where ;	
+							sqlTemp += where ;	
 						int idx = 0;
 						//System.out.println("nextPerm: " + nextPerm.toString()) ;						
 						for(String nextIntString : nextPerm) {
 							CharacteristicSet nextCSToTransform = csMatchesOrdered.get(idx++);
-							sqlExpression = sqlExpression.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
+							sqlTemp = sqlTemp.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
 
 							//regexes for multivalued properties
 
 							//pattern for literal values
 							String patternString1 = "("+csAliases.get(nextCSToTransform)+".p_[0-9]* = [0-9][0-9]*)";							
 							Pattern pattern = Pattern.compile(patternString1);
-							Matcher matcher = pattern.matcher(sqlExpression);
+							Matcher matcher = pattern.matcher(sqlTemp);
 							int nextInt = Integer.parseInt(nextIntString);
 							while(matcher.find()) {
 								//System.out.println("found: " + matcher.group(1));
@@ -753,7 +658,7 @@ public class RelationalQueryArrayIS20 {
 										//System.out.println("matcher group 1: " + restr);
 										restr = restr.split(" = ")[1] + " = ANY("+restr.split(" = ")[0]+")";
 										//restr += "] ";
-										sqlExpression = sqlExpression.replaceAll(matcher.group(1), restr);//matcher.replaceFirst(restr);        		
+										sqlTemp = sqlTemp.replaceAll(matcher.group(1), restr);//matcher.replaceFirst(restr);        		
 										//System.out.println("replaced: " + templateQ);
 									}
 								}
@@ -763,7 +668,7 @@ public class RelationalQueryArrayIS20 {
 							//pattern for .s equalities
 							String patternString2 = "("+csAliases.get(nextCSToTransform)+".p_[0-9]* = c[0-9]*.s)";							
 							Pattern pattern2 = Pattern.compile(patternString2);
-							Matcher matcher2 = pattern2.matcher(sqlExpression);
+							Matcher matcher2 = pattern2.matcher(sqlTemp);
 							nextInt = Integer.parseInt(nextIntString);
 							while(matcher2.find()) {
 								//System.out.println("found: " + matcher.group(1));
@@ -780,84 +685,92 @@ public class RelationalQueryArrayIS20 {
 										//System.out.println("matcher group 1: " + templateQ);
 										String[] split = restr.split(" = ");
 										restr = split[1] + " = ANY("+split[0]+")";
-										sqlExpression = sqlExpression.replaceAll(matcher2.group(1), restr);//matcher.replaceFirst(restr);   
-										sqlExpression = sqlExpression.replaceAll("AND "+split[0]+" IS NOT NULL", "");
-										sqlExpression = sqlExpression.replaceAll(""+split[0]+" IS NOT NULL", "");
+										sqlTemp = sqlTemp.replaceAll(matcher2.group(1), restr);//matcher.replaceFirst(restr);   
+										sqlTemp = sqlTemp.replaceAll("AND "+split[0]+" IS NOT NULL", "");
+										sqlTemp = sqlTemp.replaceAll(""+split[0]+" IS NOT NULL", "");
 										//System.out.println("replaced: " + templateQ);
 									}
 								}
-								//System.out.println(realCSIds.get(nextInt));
 
 
 							}
 
 						}
 
-						//System.out.println("nextQS: " + templateQ );//+ " " + where) ;
-						union.append(sqlExpression).append(" UNION ");
-						//if(true) continue ;
-						try{
-
-							Statement st2 = conn.createStatement();
-							String explain = "EXPLAIN ANALYZE " ;
-							//explain = "" ;
-							if(!where.equals(" WHERE ")){
-								sqlExpression = explain + sqlExpression ;//+ " " + where;	
-							}
-							else{
-								sqlExpression = explain + sqlExpression + " ";
-							}
-							System.out.println("\t" + sqlExpression);
-							//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
-							ResultSet rs2 = st2.executeQuery(sqlExpression); //
-							long start = System.nanoTime();
-							while (rs2.next())
-							{				    	
-								//System.out.println(rs2.getString(1));
-								if(rs2.getString(1).contains("Execution time: ")){
-									String exec = rs2.getString(1).replaceAll("Execution time: ", "").replaceAll("ms", "").trim();
-									execTime += Double.parseDouble(exec);
-
-								}
-								else if(rs2.getString(1).contains("Planning time: ")){
-									String plan = rs2.getString(1).replaceAll("Planning time: ", "").replaceAll("ms", "").trim();
-									execTime += Double.parseDouble(plan);
-									planTime += Double.parseDouble(plan);
-
-								}					   
-								res++;
-							}
-							rs2.close();
-							//System.out.println(execTime);
-							time += System.nanoTime() - start;
-							System.out.println(res);
-						
-						}
-						catch(SQLException e){
-							e.printStackTrace();
-						}
+						unionClause.append(sqlTemp).append(" UNION ");
+//						//if(true) continue ;
+//						try{
+//
+//							Statement st2 = conn.createStatement();
+//							String explain = "EXPLAIN ANALYZE " ;
+//							//explain = "" ;
+//							if(!where.equals(" WHERE ")){
+//								sqlExpression = explain + sqlExpression ;//+ " " + where;	
+//							}
+//							else{
+//								sqlExpression = explain + sqlExpression + " ";
+//							}
+//							System.out.println("\t" + sqlExpression);
+//							//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
+//							ResultSet rs2 = st2.executeQuery(sqlExpression); //
+//							long start = System.nanoTime();
+//							while (rs2.next())
+//							{				    	
+//								//System.out.println(rs2.getString(1));
+//								if(rs2.getString(1).contains("Execution time: ")){
+//									String exec = rs2.getString(1).replaceAll("Execution time: ", "").replaceAll("ms", "").trim();
+//									execTime += Double.parseDouble(exec);
+//
+//								}
+//								else if(rs2.getString(1).contains("Planning time: ")){
+//									String plan = rs2.getString(1).replaceAll("Planning time: ", "").replaceAll("ms", "").trim();
+//									execTime += Double.parseDouble(plan);
+//									planTime += Double.parseDouble(plan);
+//
+//								}					   
+//								res++;
+//							}
+//							rs2.close();
+//							//System.out.println(execTime);
+//							time += System.nanoTime() - start;
+//							System.out.println(res);
+//						
+//						}
+//						catch(SQLException e){
+//							e.printStackTrace();
+//						}
 					}
 
 				}												
-
+				//remove any unnecessarily UNION added at the end.
+				if(unionClause.length() >= 8)
+					unionClause.delete(unionClause.length()-7, unionClause.length());
+				
+				finalQuery = unionClause.toString();
 			}		
-			if(union.length() >= 8)
-				union.delete(union.length()-7, union.length());
 			
 		}catch (Exception e){
 			e.printStackTrace();
 		}
 		
-		return sqlExpression;
+		return finalQuery;
 	}
 	
 	
 	
 	/***
-	 * Map CS from query to Data CS via the ecs index
+	 * Map CS from query to Data CS via the ecs index.
+	 * It implement lookup of the ECS_schema and fetches first CSs that have a subject - object join, i.e. CSS and CSO columns
+	 * Next it iterates over the ECS_schema.css column which contains all CSs for getting any other CS that is not matched  
 	 */
 	private void mapCS() {
 		
+		//initialize maps 
+		Set<CharacteristicSet> undangled = new HashSet<CharacteristicSet>();
+		csVarMap = new HashMap<CharacteristicSet, String>();
+		csMatches = new HashMap<CharacteristicSet, Set<String>>();
+		csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
+
 		try {
 			st = conn.createStatement();
 			//get ecs from db for each pair of SO joins
@@ -873,9 +786,9 @@ public class RelationalQueryArrayIS20 {
 							+ "WHERE e.css_properties @> ARRAY" + nextCSS.getAsList().toString() 
 							+ " AND e.cso_properties @> ARRAY" + nextCSO.getAsList().toString();							
 
-					//System.out.println(schema);
+					System.out.println(schema);
 					ResultSet rsS = st.executeQuery(schema);
-
+					
 					while(rsS.next()){
 						Set<String> css_matches = csQueryMatches.getOrDefault(nextCSS, new HashSet<String>());
 						css_matches.add(rsS.getString(2));
@@ -911,19 +824,18 @@ public class RelationalQueryArrayIS20 {
 				}				
 
 			}	 	
+			
 			for(CharacteristicSet nextCSS : csSet){
 
 				if(csJoinMap.get(nextCSS) != null || undangled.contains(nextCSS))
+					//nextCSS is already processed or matched
 					continue;
-				//System.out.println("Dangling: " + nextCSS.toString());													
-				//fetch all cs joins (ecs) that contain the 
 				String schema = " SELECT DISTINCT * FROM ecs_schema as e "
 						+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;
 
 				// schema = " SELECT DISTINCT * FROM cs_schema as e "+ "WHERE e.properties @> ARRAY" + nextCSS.toString() ;			
 
 				st = conn.createStatement();
-				//System.out.println(schema);
 				ResultSet rsS = st.executeQuery(schema);
 
 				while(rsS.next()){
@@ -935,7 +847,6 @@ public class RelationalQueryArrayIS20 {
 				st.close();
 			}
 
-			//System.out.println("CS Matches: " + csMatches.toString());
 			for(CharacteristicSet nextCS : csMatches.keySet()){
 				nextCS.setMatches(csMatches.get(nextCS));
 			}
@@ -961,7 +872,7 @@ public class RelationalQueryArrayIS20 {
 
 			Class.forName("org.postgresql.Driver");
 			conn = DriverManager
-					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[2].toLowerCase(), args[4], args[5]);
+					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[1].toLowerCase(), args[2], args[3]);
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
 			System.exit(0);

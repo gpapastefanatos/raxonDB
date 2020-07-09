@@ -21,20 +21,19 @@ public final class QueriesIS20 {
 	{
 				//queries.add(q_ex);
 				lubm_queries.add(q1);
-				/*lubm_queries.add(q1_ext);
+				lubm_queries.add(q1_ext);
 				lubm_queries.add(q3_ext);
 				lubm_queries.add(q11_ext);
 				//lubm_queries.add(q13_ext);
 				lubm_queries.add(q10_ext);	
-				lubm_queries.add(q12);
+				//lubm_queries.add(q12);
 				lubm_queries.add(q4_ext);
 				lubm_queries.add(q8_ext);
-				lubm_queries.add(q2);
-				lubm_queries.add(qm1);
+				//lubm_queries.add(q2);
+				//lubm_queries.add(qm1);
 				lubm_queries.add(qm2);	
-				lubm_queries.add(qm3);
-				lubm_queries.add(qm4);	*/ 
-											
+				//lubm_queries.add(qm3);
+				//lubm_queries.add(qm4);									
 		
 				//reactome_queries.add(reactomePrefixes + " " + r10);
 				reactome_queries.add(reactomePrefixes + " " + r9);
@@ -78,7 +77,7 @@ public final class QueriesIS20 {
 	public static String q1 = prefix + 
 			"SELECT ?X WHERE"
 			+ "{?X rdf:type ub:Student . "
-			+ "?X ub:takesCourse <http://www.Department1.University1.edu/GraduateCourse1>}";
+			+ "?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse16>}";
 	
 	public static String q1_ext = prefix + 
 			"SELECT ?X ?Y WHERE"

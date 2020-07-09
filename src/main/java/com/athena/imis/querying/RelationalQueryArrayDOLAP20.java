@@ -24,7 +24,7 @@ import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.SQLTranslator;
 
-public class RelationalQueryArray {
+public class RelationalQueryArrayDOLAP20 {
 
 	
 	public static Connection c ;
