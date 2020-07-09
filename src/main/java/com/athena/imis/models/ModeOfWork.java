@@ -14,7 +14,7 @@ public class ModeOfWork {
 
 	public enum WorkMode{DEV, EXPERIMENT, DEBUG_GLOBAL, DEBUG_LOCAL};
 	
-	public static final WorkMode mode = WorkMode.EXPERIMENT;
+	public static final WorkMode mode = WorkMode.DEBUG_GLOBAL;
 	
 	private ModeOfWork() {
 		;
