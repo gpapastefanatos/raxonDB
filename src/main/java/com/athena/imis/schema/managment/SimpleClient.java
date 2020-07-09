@@ -45,6 +45,7 @@ public class SimpleClient {
 			
 			rsProps.close();
 			st.close();
+			conn.close();
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
