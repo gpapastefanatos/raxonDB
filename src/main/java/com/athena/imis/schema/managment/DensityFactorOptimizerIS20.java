@@ -103,7 +103,7 @@ public class DensityFactorOptimizerIS20 {
 				optimaldensityFactor = densFactor;
 			} 
 
-			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM100);
+			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM1);
 			float densityCost =  (float)costOfNull /costOfWorkload;
 			report= densFactor+"\t"+null+"\t"+costOfNull+"\t"+costOfWorkload+"\t"+densityCost;
 			LOG.info(report);
@@ -239,7 +239,7 @@ public class DensityFactorOptimizerIS20 {
 		String[] queryArgs = {args[0],args[2],args[4],args[5]};
 		this.queryBuilder = new RelationalQueryArrayIS20(queryArgs);
 		int i = 1;
-		for(String sparql : queries.getQueries(Dataset.LUBM100)){
+		for(String sparql : queries.getQueries(Dataset.LUBM1)){
 			//run only the i-th query in the Queries.getquery list
 			
 			LOG.info("Syntax of SPARQL:\t" + sparql);

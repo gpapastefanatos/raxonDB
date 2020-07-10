@@ -32,7 +32,7 @@ public class SimpleClientQueryIS {
 		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(args);
 		int i = 1;
 		QueriesIS20 queries  = new QueriesIS20();
-		for(String sparql : queries.getQueries(Dataset.LUBM100)){
+		for(String sparql : queries.getQueries(Dataset.LUBM1)){
 			//run only the i-th query in the Queries.getquery list
 			
 			LOG.info("Syntax of SPARQL:\t" + sparql);

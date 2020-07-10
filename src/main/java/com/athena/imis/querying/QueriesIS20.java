@@ -6,7 +6,7 @@ import java.util.List;
 public final class QueriesIS20 {
 
 	public enum Dataset {
-		LUBM100,
+		LUBM1,
 		REACTOME,
 		GEONAMES
 		};
@@ -59,7 +59,7 @@ public final class QueriesIS20 {
 			return QueriesIS20.reactome_queries;
 		else if(dataset == Dataset.GEONAMES)
 			return QueriesIS20.geonames_queries;
-		else if(dataset == Dataset.LUBM100)
+		else if(dataset == Dataset.LUBM1)
 			return QueriesIS20.lubm_queries;
 		return null;
 	}
