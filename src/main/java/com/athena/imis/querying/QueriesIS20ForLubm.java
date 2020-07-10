@@ -21,12 +21,12 @@ public final class QueriesIS20ForLubm {
 	{
 		lubm_queries.add(q1);
 		lubm_queries.add(q2);
-		lubm_queries.add(q3_ext);
+	////	lubm_queries.add(q3_ext);
 		lubm_queries.add(q4_ext);
-//		lubm_queries.add(q5);
-//		lubm_queries.add(q6);
-//		lubm_queries.add(q7);
-		////lubm_queries.add(q8);
+	////	lubm_queries.add(q5);
+		//lubm_queries.add(q6);
+		lubm_queries.add(q7);
+		
 		lubm_queries.add(q9);
 		lubm_queries.add(q10);
 
