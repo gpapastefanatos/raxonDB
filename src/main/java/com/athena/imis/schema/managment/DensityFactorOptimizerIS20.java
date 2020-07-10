@@ -18,6 +18,7 @@ import com.athena.imis.querying.IRelationalQueryArray;
 import com.athena.imis.querying.QueriesIS20;
 import com.athena.imis.querying.RelationalQueryArrayIS20;
 import com.athena.imis.querying.QueriesIS20.Dataset;
+import com.esotericsoftware.minlog.Log;
 
 /***
  * Optimizes the Density Factor m , i.e. the threshold for dense nodes in the schema creation (CostBasedSchemaManagementDOLAP20.class)  
@@ -52,13 +53,9 @@ public class DensityFactorOptimizerIS20 {
 
 	
 	public DensityFactorOptimizerIS20(int densityFactor, String[] args) {
-		
 		this.densityFactor = densityFactor;
 		this.args = args;
-		
-		
 	}
-
 
 	public CostBasedSchemaManagementDOLAP20 getSchemaBuilder() {
 		return schemaBuilder;
@@ -82,17 +79,15 @@ public class DensityFactorOptimizerIS20 {
 	
 	public int optimizeDensityFactor() {
 		int optimaldensityFactor = this.densityFactor;
-		int nullCost = Integer.MAX_VALUE; 
+		int maxDensityNullCost = Integer.MAX_VALUE; 
 		
-		
-		Map<String, Integer> tableExtents =this.initialize();
-		
-		
-		
-		
-		for (int densFactor = 0; densFactor <=10; densFactor+=25) {
+		String report="DensityFactor\tNoOfTables\tNoOfNulls\tQueryCost(ms)\tDensityCost\t";
+		LOG.info(report);
+		//Map<String, Integer> tableExtents =this.initialize();
+				
+		for (int densFactor = 0; densFactor <=100; densFactor+=25) {
 			//DIAGNOSTICS		
-      		//LOG.info("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
+			//LOG.info("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
 
 			args[6] = new Integer(densFactor).toString();	
 			
@@ -100,26 +95,26 @@ public class DensityFactorOptimizerIS20 {
 			schemaBuilder.decideSchemaAndPopulate();
 		
 			//calculate last schema's aggregate no of null columns
-			int noOfNulls= this.getNumberOfNullColumns();
+			int costOfNull= this.getNumberOfNullColumns();
 			//nullcost is set to the cost of the best performing schema
-			LOG.info("--DENSITY FACTOR = " + densFactor + ": Best NullCost=" + nullCost + " and Current CS Cost =" + noOfNulls);
-			if(noOfNulls<=nullCost){
-				nullCost=noOfNulls;
+//			LOG.info("--DENSITY FACTOR = " + densFactor + ": Best NullCost=" + nullCost + " and Current CS Cost =" + noOfNulls);
+			if(costOfNull<=maxDensityNullCost){
+				maxDensityNullCost=costOfNull;
 				optimaldensityFactor = densFactor;
 			} 
 
-			
-			
-			
-			int costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM100);
-			
-			//float costOfDensity = costOfWorkload / nullCost;
+			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM100);
+			float Density =  costOfNull /costOfWorkload;
+			report= densFactor+"\t"+null+"\t"+costOfNull+"\t"+costOfWorkload+"\t";
+			LOG.info(report);
+
 			/*TODO
 			 * Here we will perfrom a simulation annealing function for finding the optimized m
 			 */
 			//LOG.info("-----------END OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");	
 
 		}
+		
 				
 		return optimaldensityFactor;
 		
@@ -234,9 +229,74 @@ public class DensityFactorOptimizerIS20 {
 	 *   It transforms the sparql query to the sql expression and it executes it over the current underlying CS schema
 	 * 
 	 ***/
-	private int getQueryCost(QueriesIS20 queries, Dataset dataset) {
+	private float getQueryCost(QueriesIS20 queries, Dataset dataset) {
 		
+		float cost = (float) 0.0;
 		//calculate last schema's aggregate WORKLOAD cost
+		Connection conn;
+		
+		//define a query Builder 
+		this.queryBuilder = new RelationalQueryArrayIS20(args);
+		int i = 1;
+		for(String sparql : queries.getQueries(Dataset.LUBM100)){
+			//run only the i-th query in the Queries.getquery list
+			
+//			LOG.info("Syntax of SPARQL:\t" + sparql);
+			String sql = queryBuilder.generateSQLQuery(sparql);
+//			LOG.info("Syntax of SQL:\t" +sql);
+			
+			float execTime = 0;
+			float planTime = 0;
+			Statement st2;
+			try {
+				Class.forName("org.postgresql.Driver");
+				conn = DriverManager
+						.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[1].toLowerCase(), args[2], args[3]);
+				st2 = conn.createStatement();
+
+				String explain = "EXPLAIN ANALYZE " +sql ;
+				ResultSet rs2 = st2.executeQuery(explain); //
+//				LOG.info("Start Q" + i + " execution plan");
+				
+				while (rs2.next())
+				{	
+					//prints the planner's tree
+//					LOG.info(rs2.getString(1));
+					if(rs2.getString(1).contains("Execution Time: ")){
+						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
+						execTime += Float.parseFloat(exec);
+
+					}
+					else if(rs2.getString(1).contains("Planning Time: ")){
+						String plan = rs2.getString(1).replaceAll("Planning Time: ", "").replaceAll("ms", "").trim();
+						planTime += Float.parseFloat(plan);
+					}					   
+				}
+				float q_totalTime= planTime+execTime;
+				rs2.close();
+//				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
+				conn.close();
+				i++;
+				
+				cost+= q_totalTime;
+ 
+				//test the first i-th queries
+//				if ((i>8)) { 
+//					break;}
+			
+
+
+			} catch ( Exception e ) {
+				Log.error(e.toString());
+				//System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+				//System.exit(0);
+			}
+			return cost;
+		}
+		
+		
+		
+		
 		this.queryBuilder = new RelationalQueryArrayIS20(args);
 
 		for(String sparql : queries.getQueries(dataset)){
