@@ -42,8 +42,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 	
 	Map<CharacteristicSet, String> csVarMap = new HashMap<CharacteristicSet, String>();
 	Map<CharacteristicSet, Set<String>> csMatches = new HashMap<CharacteristicSet, Set<String>>();
-	Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
-
+	
 	private Statement st;
 	
 	
@@ -769,7 +768,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 		Set<CharacteristicSet> undangled = new HashSet<CharacteristicSet>();
 		csVarMap = new HashMap<CharacteristicSet, String>();
 		csMatches = new HashMap<CharacteristicSet, Set<String>>();
-		csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
+		Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
 
 		try {
 			//get ecs from db for each pair of SO joins
@@ -779,7 +778,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 					continue;
 				for(CharacteristicSet nextCSO : csJoinMap.get(nextCSS)){
 
-					undangled.add(nextCSO);
+					//undangled.add(nextCSO);
 
 					String schema = " SELECT DISTINCT * FROM ecs_schema as e "
 							+ "WHERE e.css_properties @> ARRAY" + nextCSS.getAsList().toString() 

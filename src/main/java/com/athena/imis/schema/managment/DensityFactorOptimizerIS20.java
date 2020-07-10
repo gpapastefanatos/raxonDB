@@ -85,7 +85,7 @@ public class DensityFactorOptimizerIS20 {
 		LOG.info(report);
 		//Map<String, Integer> tableExtents =this.initialize();
 				
-		for (int densFactor = 0; densFactor <=100; densFactor+=25) {
+		for (int densFactor = 0; densFactor <=10; densFactor+=25) {
 			//DIAGNOSTICS		
 			//LOG.info("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
 
@@ -104,8 +104,8 @@ public class DensityFactorOptimizerIS20 {
 			} 
 
 			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM100);
-			float Density =  costOfNull /costOfWorkload;
-			report= densFactor+"\t"+null+"\t"+costOfNull+"\t"+costOfWorkload+"\t";
+			float densityCost =  (float)costOfNull /costOfWorkload;
+			report= densFactor+"\t"+null+"\t"+costOfNull+"\t"+costOfWorkload+"\t"+densityCost;
 			LOG.info(report);
 
 			/*TODO
@@ -236,14 +236,15 @@ public class DensityFactorOptimizerIS20 {
 		Connection conn;
 		
 		//define a query Builder 
-		this.queryBuilder = new RelationalQueryArrayIS20(args);
+		String[] queryArgs = {args[0],args[2],args[4],args[5]};
+		this.queryBuilder = new RelationalQueryArrayIS20(queryArgs);
 		int i = 1;
 		for(String sparql : queries.getQueries(Dataset.LUBM100)){
 			//run only the i-th query in the Queries.getquery list
 			
-//			LOG.info("Syntax of SPARQL:\t" + sparql);
+			LOG.info("Syntax of SPARQL:\t" + sparql);
 			String sql = queryBuilder.generateSQLQuery(sparql);
-//			LOG.info("Syntax of SQL:\t" +sql);
+			LOG.info("Syntax of SQL:\t" +sql);
 			
 			float execTime = 0;
 			float planTime = 0;
@@ -251,17 +252,17 @@ public class DensityFactorOptimizerIS20 {
 			try {
 				Class.forName("org.postgresql.Driver");
 				conn = DriverManager
-						.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[1].toLowerCase(), args[2], args[3]);
+						.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[2].toLowerCase(), args[4], args[5]);
 				st2 = conn.createStatement();
 
 				String explain = "EXPLAIN ANALYZE " +sql ;
 				ResultSet rs2 = st2.executeQuery(explain); //
-//				LOG.info("Start Q" + i + " execution plan");
+				LOG.info("Start Q" + i + " execution plan");
 				
 				while (rs2.next())
 				{	
 					//prints the planner's tree
-//					LOG.info(rs2.getString(1));
+					LOG.info(rs2.getString(1));
 					if(rs2.getString(1).contains("Execution Time: ")){
 						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
 						execTime += Float.parseFloat(exec);
@@ -274,7 +275,7 @@ public class DensityFactorOptimizerIS20 {
 				}
 				float q_totalTime= planTime+execTime;
 				rs2.close();
-//				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
+				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
 				conn.close();
 				i++;
 				
@@ -291,60 +292,10 @@ public class DensityFactorOptimizerIS20 {
 				//System.err.println( e.getClass().getName()+": "+ e.getMessage() );
 				//System.exit(0);
 			}
-			return cost;
-		}
+		}			
+		return cost;
+
 		
-		
-		
-		
-		this.queryBuilder = new RelationalQueryArrayIS20(args);
-
-		for(String sparql : queries.getQueries(dataset)){
-			String sql = queryBuilder.generateSQLQuery(sparql);
-			
-			Statement st2;
-			try {
-				this.conn  = this.getConnection();
-				if(this.conn == null) {
-					System.err.println("Lost db Connection; exiting...");
-					System.exit(-1);
-				}
-				st2 = conn.createStatement();
-
-				String explain = "EXPLAIN ANALYZE " +sql ;
-
-				//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
-				ResultSet rs2 = st2.executeQuery(explain); //
-				double execTime = 0;
-				double planTime = 0;
-				while (rs2.next())
-				{				    	
-					//System.out.println(rs2.getString(1));
-					if(rs2.getString(1).contains("Execution time: ")){
-						String exec = rs2.getString(1).replaceAll("Execution time: ", "").replaceAll("ms", "").trim();
-						execTime += Double.parseDouble(exec);
-
-					}
-					else if(rs2.getString(1).contains("Planning time: ")){
-						String plan = rs2.getString(1).replaceAll("Planning time: ", "").replaceAll("ms", "").trim();
-						execTime += Double.parseDouble(plan);
-						planTime += Double.parseDouble(plan);
-
-					}					   
-
-				}
-				rs2.close();
-				System.out.println("UNION execTime: " + execTime + " ms ");
-				System.out.println("UNION planTime: " + planTime + " ms ");
-
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			LOG.info(sparql);
-			LOG.info(sql);
-		}
-		return -1;
 	}
 
 		 

@@ -15,21 +15,21 @@ public final class Queries {
 	
 	{
 				//queries.add(q_ex);
-				queries.add(q1);
-				queries.add(q1_ext);
-				queries.add(q3_ext);
-				queries.add(q11_ext);
-				//queries.add(q13_ext);
-				queries.add(q10_ext);	
+//				queries.add(q1);
+//				queries.add(q1_ext);
+//				queries.add(q3_ext);
+//				queries.add(q11_ext);
+//				//queries.add(q13_ext);
+//				queries.add(q10_ext);	
 				queries.add(q12);
-				queries.add(q4_ext);
-				queries.add(q8_ext);
-				queries.add(q2);
-				queries.add(qm1);
-				queries.add(qm2);	
-				queries.add(qm3);
-				queries.add(qm4);		
-											
+//				queries.add(q4_ext);
+//				queries.add(q8_ext);
+//				queries.add(q2);
+//				queries.add(qm1);
+//				queries.add(qm2);	
+//				queries.add(qm3);
+//				queries.add(qm4);		
+//											
 		
 				//reactome_queries.add(reactomePrefixes + " " + r10);
 				reactome_queries.add(reactomePrefixes + " " + r9);
