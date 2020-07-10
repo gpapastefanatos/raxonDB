@@ -24,16 +24,17 @@ public final class QueriesIS20 {
 				lubm_queries.add(q1_ext);
 				lubm_queries.add(q3_ext);
 				lubm_queries.add(q11_ext);
-				//lubm_queries.add(q13_ext);
+				//lubm_queries.add(q13_ext); this is not debugegd.
 				lubm_queries.add(q10_ext);	
-				//lubm_queries.add(q12);
+				lubm_queries.add(q12); 
+							
 				lubm_queries.add(q4_ext);
 				lubm_queries.add(q8_ext);
-				//lubm_queries.add(q2);
-				//lubm_queries.add(qm1);
+				lubm_queries.add(q2);
+				lubm_queries.add(qm1);
 				lubm_queries.add(qm2);	
-				//lubm_queries.add(qm3);
-				//lubm_queries.add(qm4);									
+				lubm_queries.add(qm3);
+				lubm_queries.add(qm4);									
 		
 				//reactome_queries.add(reactomePrefixes + " " + r10);
 				reactome_queries.add(reactomePrefixes + " " + r9);

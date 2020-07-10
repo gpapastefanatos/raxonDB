@@ -772,7 +772,6 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 		csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
 
 		try {
-			st = conn.createStatement();
 			//get ecs from db for each pair of SO joins
 			for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 
@@ -786,7 +785,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 							+ "WHERE e.css_properties @> ARRAY" + nextCSS.getAsList().toString() 
 							+ " AND e.cso_properties @> ARRAY" + nextCSO.getAsList().toString();							
 
-					System.out.println(schema);
+					st = conn.createStatement();
 					ResultSet rsS = st.executeQuery(schema);
 					
 					while(rsS.next()){
