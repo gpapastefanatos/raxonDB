@@ -22,7 +22,6 @@ import org.apache.jena.graph.Triple;
 
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
-import com.athena.imis.models.SQLTranslator;
 
 public class RelationalQuerySimple {
 
