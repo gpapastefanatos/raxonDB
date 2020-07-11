@@ -74,7 +74,7 @@ public final class QueriesIS20ForLubm {
 
 	public static String q1 = prefix + 
 			"SELECT ?X WHERE"
-			+ "{?X rdf:type ub:Student . "
+			+ "{?X rdf:type ub:GraduateStudent . "
 			+ "?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse16>}";
 
 	public static String q2 = prefix

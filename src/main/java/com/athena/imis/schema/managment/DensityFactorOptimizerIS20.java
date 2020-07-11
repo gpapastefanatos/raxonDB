@@ -19,6 +19,7 @@ import com.athena.imis.querying.IRelationalQueryArray;
 import com.athena.imis.querying.QueriesIS20;
 import com.athena.imis.querying.RelationalQueryArrayIS20;
 import com.athena.imis.querying.QueriesIS20.Dataset;
+import com.athena.imis.querying.QueriesIS20ForLubm;
 import com.esotericsoftware.minlog.Log;
 
 /***
@@ -53,8 +54,11 @@ public class DensityFactorOptimizerIS20 {
 	
 	private String[] args ;
 	private Database database;
+	private QueriesIS20ForLubm queries ; 
 	Connection conn ;
-	
+	private float queryCosts[];
+	private List<String> sparqlQueries;
+	private String report ;
 	private static final Logger LOG = LogManager.getLogger(DensityFactorOptimizerIS20.class);
 
 	
@@ -62,6 +66,10 @@ public class DensityFactorOptimizerIS20 {
 		this.densityFactor = densityFactor;
 		this.args = args;
 		this.database = new Database(args[0], args[2], args[4], args[5]);
+		this.queries = new QueriesIS20ForLubm();
+		this.sparqlQueries = queries.getQueries(com.athena.imis.querying.QueriesIS20ForLubm.Dataset.LUBM1);
+		this.queryCosts = new float[sparqlQueries.size()];
+		this.report = "";
 		 
 	}
 
@@ -89,15 +97,14 @@ public class DensityFactorOptimizerIS20 {
 		int optimaldensityFactor = this.densityFactor;
 		int maxDensityNullCost = Integer.MAX_VALUE; 
 		
-		String report="DensityFactor\tNoOfTables\tNoOfNulls\tQueryCost(ms)\tDensityCost\t";
-//		LOG.info(report);
+		report="DensityFactor\tNoOfTables\tNoOfNulls\tq1\tq2\tq4_ext\tq7\tq9\tq10\tQueryCost(ms)\tDensityCost";
+		LOG.info(report);
 		Map<String, Integer> tableExtents =this.initialize();
 		LOG.debug("Densities Initialization Complete");			
 		
-		for (int densFactor = 0; densFactor >=0; densFactor+=10) {
+		for (int densFactor = 0; densFactor <=100; densFactor+=10) {
 			//DIAGNOSTICS		
 			LOG.debug("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
-
 			args[6] = new Integer(densFactor).toString();	
 			
 					
@@ -115,17 +122,18 @@ public class DensityFactorOptimizerIS20 {
 				maxDensityNullCost=currentNullRecords;
 				optimaldensityFactor = densFactor;
 			} 
+			report = densFactor+"\t"+currentNoOfTables+"\t"+currentNullRecords+"\t";
 
-			LOG.info("--DENSITY FACTOR = " + densFactor);
-			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM1);
+			LOG.debug("--DENSITY FACTOR = " + densFactor);
+			float costOfWorkload = this.getQueryCost();
 			float densityCost =  (float)currentNullRecords /costOfWorkload;
-			report= densFactor+"\t"+currentNoOfTables+"\t"+currentNullRecords+"\t"+costOfWorkload+"\t"+densityCost;
-//			LOG.info(report);
+			report += costOfWorkload+"\t"+densityCost;
+			LOG.info(report);
 
 			/*TODO
 			 * Here we will perfrom a simulation annealing function for finding the optimized m
 			 */
-			//LOG.info("-----------END OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");	
+			LOG.debug("-----------END OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");	
 
 		}
 		
@@ -227,69 +235,61 @@ public class DensityFactorOptimizerIS20 {
 	 *   It transforms the sparql query to the sql expression and it executes it over the current underlying CS schema
 	 * 
 	 ***/
-	private float getQueryCost(QueriesIS20 queries, Dataset dataset) {
+	private float getQueryCost() {
 		
 		float cost = (float) 0.0;
 		//calculate last schema's aggregate WORKLOAD cost
 		
-		//define a query Builder 
-		String[] queryArgs = {args[0],args[2],args[4],args[5]};
-		
-		
 		
 		this.queryBuilder = new RelationalQueryArrayIS20(this.database);
 		int i = 1;
-		for(String sparql : queries.getQueries(Dataset.LUBM1)){
+		for(String sparql : sparqlQueries){
 			//run only the i-th query in the Queries.getquery list
-			
-			LOG.debug("Syntax of SPARQL:\t" + sparql);
+//			if (i >1) break;
+//			System.out.println("Processing:\t" +sparql);
 			String sql = queryBuilder.generateSQLQuery(sparql);
-			LOG.debug("Syntax of SQL:\t" +sql);
-			
-			LOG.info("Syntax of SQL:\t" +sql);
+			System.out.println("Processing:\t" +sql);
 			
 			float execTime = 0;
 			float planTime = 0;
-//			try {
-//				conn = database.getConnection(conn);
-//				Statement st2= conn.createStatement();
-//				String explain = "EXPLAIN ANALYZE " +sql ;
-//				ResultSet rs2 = st2.executeQuery(explain); //
-//				LOG.debug("Start Q" + i + " execution plan");
-//				
-//				while (rs2.next())
-//				{	
-//					//prints the planner's tree
-//					LOG.debug(rs2.getString(1));
-//					if(rs2.getString(1).contains("Execution Time: ")){
-//						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
-//						execTime += Float.parseFloat(exec);
-//
-//					}
-//					else if(rs2.getString(1).contains("Planning Time: ")){
-//						String plan = rs2.getString(1).replaceAll("Planning Time: ", "").replaceAll("ms", "").trim();
-//						planTime += Float.parseFloat(plan);
-//					}					   
-//				}
-//				float q_totalTime= planTime+execTime;
-//				rs2.close();
-//				st2.close();
-//				LOG.debug("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
-//				i++;
-//				
-//				cost+= q_totalTime;
-// 
-//				//test the first i-th queries
-////				if ((i>8)) { 
-////					break;}
-//			
-//
-//
-//			} catch ( Exception e ) {
-//				Log.error(e.toString());
-//				//System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-//				//System.exit(0);
-//			}
+			try {
+				conn = database.getConnection(conn);
+				Statement st2= conn.createStatement();
+				String explain = "EXPLAIN ANALYZE " +sql ;
+				ResultSet rs2 = st2.executeQuery(explain); //
+				LOG.debug("Start Q" + i + " execution plan");
+				
+				while (rs2.next())
+				{	
+					//prints the planner's tree
+					LOG.debug(rs2.getString(1));
+					if(rs2.getString(1).contains("Execution Time: ")){
+						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
+						execTime += Float.parseFloat(exec);
+
+					}
+					else if(rs2.getString(1).contains("Planning Time: ")){
+						String plan = rs2.getString(1).replaceAll("Planning Time: ", "").replaceAll("ms", "").trim();
+						planTime += Float.parseFloat(plan);
+					}					   
+				}
+				float q_totalTime= planTime+execTime;
+				rs2.close();
+				st2.close();
+				LOG.debug("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
+				i++;
+				
+				cost+= q_totalTime;
+				report += q_totalTime+"\t";
+				//test the first i-th queries
+//				if ((i>8)) { 
+//					break;}
+			
+
+			} catch ( Exception e ) {
+				LOG.error(e.toString());
+				report += "\t";
+			}
 		}			
 		return cost;
 
