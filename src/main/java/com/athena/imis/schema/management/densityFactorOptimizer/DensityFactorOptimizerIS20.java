@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.schema.management.densityFactorOptimizer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,6 +18,7 @@ import com.athena.imis.querying.IRelationalQueryArray;
 import com.athena.imis.querying.QueriesIS20;
 import com.athena.imis.querying.RelationalQueryArrayIS20;
 import com.athena.imis.querying.QueriesIS20.Dataset;
+import com.athena.imis.schema.management.CostBasedSchemaManagementDOLAP20;
 import com.esotericsoftware.minlog.Log;
 
 /***

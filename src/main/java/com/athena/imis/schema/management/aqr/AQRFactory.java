@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment.aqr;
+package com.athena.imis.schema.management.aqr;
 
 public class AQRFactory {
 

@@ -1,4 +1,4 @@
-package com.athena.imis.experiments;
+package com.athena.imis.querying;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,15 +8,12 @@ import java.sql.Statement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.athena.imis.querying.IRelationalQueryArray;
-import com.athena.imis.querying.QueriesIS20ForLubm;
-import com.athena.imis.querying.QueriesIS20ForLubm.Dataset;
-import com.athena.imis.querying.RelationalQueryArrayIS20;
+import com.athena.imis.querying.QueriesIS20.Dataset;
 import com.esotericsoftware.minlog.Log;
 
-public class QueryClientForIS {
+public class SimpleClientQueryIS {
 
-	private static final Logger LOG = LogManager.getLogger(QueryClientForIS.class);
+	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
 	/**
 	 * @param args A String array with the following format, describe via an example: 
 	 *	e.g. 195.251.63.129 or localhost  -- where the pg server runs 
@@ -31,11 +28,11 @@ public class QueryClientForIS {
 		//define a query Builder 
 		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(args);
 		int i = 1;
-		QueriesIS20ForLubm queries  = new QueriesIS20ForLubm();
+		QueriesIS20 queries  = new QueriesIS20();
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){
 			//run only the i-th query in the Queries.getquery list
 			
-			LOG.info("Syntax of original query:\t" + sparql);
+			LOG.info("Syntax of SPARQL:\t" + sparql);
 			String sql = queryBuilder.generateSQLQuery(sparql);
 			LOG.info("Syntax of SQL:\t" +sql);
 			
@@ -69,8 +66,7 @@ public class QueryClientForIS {
 				}
 				float totalTime= planTime+execTime;
 				rs2.close();
-				LOG.info("\n" + "Q" + i + "SPARQL:\t" + sparql);
-				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + totalTime + "ms"+"\n\n\n");
+				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + totalTime + "ms");
 				conn.close();
 				i++;
 				

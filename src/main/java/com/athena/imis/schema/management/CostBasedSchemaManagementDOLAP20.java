@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.schema.management;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

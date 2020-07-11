@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.experiments.separatismExp;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,14 +9,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.querying.IRelationalQueryArray;
-import com.athena.imis.querying.QueriesIS20;
-import com.athena.imis.querying.QueriesIS20.Dataset;
+import com.athena.imis.querying.QueriesIS20ForLubm;
+import com.athena.imis.querying.QueriesIS20ForLubm.Dataset;
 import com.athena.imis.querying.RelationalQueryArrayIS20;
 import com.esotericsoftware.minlog.Log;
 
-public class SimpleClientQueryIS {
+public class QueryClientForIS {
 
-	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
+	private static final Logger LOG = LogManager.getLogger(QueryClientForIS.class);
 	/**
 	 * @param args A String array with the following format, describe via an example: 
 	 *	e.g. 195.251.63.129 or localhost  -- where the pg server runs 
@@ -31,11 +31,11 @@ public class SimpleClientQueryIS {
 		//define a query Builder 
 		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(args);
 		int i = 1;
-		QueriesIS20 queries  = new QueriesIS20();
+		QueriesIS20ForLubm queries  = new QueriesIS20ForLubm();
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){
 			//run only the i-th query in the Queries.getquery list
 			
-			LOG.info("Syntax of SPARQL:\t" + sparql);
+			LOG.info("Syntax of original query:\t" + sparql);
 			String sql = queryBuilder.generateSQLQuery(sparql);
 			LOG.info("Syntax of SQL:\t" +sql);
 			
@@ -69,7 +69,8 @@ public class SimpleClientQueryIS {
 				}
 				float totalTime= planTime+execTime;
 				rs2.close();
-				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + totalTime + "ms");
+				LOG.info("\n" + "Q" + i + "SPARQL:\t" + sparql);
+				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + totalTime + "ms"+"\n\n\n");
 				conn.close();
 				i++;
 				

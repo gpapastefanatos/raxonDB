@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.schema.management;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,13 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class SimpleClientIS {
+public class SimpleClientDOLAP {
 
 	public static void main(String[] args) {
-		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementIS20(args);
+		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
 		int result = schemaDecisionEngine.decideSchemaAndPopulate();
 
 		System.out.println("PVEngine returned " + result);
+
 
 		checkDBContents(args);
 	}//end main
@@ -140,4 +141,4 @@ public class SimpleClientIS {
 			e.printStackTrace();
 		}
 	}
-}//end class
+}

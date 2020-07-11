@@ -24,8 +24,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
-import com.athena.imis.models.QueryParserIS20;
-import com.athena.imis.schema.managment.SimpleClientQueryIS;
 
 public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 

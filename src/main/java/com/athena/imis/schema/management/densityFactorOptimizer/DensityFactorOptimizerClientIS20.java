@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.schema.management.densityFactorOptimizer;
 
 
 public class DensityFactorOptimizerClientIS20 {
