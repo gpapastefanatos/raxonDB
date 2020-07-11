@@ -13,7 +13,7 @@
   </package>  
   <package id="3" language="java" name="com.athena.imis.schema.management.aqr" project="raxonDB" 
     file="/raxonDB/src/main/java/com/athena/imis/schema/management/aqr" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="496" y="449"/>    
+    <position height="-1" width="-1" x="499" y="436"/>    
     <display autosize="true" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <package id="4" language="java" name="com.athena.imis.schema.management.densityFactorOptimizer" project="raxonDB" 
@@ -24,7 +24,7 @@
   </package>  
   <package id="5" language="java" name="com.athena.imis.models" project="raxonDB" 
     file="/raxonDB/src/main/java/com/athena/imis/models" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="129" y="424"/>    
+    <position height="-1" width="-1" x="130" y="504"/>    
     <display autosize="true" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <package id="6" language="java" name="com.athena.imis.querying" project="raxonDB" 
@@ -33,32 +33,32 @@
     <display autosize="true" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <dependency id="7">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="5"/>  
-  </dependency>  
-  <dependency id="8">    
-    <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="5"/>  
-  </dependency>  
-  <dependency id="9">    
-    <end type="SOURCE" refId="2"/>    
-    <end type="TARGET" refId="5"/>  
-  </dependency>  
-  <dependency id="10">    
     <end type="SOURCE" refId="4"/>    
     <end type="TARGET" refId="2"/>  
   </dependency>  
-  <dependency id="11">    
+  <dependency id="8">    
     <end type="SOURCE" refId="4"/>    
     <end type="TARGET" refId="6"/>  
   </dependency>  
-  <dependency id="12">    
+  <dependency id="9">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="3"/>  
+  </dependency>  
+  <dependency id="10">    
     <end type="SOURCE" refId="1"/>    
     <end type="TARGET" refId="6"/>  
   </dependency>  
-  <dependency id="13">    
+  <dependency id="11">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="5"/>  
+  </dependency>  
+  <dependency id="12">    
     <end type="SOURCE" refId="2"/>    
-    <end type="TARGET" refId="3"/>  
+    <end type="TARGET" refId="5"/>  
+  </dependency>  
+  <dependency id="13">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="5"/>  
   </dependency>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
