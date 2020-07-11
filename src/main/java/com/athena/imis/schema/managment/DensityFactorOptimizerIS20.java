@@ -90,11 +90,11 @@ public class DensityFactorOptimizerIS20 {
 		int maxDensityNullCost = Integer.MAX_VALUE; 
 		
 		String report="DensityFactor\tNoOfTables\tNoOfNulls\tQueryCost(ms)\tDensityCost\t";
-		LOG.info(report);
+//		LOG.info(report);
 		Map<String, Integer> tableExtents =this.initialize();
 		LOG.debug("Densities Initialization Complete");			
 		
-		for (int densFactor = 0; densFactor <=1; densFactor+=5) {
+		for (int densFactor = 0; densFactor >=0; densFactor+=10) {
 			//DIAGNOSTICS		
 			LOG.debug("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
 
@@ -116,10 +116,11 @@ public class DensityFactorOptimizerIS20 {
 				optimaldensityFactor = densFactor;
 			} 
 
+			LOG.info("--DENSITY FACTOR = " + densFactor);
 			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM1);
 			float densityCost =  (float)currentNullRecords /costOfWorkload;
 			report= densFactor+"\t"+currentNoOfTables+"\t"+currentNullRecords+"\t"+costOfWorkload+"\t"+densityCost;
-			LOG.info(report);
+//			LOG.info(report);
 
 			/*TODO
 			 * Here we will perfrom a simulation annealing function for finding the optimized m
@@ -245,48 +246,50 @@ public class DensityFactorOptimizerIS20 {
 			String sql = queryBuilder.generateSQLQuery(sparql);
 			LOG.debug("Syntax of SQL:\t" +sql);
 			
+			LOG.info("Syntax of SQL:\t" +sql);
+			
 			float execTime = 0;
 			float planTime = 0;
-			try {
-				conn = database.getConnection(conn);
-				Statement st2= conn.createStatement();
-				String explain = "EXPLAIN ANALYZE " +sql ;
-				ResultSet rs2 = st2.executeQuery(explain); //
-				LOG.debug("Start Q" + i + " execution plan");
-				
-				while (rs2.next())
-				{	
-					//prints the planner's tree
-					LOG.debug(rs2.getString(1));
-					if(rs2.getString(1).contains("Execution Time: ")){
-						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
-						execTime += Float.parseFloat(exec);
-
-					}
-					else if(rs2.getString(1).contains("Planning Time: ")){
-						String plan = rs2.getString(1).replaceAll("Planning Time: ", "").replaceAll("ms", "").trim();
-						planTime += Float.parseFloat(plan);
-					}					   
-				}
-				float q_totalTime= planTime+execTime;
-				rs2.close();
-				st2.close();
-				LOG.debug("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
-				i++;
-				
-				cost+= q_totalTime;
- 
-				//test the first i-th queries
-//				if ((i>8)) { 
-//					break;}
-			
-
-
-			} catch ( Exception e ) {
-				Log.error(e.toString());
-				//System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-				//System.exit(0);
-			}
+//			try {
+//				conn = database.getConnection(conn);
+//				Statement st2= conn.createStatement();
+//				String explain = "EXPLAIN ANALYZE " +sql ;
+//				ResultSet rs2 = st2.executeQuery(explain); //
+//				LOG.debug("Start Q" + i + " execution plan");
+//				
+//				while (rs2.next())
+//				{	
+//					//prints the planner's tree
+//					LOG.debug(rs2.getString(1));
+//					if(rs2.getString(1).contains("Execution Time: ")){
+//						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
+//						execTime += Float.parseFloat(exec);
+//
+//					}
+//					else if(rs2.getString(1).contains("Planning Time: ")){
+//						String plan = rs2.getString(1).replaceAll("Planning Time: ", "").replaceAll("ms", "").trim();
+//						planTime += Float.parseFloat(plan);
+//					}					   
+//				}
+//				float q_totalTime= planTime+execTime;
+//				rs2.close();
+//				st2.close();
+//				LOG.debug("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
+//				i++;
+//				
+//				cost+= q_totalTime;
+// 
+//				//test the first i-th queries
+////				if ((i>8)) { 
+////					break;}
+//			
+//
+//
+//			} catch ( Exception e ) {
+//				Log.error(e.toString());
+//				//System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+//				//System.exit(0);
+//			}
 		}			
 		return cost;
 

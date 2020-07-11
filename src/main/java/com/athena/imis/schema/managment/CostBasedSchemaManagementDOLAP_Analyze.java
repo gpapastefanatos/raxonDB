@@ -752,18 +752,18 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 		
 		try {
 			
-			conn = database.getConnection(conn);
-			
-//			Class.forName("org.postgresql.Driver");
-//
-//			conn=null;
-//			conn = DriverManager
-//					.getConnection("jdbc:postgresql://"+args[0]+":5432/", args[4], args[5]);
-//
+			//create a new connection to the server to create database
+			Connection conn2;			
+			Class.forName("org.postgresql.Driver");
+
+			conn2=null;
+			conn2 = DriverManager
+					.getConnection("jdbc:postgresql://"+args[0]+":5432/", args[4], args[5]);
+
 //						
-			Statement cre = conn.createStatement();
+			Statement cre = conn2.createStatement();
 			//kill any active connection to DBName 
-			//cre.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '"+ this.dbname +"' ;");	         
+			cre.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '"+ this.dbname +"' ;");	         
 			//drop DBName 
 			cre.executeUpdate("DROP DATABASE IF EXISTS "+ this.dbname +" ;");	         
 			System.out.println("Dropped database successfully");
@@ -771,11 +771,12 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 			int resDBC = cre.executeUpdate("CREATE DATABASE "+ this.dbname +" ;COMMIT;");
 			System.out.println("Database creation returned " + resDBC);
 			cre.close();
-//			conn.close();
+			conn2.close();
 //			
 //			conn = DriverManager
 //					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + this.dbname, args[4], args[5]);			         			        				
 
+			//recreate the connection to the dbName database 
 			conn = database.getConnection(conn);
 			System.out.println("Opened database successfully");
 
@@ -1657,7 +1658,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 
 
 			cpManager2 = ((PGConnection)conn).getCopyAPI();
-			PushbackReader reader2 = new PushbackReader( new StringReader(""), 1000000);
+			PushbackReader reader2 = new PushbackReader( new StringReader(""), 100000000);
 			Iterator<Map.Entry<String, Integer>> keyIt = intMap.entrySet().iterator();
 			int iter = 0;
 			while(keyIt.hasNext())
@@ -1802,6 +1803,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 				createTableQuery.deleteCharAt(createTableQuery.length()-2);
 				createTableQuery.append(')');
 				createTableQuery.append(';');
+				tableNames.add("cs_"+ nextPathIndex);
 
 				try{				
 					//c.setAutoCommit(false);
@@ -2087,7 +2089,8 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 			//c.setAutoCommit(false);
 			stmt = conn.createStatement();
 			stmt.executeUpdate(propertiesSetQuery.toString());
-			stmt.close();	       
+			stmt.close();	
+			conn.close();
 
 		} catch (Exception e){
 			e.printStackTrace();
