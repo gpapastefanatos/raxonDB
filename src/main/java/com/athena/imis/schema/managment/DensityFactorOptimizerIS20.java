@@ -94,14 +94,14 @@ public class DensityFactorOptimizerIS20 {
 		Map<String, Integer> tableExtents =this.initialize();
 		LOG.debug("Densities Initialization Complete");			
 		
-		for (int densFactor = 0; densFactor <=100; densFactor+=5) {
+		for (int densFactor = 0; densFactor <=1; densFactor+=5) {
 			//DIAGNOSTICS		
 			LOG.debug("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
 
 			args[6] = new Integer(densFactor).toString();	
 			
 					
-			schemaBuilder = new CostBasedSchemaManagementDOLAP_Analyze(args);
+			schemaBuilder = new CostBasedSchemaManagementDOLAP_Analyze(args, this.database);
 			schemaBuilder.decideSchemaAndPopulate();
 			
 			
@@ -147,7 +147,7 @@ public class DensityFactorOptimizerIS20 {
 		args[6] = new Integer(defaultDensityFactor).toString();	
 		
 						
-		schemaBuilder = new CostBasedSchemaManagementDOLAP_Analyze(args);
+		schemaBuilder = new CostBasedSchemaManagementDOLAP_Analyze(args, this.database);
 		schemaBuilder.decideSchemaAndPopulate();
 		
 		//get the size of each table in the db
