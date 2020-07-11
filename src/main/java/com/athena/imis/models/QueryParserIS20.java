@@ -21,6 +21,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
+import com.athena.imis.querying.RelationalQueryArrayIS20;
+
 
 public class QueryParserIS20 {
 
@@ -44,8 +46,9 @@ public class QueryParserIS20 {
 		
 	}
 	
-	public QueryParserIS20(Connection conn) {
-		this.conn= conn;
+	public QueryParserIS20(Database db) {
+			conn = RelationalQueryArrayIS20.conn;
+ 
 	}
 	
 	public Map<CharacteristicSet, Integer> getSubjectMap() {
@@ -325,7 +328,6 @@ public class QueryParserIS20 {
 			
 			try{
 				Statement st = conn.createStatement();
-				
 				String value = nextObject.toString();
 				if(!nextObject.isLiteral())									
 					value = "<" + value + ">";

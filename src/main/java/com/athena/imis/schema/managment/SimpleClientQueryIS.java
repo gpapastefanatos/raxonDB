@@ -8,6 +8,7 @@ import java.sql.Statement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.athena.imis.models.Database;
 import com.athena.imis.querying.IRelationalQueryArray;
 import com.athena.imis.querying.QueriesIS20;
 import com.athena.imis.querying.QueriesIS20.Dataset;
@@ -29,7 +30,9 @@ public class SimpleClientQueryIS {
 		Connection conn;
 		
 		//define a query Builder 
-		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(args);
+		Database d =  new Database(args[0], args[1], args[2], args[3]);
+
+		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(d);
 		int i = 1;
 		QueriesIS20 queries  = new QueriesIS20();
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){

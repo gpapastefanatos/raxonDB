@@ -14,6 +14,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.athena.imis.models.Database;
 import com.athena.imis.querying.IRelationalQueryArray;
 import com.athena.imis.querying.QueriesIS20;
 import com.athena.imis.querying.RelationalQueryArrayIS20;
@@ -44,20 +45,27 @@ import com.esotericsoftware.minlog.Log;
  */
 public class DensityFactorOptimizerIS20 {
 
-	private CostBasedSchemaManagementDOLAP20 schemaBuilder; 
+	private CostBasedSchemaManagementDOLAP_Analyze schemaBuilder; 
 	private IRelationalQueryArray queryBuilder; 
 	private int densityFactor ; 
+	private int currentNullRecords = 0;
+	private int currentNoOfTables = 0;;
+	
 	private String[] args ;
-	private Connection conn;
+	private Database database;
+	Connection conn ;
+	
 	private static final Logger LOG = LogManager.getLogger(DensityFactorOptimizerIS20.class);
 
 	
 	public DensityFactorOptimizerIS20(int densityFactor, String[] args) {
 		this.densityFactor = densityFactor;
 		this.args = args;
+		this.database = new Database(args[0], args[2], args[4], args[5]);
+		 
 	}
 
-	public CostBasedSchemaManagementDOLAP20 getSchemaBuilder() {
+	public CostBasedSchemaManagementDOLAP_Analyze getSchemaBuilder() {
 		return schemaBuilder;
 	}
 
@@ -83,29 +91,34 @@ public class DensityFactorOptimizerIS20 {
 		
 		String report="DensityFactor\tNoOfTables\tNoOfNulls\tQueryCost(ms)\tDensityCost\t";
 		LOG.info(report);
-		//Map<String, Integer> tableExtents =this.initialize();
-				
-		for (int densFactor = 0; densFactor <=10; densFactor+=25) {
+		Map<String, Integer> tableExtents =this.initialize();
+		LOG.debug("Densities Initialization Complete");			
+		
+		for (int densFactor = 0; densFactor <=100; densFactor+=5) {
 			//DIAGNOSTICS		
-			//LOG.info("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
+			LOG.debug("-----------START OF ITERATION FOR DENSITY FACTOR = " + densFactor + " --------------");
 
 			args[6] = new Integer(densFactor).toString();	
 			
-			schemaBuilder = new CostBasedSchemaManagementDOLAP20(args);
+					
+			schemaBuilder = new CostBasedSchemaManagementDOLAP_Analyze(args);
 			schemaBuilder.decideSchemaAndPopulate();
-		
+			
+			
 			//calculate last schema's aggregate no of null columns
-			int costOfNull= this.getNumberOfNullColumns();
+			 currentNullRecords = 0;
+			 currentNoOfTables = 0;
+			this.calculateSchemaCosts();
 			//nullcost is set to the cost of the best performing schema
-//			LOG.info("--DENSITY FACTOR = " + densFactor + ": Best NullCost=" + nullCost + " and Current CS Cost =" + noOfNulls);
-			if(costOfNull<=maxDensityNullCost){
-				maxDensityNullCost=costOfNull;
+			LOG.debug("--DENSITY FACTOR = " + densFactor + ": Best NullCost=" + maxDensityNullCost + " and Current CS Cost =" + currentNullRecords);
+			if(currentNullRecords<=maxDensityNullCost){
+				maxDensityNullCost=currentNullRecords;
 				optimaldensityFactor = densFactor;
 			} 
 
 			float costOfWorkload = this.getQueryCost(new QueriesIS20(), Dataset.LUBM1);
-			float densityCost =  (float)costOfNull /costOfWorkload;
-			report= densFactor+"\t"+null+"\t"+costOfNull+"\t"+costOfWorkload+"\t"+densityCost;
+			float densityCost =  (float)currentNullRecords /costOfWorkload;
+			report= densFactor+"\t"+currentNoOfTables+"\t"+currentNullRecords+"\t"+costOfWorkload+"\t"+densityCost;
 			LOG.info(report);
 
 			/*TODO
@@ -133,24 +146,13 @@ public class DensityFactorOptimizerIS20 {
 		int defaultDensityFactor = 0;
 		args[6] = new Integer(defaultDensityFactor).toString();	
 		
-		//create the initial schema
-		schemaBuilder = new CostBasedSchemaManagementDOLAP20(args);
+						
+		schemaBuilder = new CostBasedSchemaManagementDOLAP_Analyze(args);
 		schemaBuilder.decideSchemaAndPopulate();
 		
-		try {
-			this.conn  = this.getConnection();
-			if(this.conn == null) {
-				System.err.println("Lost db Connection; exiting...");
-				System.exit(-1);
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		//get the size of each table in the db
-		
 		try {
+			conn = database.getConnection(conn);
 			Statement st = conn.createStatement();
 			// get the schema from the CS dictionary table
 			String CSschema = " SELECT id FROM cs_schema ORDER BY id ASC;";
@@ -170,8 +172,8 @@ public class DensityFactorOptimizerIS20 {
 			}
 			rsCs.close();
 			st.close();
-			conn.close();
-		}catch(SQLException e){
+		}
+		catch(SQLException e){
 			e.printStackTrace();
 		}
 			
@@ -182,16 +184,11 @@ public class DensityFactorOptimizerIS20 {
 	 * Method for calculating the number of columns with nulls in all tables in the current schema 
 	 * 
 	 ***/
-	private int getNumberOfNullColumns() {
+	private void calculateSchemaCosts() {
 		  
-		int nullRecords = 0;
 		
 		try {
-			this.conn  = this.getConnection();
-			if(this.conn == null) {
-				System.err.println("Lost db Connection; exiting...");
-				System.exit(-1);
-			}
+			conn = database.getConnection(conn);
 			Statement st = conn.createStatement();
 			// get the schema from the CS dictionary table
 			String CSschema = " SELECT id, properties FROM cs_schema ORDER BY id ASC;";
@@ -200,6 +197,7 @@ public class DensityFactorOptimizerIS20 {
 			while(rsCs.next()){
 				//build a query for each of the CS table and count the null cells
 				String csTableName = "cs_"+rsCs.getInt(1);
+				currentNoOfTables++;
 				List<String> csColumns  = new ArrayList<String>(Arrays.asList(rsCs.getString(2).replace("{","").replace("}", "").split(",")));
 				
 				for (String column : csColumns) {
@@ -207,7 +205,7 @@ public class DensityFactorOptimizerIS20 {
 					String sql = "SELECT count(*) FROM " + csTableName + " WHERE p_" + column + " IS NULL";
 					ResultSet rsNULLs = st2.executeQuery(sql);
 					while(rsNULLs.next()){
-						nullRecords +=rsNULLs.getInt(1);
+						currentNullRecords +=rsNULLs.getInt(1);
 					}
 					rsNULLs.close();
 					st2.close();
@@ -215,12 +213,11 @@ public class DensityFactorOptimizerIS20 {
 			}
 			rsCs.close();
 			st.close();
-			conn.close();
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
 			
-		return nullRecords;
+		
 		
 	}
 	
@@ -233,36 +230,34 @@ public class DensityFactorOptimizerIS20 {
 		
 		float cost = (float) 0.0;
 		//calculate last schema's aggregate WORKLOAD cost
-		Connection conn;
 		
 		//define a query Builder 
 		String[] queryArgs = {args[0],args[2],args[4],args[5]};
-		this.queryBuilder = new RelationalQueryArrayIS20(queryArgs);
+		
+		
+		
+		this.queryBuilder = new RelationalQueryArrayIS20(this.database);
 		int i = 1;
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){
 			//run only the i-th query in the Queries.getquery list
 			
-			LOG.info("Syntax of SPARQL:\t" + sparql);
+			LOG.debug("Syntax of SPARQL:\t" + sparql);
 			String sql = queryBuilder.generateSQLQuery(sparql);
-			LOG.info("Syntax of SQL:\t" +sql);
+			LOG.debug("Syntax of SQL:\t" +sql);
 			
 			float execTime = 0;
 			float planTime = 0;
-			Statement st2;
 			try {
-				Class.forName("org.postgresql.Driver");
-				conn = DriverManager
-						.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[2].toLowerCase(), args[4], args[5]);
-				st2 = conn.createStatement();
-
+				conn = database.getConnection(conn);
+				Statement st2= conn.createStatement();
 				String explain = "EXPLAIN ANALYZE " +sql ;
 				ResultSet rs2 = st2.executeQuery(explain); //
-				LOG.info("Start Q" + i + " execution plan");
+				LOG.debug("Start Q" + i + " execution plan");
 				
 				while (rs2.next())
 				{	
 					//prints the planner's tree
-					LOG.info(rs2.getString(1));
+					LOG.debug(rs2.getString(1));
 					if(rs2.getString(1).contains("Execution Time: ")){
 						String exec = rs2.getString(1).replaceAll("Execution Time: ", "").replaceAll("ms", "").trim();
 						execTime += Float.parseFloat(exec);
@@ -275,8 +270,8 @@ public class DensityFactorOptimizerIS20 {
 				}
 				float q_totalTime= planTime+execTime;
 				rs2.close();
-				LOG.info("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
-				conn.close();
+				st2.close();
+				LOG.debug("Q" + i + ":\tPlanTime\t" + planTime + "ms\tExecTime\t" + execTime + "ms\tTotalTime\t" + q_totalTime + "ms");
 				i++;
 				
 				cost+= q_totalTime;
@@ -298,27 +293,5 @@ public class DensityFactorOptimizerIS20 {
 		
 	}
 
-		 
-	
-	
-	/***
-	 * Gets a connection to the db
-	 * @return a Connection object
-	 * @throws SQLException
-	 */
-	private Connection getConnection() throws SQLException {
 
-		conn=null;
-		try{
-
-			Class.forName("org.postgresql.Driver");
-			conn = DriverManager
-					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[2].toLowerCase(), args[4], args[5]);
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-			System.exit(0);
-		}	
-
-		return conn;
-	}
 }

@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
+import com.athena.imis.models.Database;
 import com.athena.imis.models.QueryParserIS20;
 import com.athena.imis.schema.managment.SimpleClientQueryIS;
 
@@ -32,6 +33,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
 
 	public static Connection conn ;
+	private Database database = null;
 	private String[] args;
 	private double execTime , planTime ;
 	private long time = 0;
@@ -56,8 +58,9 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 	List<String> FinalSqlQueries = new ArrayList<String>(); 
 
 	
-	public RelationalQueryArrayIS20(String[] args) {
-		this.args = args;
+	public RelationalQueryArrayIS20(Database db) {
+		this.database = db;
+		conn = db.getConnection(conn);
 		this.loadDictionary();
 	}
 	
@@ -89,8 +92,6 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 		
 		try{
 			
-			conn = this.getConnection();
-			ResultSet rs;
 			st = conn.createStatement();				
 			
 			String propertiesSetQuery = " SELECT id, uri FROM propertiesset ;";
@@ -137,7 +138,6 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 			System.out.println("PathSet: " + pathSet.toString());
 			rsPaths.close();
 			st.close();
-			
 			System.out.println("propMap: " + propMap.toString()) ;
 		}catch (Exception e){
 			e.printStackTrace();
@@ -157,12 +157,11 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 		String finalQuery = "";
 		try{
 			
-			
 			execTime = 0d;
 			planTime = 0d;
 
 			//initialize SPARQL extractor
-			QueryParserIS20 sparqlParser = new QueryParserIS20(conn);
+			QueryParserIS20 sparqlParser = new QueryParserIS20(this.database);
 			sparqlParser.setSparql(sparql);
 			sparqlParser.setPropertyMap(propMap);
 			sparqlParser.parseSPARQL();
@@ -609,7 +608,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 					}
 					
 					//replace for each join queue the aliases for the CS involved 
-					System.out.println("Number of permutations: " + perms.size());
+//					System.out.println("Number of permutations: " + perms.size());
 					for(List<String> nextPerm : perms){
 						String nextPermInt = "";
 						for(String nextPermCS : nextPerm){
@@ -697,47 +696,6 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 						}
 
 						unionClause.append(sqlTemp).append(" UNION ");
-//						//if(true) continue ;
-//						try{
-//
-//							Statement st2 = conn.createStatement();
-//							String explain = "EXPLAIN ANALYZE " ;
-//							//explain = "" ;
-//							if(!where.equals(" WHERE ")){
-//								sqlExpression = explain + sqlExpression ;//+ " " + where;	
-//							}
-//							else{
-//								sqlExpression = explain + sqlExpression + " ";
-//							}
-//							System.out.println("\t" + sqlExpression);
-//							//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
-//							ResultSet rs2 = st2.executeQuery(sqlExpression); //
-//							long start = System.nanoTime();
-//							while (rs2.next())
-//							{				    	
-//								//System.out.println(rs2.getString(1));
-//								if(rs2.getString(1).contains("Execution time: ")){
-//									String exec = rs2.getString(1).replaceAll("Execution time: ", "").replaceAll("ms", "").trim();
-//									execTime += Double.parseDouble(exec);
-//
-//								}
-//								else if(rs2.getString(1).contains("Planning time: ")){
-//									String plan = rs2.getString(1).replaceAll("Planning time: ", "").replaceAll("ms", "").trim();
-//									execTime += Double.parseDouble(plan);
-//									planTime += Double.parseDouble(plan);
-//
-//								}					   
-//								res++;
-//							}
-//							rs2.close();
-//							//System.out.println(execTime);
-//							time += System.nanoTime() - start;
-//							System.out.println(res);
-//						
-//						}
-//						catch(SQLException e){
-//							e.printStackTrace();
-//						}
 					}
 
 				}												
@@ -770,7 +728,10 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 		csMatches = new HashMap<CharacteristicSet, Set<String>>();
 		Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
 
+		
 		try {
+		
+				
 			//get ecs from db for each pair of SO joins
 			for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 
@@ -778,7 +739,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 					continue;
 				for(CharacteristicSet nextCSO : csJoinMap.get(nextCSS)){
 
-					//undangled.add(nextCSO);
+					undangled.add(nextCSO);
 
 					String schema = " SELECT DISTINCT * FROM ecs_schema as e "
 							+ "WHERE e.css_properties @> ARRAY" + nextCSS.getAsList().toString() 
@@ -825,13 +786,17 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 			
 			for(CharacteristicSet nextCSS : csSet){
 
+				//nextCSS is already processed or matched
 				if(csJoinMap.get(nextCSS) != null || undangled.contains(nextCSS))
-					//nextCSS is already processed or matched
 					continue;
-				String schema = " SELECT DISTINCT * FROM ecs_schema as e "
-						+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;
+				String schema = " SELECT DISTINCT * FROM ecs_schema as e " + "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;
 
-				// schema = " SELECT DISTINCT * FROM cs_schema as e "+ "WHERE e.properties @> ARRAY" + nextCSS.toString() ;			
+				//gpapas
+//				if((csMatches.containsKey(nextCSS))|| undangled.contains(nextCSS))
+//					//nextCSS is already processed or matched
+//					continue;
+//				
+//				String schema = " SELECT DISTINCT * FROM cs_schema as e "+ "WHERE e.properties @> ARRAY" + nextCSS.toString() ;			
 
 				st = conn.createStatement();
 				ResultSet rsS = st.executeQuery(schema);
@@ -848,36 +813,11 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 			for(CharacteristicSet nextCS : csMatches.keySet()){
 				nextCS.setMatches(csMatches.get(nextCS));
 			}
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+	}
 		
-	}
-	
-	
-	
-	/*** 
-	 * gets connection to the db
-	 * 
-	 * @return a connection
-	 * @throws SQLException
-	 */
-	private Connection getConnection() throws SQLException {
-
-		try{
-
-			Class.forName("org.postgresql.Driver");
-			conn = DriverManager
-					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + args[1].toLowerCase(), args[2], args[3]);
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName()+": "+ e.getMessage() );
-			System.exit(0);
-		}	
-
-		return conn;
-	}
-	
-	
 }
