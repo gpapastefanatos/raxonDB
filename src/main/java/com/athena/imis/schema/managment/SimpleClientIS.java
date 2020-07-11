@@ -14,6 +14,15 @@ public class SimpleClientIS {
 
 		System.out.println("PVEngine returned " + result);
 
+		checkDBContents(args);
+	}//end main
+
+	
+	/**
+	 * Fires test queries + updates stats of all tables
+	 * @param args
+	 */
+	private static void checkDBContents(String[] args) {
 		Connection conn = null;
 		try{
 
@@ -49,6 +58,7 @@ public class SimpleClientIS {
 			e.printStackTrace();
 		}
 		System.out.println("\n---------------\nSystem Catalog ESTIMATES (not exact numbers\n----------------\n");
+		String analyzeQuery = "";
 		try{
 			Statement st = conn.createStatement();
 			String propertiesSetQuery = " SELECT\r\n" + 
@@ -64,8 +74,12 @@ public class SimpleClientIS {
 			ResultSet rsProps = st.executeQuery(propertiesSetQuery);
 
 			int size =0;
+			
 			while(rsProps.next()){
-				System.out.println(rsProps.getString(1) + "\t\t" + rsProps.getInt(2));
+				String tableName = rsProps.getString(1);
+				int rowCount = rsProps.getInt(2);
+				analyzeQuery = analyzeQuery + "\nANALYZE " + tableName +"; ";
+				//System.out.println( tableName + "\t\t" + rowCount);
 			}
 			
 //			if (rsProps != null) 
@@ -79,6 +93,46 @@ public class SimpleClientIS {
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
+		
+		System.out.println( analyzeQuery);
+		Statement st;
+		try {
+			st = conn.createStatement();
+			int res = st.executeUpdate(analyzeQuery);
+			st.close();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		
+		try{
+			Statement stAgain = conn.createStatement();
+			String propertiesSetQuery = " SELECT\r\n" + 
+					"  pgClass.relname   AS tableName,\r\n" + 
+					"  pgClass.reltuples AS rowCount\r\n" + 
+					"FROM\r\n" + 
+					"  pg_class pgClass\r\n" + 
+					"LEFT JOIN\r\n" + 
+					"  pg_namespace pgNamespace ON (pgNamespace.oid = pgClass.relnamespace)\r\n" + 
+					"WHERE\r\n" + 
+					"  pgNamespace.nspname NOT IN ('pg_catalog', 'information_schema') AND\r\n" + 
+					"  pgClass.relkind='r'" +
+					"ORDER BY tableName ASC;";
+			ResultSet rsProps = stAgain.executeQuery(propertiesSetQuery);
+
+			int size =0;
+			
+			while(rsProps.next()){
+				String tableName = rsProps.getString(1);
+				int rowCount = rsProps.getInt(2);
+				System.out.println( tableName + "\t\t" + rowCount);
+			}
+			
+			rsProps.close();
+			stAgain.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}	
+		
 		try {
 			conn.close();
 		} catch (SQLException e) {
@@ -86,4 +140,4 @@ public class SimpleClientIS {
 			e.printStackTrace();
 		}
 	}
-}
+}//end class
