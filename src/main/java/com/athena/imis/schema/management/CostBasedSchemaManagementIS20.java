@@ -160,7 +160,7 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		System.out.println("PRJ CLASS: " + this.projectClassName);
 		
 		this._MinCSKeptSeparately = 1;
-		this._MaxCSKeptSeparately = 1;
+		this._MaxCSKeptSeparately = 5;
 		
 
 	}//end constructor
