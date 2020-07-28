@@ -2,3 +2,15 @@
 /resources/
 /raxondb.log
 
+raxondb.log
+resources/log4j2.xml
+raxondb.log
+resources/log4j2.xml
+raxondb.log
+.settings/org.eclipse.core.resources.prefs
+.settings/org.eclipse.jdt.core.prefs
+raxondb.log
+*.log
+raxondb.log
+resources/log4j2.xml
+resources/log4j2.xml
