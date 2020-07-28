@@ -1,4 +1,4 @@
-package com.athena.imis.models;
+package com.athena.imis.querying.density;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,7 +21,9 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementPathBlock;
 
-import com.athena.imis.querying.RelationalQueryArrayIS20;
+import com.athena.imis.models.CharacteristicSet;
+import com.athena.imis.models.Database;
+import com.athena.imis.models.DirectedGraph;
 
 
 public class QueryParserIS20 {

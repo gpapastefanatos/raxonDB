@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.extras;
 
 import java.util.ArrayList;
 import java.util.List;

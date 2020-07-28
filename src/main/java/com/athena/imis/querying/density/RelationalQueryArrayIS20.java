@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.density;
 
 import java.sql.Array;
 import java.sql.Connection;
@@ -23,14 +23,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.DirectedGraph;
+import com.athena.imis.querying.common.IRelationalQueryArray;
 import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.Database;
-import com.athena.imis.models.QueryParserIS20;
-import com.athena.imis.schema.managment.SimpleClientQueryIS;
 
 public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 
-	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
+	private static final Logger LOG = LogManager.getLogger(RelationalQueryArrayIS20.class);
 
 	public static Connection conn ;
 	private Database database = null;

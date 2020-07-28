@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.dolap;
 
 import java.sql.Array;
 import java.sql.Connection;
@@ -22,7 +22,6 @@ import org.apache.jena.graph.Triple;
 
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
-import com.athena.imis.models.SQLTranslator;
 
 public class RelationalQueryArrayDOLAP20 {
 

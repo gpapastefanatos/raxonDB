@@ -1,47 +1,55 @@
-package com.athena.imis.querying;
+package com.athena.imis.experiments.common;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Queries {
- 
-   
-	
-	public static List<String> queries = new ArrayList<String>();
-	
+public final class QueriesIS20ForLubm {
+
+	public enum Dataset {
+		LUBM1,
+		REACTOME,
+		GEONAMES
+	};
+
+
+	public static List<String> lubm_queries = new ArrayList<String>();
+
 	public static List<String> reactome_queries = new ArrayList<String>();
-	
+
 	public static List<String> geonames_queries = new ArrayList<String>();
-	
+
 	{
-				//queries.add(q_ex);
-//				queries.add(q1);
-//				queries.add(q1_ext);
-//				queries.add(q3_ext);
-//				queries.add(q11_ext);
-//				//queries.add(q13_ext);
-//				queries.add(q10_ext);	
-//				queries.add(q12);
-//				queries.add(q4_ext);
-//				queries.add(q8_ext);
-//				queries.add(q2);
-//				queries.add(qm1);
-//				queries.add(qm2);	
-//				queries.add(qm3);
-//				queries.add(qm4);		
-//											
-		
-				//reactome_queries.add(reactomePrefixes + " " + r10);
-				reactome_queries.add(reactomePrefixes + " " + r9);
-				reactome_queries.add(reactomePrefixes + " " + r8);
-				//reactome_queries.add(reactomePrefixes + " " + r6);
-				reactome_queries.add(reactomePrefixes + " " + r5);
-				reactome_queries.add(reactomePrefixes + " " + r2);
-				reactome_queries.add(reactomePrefixes + " " + r1);
-		
+//		lubm_queries.add(q1);
+//		lubm_queries.add(q2);
+//	////	lubm_queries.add(q3_ext);
+//		lubm_queries.add(q4_ext);
+//	////	lubm_queries.add(q5);
+//		//lubm_queries.add(q6);
+//		lubm_queries.add(q7);
+//		
+//		lubm_queries.add(q9);
+//		lubm_queries.add(q10);
+
+		//lubm_queries.add(q10_ext);
+		//lubm_queries.add(qm1);
+		lubm_queries.add(qm2);	
+		//lubm_queries.add(qm3);
+		//queries.add(q_ex);
+		//lubm_queries.add(q12); 
+		////lubm_queries.add(q13_ext); this is not debugged.							
+
+
+		//reactome_queries.add(reactomePrefixes + " " + r10);
+		reactome_queries.add(reactomePrefixes + " " + r9);
+		reactome_queries.add(reactomePrefixes + " " + r8);
+		//reactome_queries.add(reactomePrefixes + " " + r6);
+		reactome_queries.add(reactomePrefixes + " " + r5);
+		reactome_queries.add(reactomePrefixes + " " + r2);
+		reactome_queries.add(reactomePrefixes + " " + r1);
+
 		reactome_queries.add(reactomePrefixes + " " + r3);
 		//reactome_queries.add(reactomePrefixes + " " + r12);
-		
+
 		geonames_queries.add(geonamesPrefixes + " " + g1);
 		geonames_queries.add(geonamesPrefixes + " " + g2);
 		geonames_queries.add(geonamesPrefixes + " " + g3);
@@ -49,35 +57,26 @@ public final class Queries {
 		geonames_queries.add(geonamesPrefixes + " " + g5);
 		geonames_queries.add(geonamesPrefixes + " " + g6);
 	}
-	public List<String> getQueries(int dataset){
-		if(dataset == 1)
-			return Queries.reactome_queries;
-		else if(dataset == 2)
-			return Queries.geonames_queries;
-		return Queries.queries;
+
+
+	public List<String> getQueries(Dataset dataset){
+		if(dataset == Dataset.REACTOME)
+			return QueriesIS20ForLubm.reactome_queries;
+		else if(dataset == Dataset.GEONAMES)
+			return QueriesIS20ForLubm.geonames_queries;
+		else if(dataset == Dataset.LUBM1)
+			return QueriesIS20ForLubm.lubm_queries;
+		return null;
 	}
-	
-	public static String q_ex = "PREFIX ex: <http://www.example.com/> SELECT ?x ?y ?z ?w "
-				+ "WHERE { 	?x ex:worksFor ?y."       
-					+"?x ex:supervises ?z."    
-					+"?z ex:hasBirthday <http://www.example.com/DateA>."        
-					+"?z ex:isMarriedTo ?w."        
-					//+"?w ex:hasNationality <http://www.example.com/Gr>"
-					+ "?w ?prop <http://www.example.com/Gr>}" ;
-	
+
 	public static String prefix = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 			+ "PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> ";
-	
+
 	public static String q1 = prefix + 
 			"SELECT ?X WHERE"
-			+ "{?X rdf:type ub:Student . "
-			+ "?X ub:takesCourse <http://www.Department1.University1.edu/GraduateCourse1>}";
-	public static String q1_ext = prefix + 
-			"SELECT ?X ?Y WHERE"
 			+ "{?X rdf:type ub:GraduateStudent . "
-			+ "?X ub:takesCourse ?Y . "
-			+ "?Y rdf:type ?gr}"; //ub:GraduateCourse
-	
+			+ "?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse16>}";
+
 	public static String q2 = prefix
 			+ "SELECT DISTINCT ?X ?Y ?Z "
 			+ "WHERE "
@@ -88,20 +87,12 @@ public final class Queries {
 			+ "?Z ub:subOrganizationOf ?Y ."
 			+ "?X ub:undergraduateDegreeFrom ?Y}";
 	
+	
 	public static String q3_ext = prefix + "SELECT ?X ?Y WHERE "
 			+ "{?X rdf:type ub:Publication . "
 			+ "?X ub:publicationAuthor ?Y . "
 			+ "?Y rdf:type ?typeY}";
-	
-	public static String q4 = prefix + ""
-			+ "SELECT ?X ?Y1 ?Y2 ?Y3 "
-			+ "WHERE "
-			+ "{?X rdf:type ub:AssistantProfessor . "
-			+ "?X ub:worksFor <http://www.Department0.University0.edu> . "
-			+ "?X ub:name ?Y1 . "
-			+ "?X ub:emailAddress ?Y2 . "
-			+ "?X ub:telephone ?Y3}" ;
-	
+
 	public static String q4_ext = prefix + ""
 			+ "SELECT ?X ?Y ?Y1 ?Y2 ?Y3 "
 			+ "WHERE "
@@ -111,22 +102,89 @@ public final class Queries {
 			+ "?X ub:emailAddress ?Y2 . "
 			+ "?X ub:telephone ?Y3 . "
 			+ "?Y rdf:type ub:Department}" ;
+
+	public static String q5 = prefix + 
+			"SELECT ?X ?Y WHERE"
+			+ "{?X rdf:type ub:GraduateStudent . "
+			+ "?X ub:takesCourse ?Y . "
+			+ "?Y rdf:type ?gr}"; //ub:GraduateCourse
+
+
+	public static String q6 = prefix //q8_ext
+			+ "SELECT ?X ?Y ?Z "
+			+ "WHERE "
+			+ "{"
+			+ "?Y rdf:type ub:Department . "
+			+ "?X ub:memberOf ?Y . "
+			+ "?Y ub:subOrganizationOf ?Z . "
+			+ "?X ub:emailAddress ?X1 "
+			+ "}";
+	//+ "?X rdf:type ub:GraduateStudent . "
+
+	public static String q7 = prefix + "SELECT ?X ?Y  WHERE "
+			+ "{?X rdf:type ub:ResearchGroup . "
+			+ "?X ub:subOrganizationOf ?Y ."
+			+ "?Y rdf:type ub:Department. "
+			+ "}";
+	//+ "?Y ub:subOrganizationOf ?Z ."
+	//+ "?Z rdf:type ub:University "
+
+
+
+	public static String q9 = prefix + ""					//qm4
+			+ "SELECT DISTINCT ?s1 ?pub ?dept WHERE { "
+			+ "?s1 rdf:type ?studentType . "
+			+ "?s1 ub:memberOf ?dept . "				
+			+ "?dept rdf:type ?deptType . "
+			+ "?dept ub:subOrganizationOf ?sub . "
+			+ "?pub rdf:type ?pubtype . "
+			+ "?pub ub:publicationAuthor ?s1 . " 
+			+ "}";			
 			
-	public static String q5 = prefix + "SELECT ?X WHERE {?X rdf:type ub:Person . "
+	
+	public static String q10 = prefix + ""					//qm4
+			+ "SELECT DISTINCT ?s1 ?pub ?dept WHERE { "
+			+ "?s1 rdf:type ?studentType . "
+			+ "?s1 ub:undergraduateDegreeFrom ?uguni . "
+			+ "?s1 ub:memberOf ?dept . "				
+			+ "?dept rdf:type ?deptType . "
+			+ "?dept ub:subOrganizationOf ?sub . "
+			+ "?pub rdf:type ?pubtype . "
+			+ "?pub ub:publicationAuthor ?s1 . " 
+			+ "}";
+	//+ "?dept rdf:type ub:Department . "
+	//+ "?s1 rdf:type ub:GraduateStudent . "
+	//+ "?uguni rdf:type ub:University . "
+	//+ "?pub rdf:type ub:Publication . "	
+
+	
+	
+	
+	public static String q41 = prefix + ""
+			+ "SELECT ?X ?Y1 ?Y2 ?Y3 "
+			+ "WHERE "
+			+ "{?X rdf:type ub:AssistantProfessor . "
+			+ "?X ub:worksFor <http://www.Department0.University0.edu> . "
+			+ "?X ub:name ?Y1 . "
+			+ "?X ub:emailAddress ?Y2 . "
+			+ "?X ub:telephone ?Y3}" ;
+
+
+	public static String q51 = prefix + "SELECT ?X WHERE {?X rdf:type ub:Person . "
 			+ "?X ub:worksFor <http://www.Department0.University0.edu>}";
-	
-	public static String q5_ext = prefix + "SELECT ?X ?Y WHERE {?X rdf:type ub:Person . "
+
+	public static String q51_ext = prefix + "SELECT ?X ?Y WHERE {?X rdf:type ub:Person . "
 			+ "?X ub:worksFor ?Y . ?Y rdf:type ub:Department}";
-	
+
 	/*public static String q6 = prefix + "SELECT ?X WHERE {?X rdf:type ub:UndergraduateStudent}";*/
-	
-	public static String q7 = prefix + "SELECT ?X ?Y WHERE  "
+
+	public static String q71 = prefix + "SELECT ?X ?Y WHERE  "
 			+ "{?X rdf:type ub:UndergraduateStudent . "
 			+ "?Y rdf:type ub:Course . "
 			+ "?X ub:takesCourse ?Y . "
 			+ "<http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y}";
-	
-	public static String q8 = prefix
+
+	public static String q81 = prefix
 			+ "SELECT ?X ?Y ?Z "
 			+ "WHERE "
 			+ "{?X rdf:type ub:UndergraduateStudent . "
@@ -134,19 +192,9 @@ public final class Queries {
 			+ "?X ub:worksFor ?Y . "
 			+ "?Y ub:subOrganizationOf <http://www.University0.edu> . "
 			+ "?X ub:emailAddress ?Z }";
-	
-	public static String q8_ext = prefix
-			+ "SELECT ?X ?Y ?Z "
-			+ "WHERE "
-			+ "{"
-			//+ "?X rdf:type ub:GraduateStudent . "
-			+ "?Y rdf:type ub:Department . "
-			+ "?X ub:memberOf ?Y . "
-			+ "?Y ub:subOrganizationOf ?Z . "
-			+ "?X ub:emailAddress ?X1 "
-			+ "}";
-	
-	public static String q9 = prefix 
+
+
+	public static String q91 = prefix 
 			+ "SELECT ?X ?Y ?Z "
 			+ "WHERE "
 			+ "{"
@@ -156,8 +204,8 @@ public final class Queries {
 			+ "?X ub:advisor ?Y . "
 			+ "?Y ub:teacherOf ?Z . "
 			+ "?X ub:takesCourse ?Z}";
-	
-	public static String q9_ext = prefix 
+
+	public static String q91_ext = prefix 
 			+ "SELECT ?X ?Y ?Z "
 			+ "WHERE "
 			+ "{"
@@ -167,49 +215,41 @@ public final class Queries {
 			+ "?X ub:advisor ?Y . "
 			+ "?Y ub:teacherOf ?Z . "
 			+ "?X ub:takesCourse ?Z}";
-	
-	public static String q10 = prefix + "SELECT ?X WHERE "
+
+	public static String q101 = prefix + "SELECT ?X WHERE "
 			+ "{?X rdf:type ub:UndergraduateStudent . "
 			+ "?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0>}";
-	
-	public static String q10_ext = prefix + "SELECT ?X ?Y WHERE "
+
+	public static String q101_ext = prefix + "SELECT ?X ?Y WHERE "
 			+ "{?X rdf:type ub:GraduateStudent . "
 			+ "?X ub:takesCourse ?Y ."
 			+ "?Y rdf:type ub:GraduateCourse . "
 			+ "?X ub:name ?name }";
-	
-	public static String q11 = prefix + "SELECT ?X WHERE "
+
+	public static String q111 = prefix + "SELECT ?X WHERE "
 			+ "{?X rdf:type ub:ResearchGroup . "
 			+ "?X ub:subOrganizationOf <http://www.University0.edu>}";
-	
-	public static String q11_ext = prefix + "SELECT ?X ?Y  WHERE "
-			+ "{?X rdf:type ub:ResearchGroup . "
-			+ "?X ub:subOrganizationOf ?Y ."
-			+ "?Y rdf:type ub:Department. "
-			//+ "?Y ub:subOrganizationOf ?Z ."
-			//+ "?Z rdf:type ub:University "
-			+ "}";
-	
-	public static String q12 = prefix + "SELECT ?X ?Y "
+
+	public static String q121 = prefix + "SELECT ?X ?Y "
 			+ "WHERE "
 			+ "{?X ub:headOf ?Y . "
 			+ "?Y rdf:type ub:Department . "
 			+ "?X ub:memberOf ?Y . "
 			+ "?Y ub:subOrganizationOf ?Z"
 			+ "}";
-	
-	public static String q13 = prefix + "SELECT ?X WHERE "
+
+	public static String q131 = prefix + "SELECT ?X WHERE "
 			+ "{?X rdf:type ?somePerson . "
 			+ "<http://www.University0.edu> ub:hasAlumnus ?X}";
-	
-	public static String q13_ext = prefix + "SELECT ?X ?Y WHERE "
+
+	public static String q131_ext = prefix + "SELECT ?X ?Y WHERE "
 			+ "{?X rdf:type ?somePerson . "
 			+ "?Z ub:hasAlumnus ?X . "
 			//+ "?X ub:advisor ?Y . "
 			+ "?Z rdf:type ?type}";
-	
-	/*public static String q14 = prefix + "SELECT ?X WHERE {?X rdf:type ub:UndergraduateStudent}";*/
-	
+
+	/*public static String q141 = prefix + "SELECT ?X WHERE {?X rdf:type ub:UndergraduateStudent}";*/
+
 	public static String qm1 = prefix + " SELECT DISTINCT ?s ?y ?z ?w WHERE {"
 			+ "?s ub:researchInterest ?o2 ; "
 			+ " ub:mastersDegreeFrom ?o3 ; "
@@ -222,7 +262,7 @@ public final class Queries {
 			//+ " ub:hasAlumnus ?w . "
 			//+ "?w ub:name ?o8 "
 			+ "} ";
-	
+
 	public static String qm2 = prefix + " SELECT DISTINCT ?s ?y ?z ?w WHERE {"
 			+ "?s ub:researchInterest ?o2 ; "
 			+ " ub:mastersDegreeFrom ?o3 ; "			
@@ -236,7 +276,7 @@ public final class Queries {
 			//+ " ?s ub:advisor ?w . "
 			//+ "?w rdf:type ?o88"
 			+ "} ";
-	
+
 	public static String qm3 = prefix + " SELECT DISTINCT ?s ?y ?z ?course WHERE {"
 			+ "?s ub:researchInterest ?o2 ; "
 			+ " ub:mastersDegreeFrom ?o3 ; "			
@@ -255,53 +295,40 @@ public final class Queries {
 			+ " ?student ub:memberOf ?sm ."
 			+ " ?sm rdf:type ?smType ."
 			+ "} ";
-	
-	public static String qm4 = prefix + ""
-			+ "SELECT DISTINCT ?s1 ?pub ?dept WHERE { "
-				//+ "?s1 rdf:type ub:GraduateStudent . "
-				+ "?s1 rdf:type ?studentType . "
-				+ "?s1 ub:undergraduateDegreeFrom ?uguni . "
-				+ "?s1 ub:memberOf ?dept . "				
-				//+ "?dept rdf:type ub:Department . "
-				+ "?dept rdf:type ?deptType . "
-				+ "?dept ub:subOrganizationOf ?sub . "
-				//+ "?uguni rdf:type ub:University . "
-				//+ "?pub rdf:type ub:Publication . "
-				+ "?pub rdf:type ?pubtype . "
-				+ "?pub ub:publicationAuthor ?s1 . " 
-				+ "}";
-	
+
+
+
 	public static String qm4_new = prefix + ""
 			+ "SELECT DISTINCT ?s1 ?pub ?dept WHERE { "
-				//+ "?s1 rdf:type ub:GraduateStudent . "
-				+ "?s1 rdf:type ?studentType . "
-				+ "?s1 ub:undergraduateDegreeFrom ?uguni . "
-				+ "?s1 ub:worksFor ?dept . "				
-				+ "?dept rdf:type ub:Department . "
-				+ "?dept rdf:type ?deptType . "
-				+ "?dept ub:subOrganizationOf ?sub . "				
-				+ "?sub rdf:type ub:University . "
-				+ "?pub rdf:type ub:Publication . "
-				+ "?pub rdf:type ?pubtype . "
-				+ "?pub ub:publicationAuthor ?s1 . "
-				+ "?s1 ub:advisor ?teacher ."
-				+ "?teacher rdf:type ub:Professor ."
-				+ "?teacher ub:name ?tname ."
-				+ "?teacher ub:doctoralDegreeFrom ?tdf ."
-				+ "}";
-	
+			//+ "?s1 rdf:type ub:GraduateStudent . "
+			+ "?s1 rdf:type ?studentType . "
+			+ "?s1 ub:undergraduateDegreeFrom ?uguni . "
+			+ "?s1 ub:worksFor ?dept . "				
+			+ "?dept rdf:type ub:Department . "
+			+ "?dept rdf:type ?deptType . "
+			+ "?dept ub:subOrganizationOf ?sub . "				
+			+ "?sub rdf:type ub:University . "
+			+ "?pub rdf:type ub:Publication . "
+			+ "?pub rdf:type ?pubtype . "
+			+ "?pub ub:publicationAuthor ?s1 . "
+			+ "?s1 ub:advisor ?teacher ."
+			+ "?teacher rdf:type ub:Professor ."
+			+ "?teacher ub:name ?tname ."
+			+ "?teacher ub:doctoralDegreeFrom ?tdf ."
+			+ "}";
+
 	public static String qm4_ext = prefix + ""
 			+ "SELECT DISTINCT ?s1 ?pub ?dept WHERE { "
-				+ "?s1 rdf:type ub:GraduateStudent . "				
-				+ "?s1 ub:undergraduateDegreeFrom ?uguni . "
-				+ "?s1 ub:worksFor ?dept . "				
-				+ "?dept rdf:type ub:Department . "				
-				+ "?dept ub:subOrganizationOf ?sub . "				
-				+ "?pub rdf:type ub:Publication . "
-				+ "?pub rdf:type ?pubtype . "
-				+ "?pub ub:publicationAuthor ?s1 . " 
-				+ "}";
-	
+			+ "?s1 rdf:type ub:GraduateStudent . "				
+			+ "?s1 ub:undergraduateDegreeFrom ?uguni . "
+			+ "?s1 ub:worksFor ?dept . "				
+			+ "?dept rdf:type ub:Department . "				
+			+ "?dept ub:subOrganizationOf ?sub . "				
+			+ "?pub rdf:type ub:Publication . "
+			+ "?pub rdf:type ?pubtype . "
+			+ "?pub ub:publicationAuthor ?s1 . " 
+			+ "}";
+
 	public static String qa10 = "PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> "
 			+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  "
 			+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
@@ -314,8 +341,8 @@ public final class Queries {
 			+ "?tAsst ub:advisor ?adv. "
 			+ "?adv ub:doctoralDegreeFrom "
 			+ "?unv. ?unv ub:name ?uName. }";
-	
-	
+
+
 	public static String reactomePrefixes = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 			+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
 			+ "PREFIX owl: <http://www.w3.org/2002/07/owl#> "
@@ -337,7 +364,7 @@ public final class Queries {
 			+ "?ref biopax3:id ?id ; "
 			+ " rdf:type ?refType "
 			+ "} ";
-	
+
 	public static String r2 = "SELECT DISTINCT ?pathway ?organism ?ref "
 			+ "WHERE "
 			+ "{ "
@@ -350,7 +377,7 @@ public final class Queries {
 			+ "?ref biopax3:id ?id ; "
 			+ " rdf:type ?refType "
 			+ "} ";
-	
+
 	public static String r3 = "SELECT DISTINCT ?organism ?ref "
 			+ "WHERE "
 			+ "{ "			
@@ -360,7 +387,7 @@ public final class Queries {
 			+ "?ref biopax3:id ?id ; "
 			+ "rdf:type ?refType "
 			+ "} ";
-	
+
 	public static String r4 = "SELECT DISTINCT ?pathway ?reaction ?entity "
 			+ "WHERE  "
 			+ "{?pathway rdf:type biopax3:Pathway . "
@@ -370,7 +397,7 @@ public final class Queries {
 			+ "?reaction biopax3:left ?entity . "
 			+ "?entity biopax3:cellularLocation <http://purl.obolibrary.org/obo/GO_0005886> . "			
 			+ "}";
-	
+
 	public static String r5 = "SELECT DISTINCT ?pathway ?reaction ?entity "
 			+ "WHERE  "
 			+ "{?pathway rdf:type biopax3:Pathway . "
@@ -382,7 +409,7 @@ public final class Queries {
 			+ "?pathway biopax3:dataSource ?source . "
 			+ "?source biopax3:name ?sourceName ."
 			+ "}";
-	
+
 	public static String r6 = "SELECT DISTINCT ?pathway ?reaction ?entity "
 			+ "WHERE  "
 			+ "{?pathway rdf:type biopax3:Pathway . "
@@ -398,7 +425,7 @@ public final class Queries {
 			+ "?pathway biopax3:dataSource ?source . "
 			+ "?source biopax3:name ?sourceName ."
 			+ "}";
-	
+
 	public static String r7 = "SELECT DISTINCT ?organism ?ref "
 			+ "WHERE "
 			+ "{ "			
@@ -408,7 +435,7 @@ public final class Queries {
 			+ "?ref biopax3:id ?id ; "
 			+ "rdf:type ?refType "
 			+ "} ";
-	
+
 	public static String r8 = "SELECT DISTINCT ?x "
 			+ "WHERE "
 			+ "{ "			
@@ -419,7 +446,7 @@ public final class Queries {
 			+ "?x biopax3:evidence ?x5 . "
 			//+ "?x5 ?p ?o . "
 			+ "} ";
-	
+
 	public static String r9 = " SELECT ?pathway ?reaction ?complex ?protein  "
 			+ "WHERE  "
 			+ "{?pathway rdf:type biopax3:Pathway .  "
@@ -433,7 +460,7 @@ public final class Queries {
 			+ "?protein rdf:type biopax3:Protein . "
 			+ "?protein biopax3:entityReference <http://purl.uniprot.org/uniprot/P01308>"
 			+ "}";
-	
+
 	public static String r10 = " SELECT DISTINCT ?pathway ?reaction ?complex ?protein ?ref  "
 			+ "WHERE  "
 			+ "{?pathway rdf:type biopax3:Pathway .  "
@@ -447,7 +474,7 @@ public final class Queries {
 			+ "?protein biopax3:entityReference ?ref ."
 			+ "?ref biopax3:id ?id ; rdf:type ?refType" 
 			+ "}";
-	
+
 	public static String r11 = "SELECT DISTINCT ?organism ?ref "
 			+ "WHERE "
 			+ "{ "			
@@ -458,7 +485,7 @@ public final class Queries {
 			+ "rdf:type ?refType ."
 			//+ "?organism "
 			+ "} ";
-	
+
 	public static String r12 = "SELECT DISTINCT * "
 			+ "WHERE   "
 			+ "{ "
@@ -473,7 +500,7 @@ public final class Queries {
 			+ "?pw2 biopax3:pathwayComponent ?pw5 .   "
 			+ "?pw5 rdf:type ?type5 . "
 			+ "}     ";
-	
+
 	public static String geonamesPrefixes = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 			+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
 			+ "PREFIX owl: <http://www.w3.org/2002/07/owl#> "
@@ -482,7 +509,7 @@ public final class Queries {
 			+ "PREFIX dcterms: <http://purl.org/dc/terms/> "
 			+ "PREFIX foaf: <http://xmlns.com/foaf/0.1/> "
 			+ "PREFIX gn: <http://www.geonames.org/ontology#> ";
-	
+
 	public static String g1 = "SELECT ?f1 ?f2 ?f3 WHERE "
 			+ "{"
 			+ "?f1 rdf:type gn:Feature ; "
@@ -495,7 +522,7 @@ public final class Queries {
 			+ "gn:parentFeature ?f3 ."
 			+ "?f3 rdf:type ?ft3 ."
 			+ "}";
-	
+
 	public static String g2 = "SELECT ?f1 ?f2 WHERE "
 			+ "{"
 			+ "?f1 rdf:type ?ft1 ; "
@@ -507,7 +534,7 @@ public final class Queries {
 			//+ "?f1 gn:parentCountry ?f3 . "
 			//+ "?f4 rdf:type ?ft4 ."
 			+ "}";
-	
+
 	public static String g3 = "SELECT ?f1 ?f2 ?f3 WHERE "
 			+ "{"
 			+ "?f1 rdf:type gn:Feature ; "
@@ -522,7 +549,7 @@ public final class Queries {
 			+ "?f3 gn:parentFeature ?f4 ."
 			+ "?f4 rdf:type ?ft4 ."
 			+ "}";
-	
+
 	public static String g4 = "SELECT ?f1 ?f2 ?f3 WHERE "
 			+ "{"
 			+ "?f1 rdf:type gn:Feature ; "
@@ -535,7 +562,7 @@ public final class Queries {
 			+ "?f3 gn:parentFeature  ?f4 ." //<http://sws.geonames.org/6446638/>
 			//+ "?f4 rdf:type gn:Feature ."
 			+ "}";
-	
+
 	public static String g5 = " SELECT ?f1 ?f2 ?f3 ?adm1 ?fadm1 WHERE {"
 			+ "?f1 rdf:type gn:Feature ; "
 			+ " gn:parentFeature ?f2 ;"
@@ -547,12 +574,21 @@ public final class Queries {
 			+ " ?adm1 gn:parentCountry ?fadm1 . "
 			+ " ?fadm1 rdf:type gn:Feature"
 			+ "}";
-	
+
 	//very low selectivity in this one
 	public static String g6 = " SELECT ?f1 ?adm1 WHERE {" 
 			+ " ?f1 rdf:type gn:Feature ;"
 			+ " gn:parentADM1 ?adm1 . "
 			+ " ?adm1 gn:parentCountry ?fadm1 . "
 			+ "}"; 
-	
+
+	public static String q_example = "PREFIX ex: <http://www.example.com/> SELECT ?x ?y ?z ?w "
+			+ "WHERE { 	?x ex:worksFor ?y."       
+			+"?x ex:supervises ?z."    
+			+"?z ex:hasBirthday <http://www.example.com/DateA>."        
+			+"?z ex:isMarriedTo ?w."        
+			//+"?w ex:hasNationality <http://www.example.com/Gr>"
+			+ "?w ?prop <http://www.example.com/Gr>}" ;
+
+
 }

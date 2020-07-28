@@ -1,4 +1,4 @@
-package com.athena.imis.schema.managment;
+package com.athena.imis.querying.extras;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,11 +9,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.Database;
-import com.athena.imis.querying.IRelationalQueryArray;
-import com.athena.imis.querying.QueriesIS20;
-import com.athena.imis.querying.QueriesIS20.Dataset;
-import com.athena.imis.querying.QueriesIS20ForLubm;
-import com.athena.imis.querying.RelationalQueryArrayIS20;
+import com.athena.imis.querying.common.IRelationalQueryArray;
+import com.athena.imis.querying.density.RelationalQueryArrayIS20;
+import com.athena.imis.querying.extras.QueriesIS20.Dataset;
 import com.esotericsoftware.minlog.Log;
 
 public class SimpleClientQueryIS {
