@@ -20,7 +20,7 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="com.athena.imis.querying.extras.QueriesIS20"raxonDB" 
+  <class id="3" language="java" name="com.athena.imis.querying.extras.QueriesIS20" project="raxonDB" 
     file="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="326" y="78"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -29,7 +29,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <enumeration id="4" language="java" name="com.athena.imis.querying.ecom.athena.imis.querying.extras.QueriesIS20le="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
+  <enumeration id="4" language="java" name="com.athena.imis.querying.extras.QueriesIS20.Dataset" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="279" y="683"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -57,8 +58,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="7" language="java" name="com.athena.imis.querying.separatism.QueryParserIS20" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/separatism/QueryParserIS20.java" binary="false" 
+  <class id="7" language="java" name="com.athena.imis.querying.separatism.QueryParserIS20Separatism" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/separatism/QueryParserIS20Separatism.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="883" y="-126"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -77,9 +78,10 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="9" language="java" name="com.athena.imis.querying.separatism.RelationalQueryArrayIS20" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/separatism/RelationalQueryArrayIS20.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="9" language="java" name="com.athenacom.athena.imis.querying.separatism.RelationalQueryArrayIS20Separatism" 
+    project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/separatism/RelationalQueryArrayIS20Separatism.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1344" y="218"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      

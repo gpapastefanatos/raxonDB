@@ -17,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 import com.athena.imis.querying.common.IRelationalQueryArray;
 import com.athena.imis.querying.extras.QueriesIS20;
 import com.athena.imis.querying.extras.QueriesIS20.Dataset;
-import com.athena.imis.querying.separatism.RelationalQueryArrayIS20;
+import com.athena.imis.querying.separatism.RelationalQueryArrayIS20Separatism;
 import com.athena.imis.schema.management.dolap.CostBasedSchemaManagementDOLAP20;
 import com.esotericsoftware.minlog.Log;
 
@@ -238,7 +238,7 @@ public class DensityFactorOptimizerIS20 {
 		
 		//define a query Builder 
 		String[] queryArgs = {args[0],args[2],args[4],args[5]};
-		this.queryBuilder = new RelationalQueryArrayIS20(queryArgs);
+		this.queryBuilder = new RelationalQueryArrayIS20Separatism(queryArgs);
 		int i = 1;
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){
 			//run only the i-th query in the Queries.getquery list

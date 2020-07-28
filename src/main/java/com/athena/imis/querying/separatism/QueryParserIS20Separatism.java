@@ -25,7 +25,7 @@ import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.DirectedGraph;
 
 
-public class QueryParserIS20 {
+public class QueryParserIS20Separatism {
 
 	Connection conn;
 	
@@ -43,11 +43,11 @@ public class QueryParserIS20 {
 	
 	Map<CharacteristicSet, Integer> subjectMap = new HashMap<CharacteristicSet, Integer>() ;
 	
-	public QueryParserIS20() {
+	public QueryParserIS20Separatism() {
 		
 	}
 	
-	public QueryParserIS20(Connection conn) {
+	public QueryParserIS20Separatism(Connection conn) {
 		this.conn= conn;
 	}
 	

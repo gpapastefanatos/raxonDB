@@ -27,7 +27,7 @@ import com.athena.imis.querying.common.IRelationalQueryArray;
 import com.athena.imis.querying.extras.SimpleClientQueryIS;
 import com.athena.imis.models.CharacteristicSet;
 
-public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
+public class RelationalQueryArrayIS20Separatism implements IRelationalQueryArray {
 
 	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
 
@@ -56,7 +56,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 	List<String> FinalSqlQueries = new ArrayList<String>(); 
 
 	
-	public RelationalQueryArrayIS20(String[] args) {
+	public RelationalQueryArrayIS20Separatism(String[] args) {
 		this.args = args;
 		this.loadDictionary();
 	}
@@ -162,7 +162,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 			planTime = 0d;
 
 			//initialize SPARQL extractor
-			QueryParserIS20 sparqlParser = new QueryParserIS20(conn);
+			QueryParserIS20Separatism sparqlParser = new QueryParserIS20Separatism(conn);
 			sparqlParser.setSparql(sparql);
 			sparqlParser.setPropertyMap(propMap);
 			sparqlParser.parseSPARQL();

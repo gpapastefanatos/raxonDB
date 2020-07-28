@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.querying.common.IRelationalQueryArray;
 import com.athena.imis.querying.extras.QueriesIS20.Dataset;
-import com.athena.imis.querying.separatism.RelationalQueryArrayIS20;
+import com.athena.imis.querying.separatism.RelationalQueryArrayIS20Separatism;
 import com.esotericsoftware.minlog.Log;
 
 public class SimpleClientQueryIS {
@@ -28,7 +28,7 @@ public class SimpleClientQueryIS {
 		Connection conn;
 		
 		//define a query Builder 
-		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(args);
+		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20Separatism(args);
 		int i = 1;
 		QueriesIS20 queries  = new QueriesIS20();
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){
