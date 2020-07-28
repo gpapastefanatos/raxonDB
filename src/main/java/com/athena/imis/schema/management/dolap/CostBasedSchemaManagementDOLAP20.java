@@ -39,7 +39,7 @@ import com.athena.imis.models.AbstractQueryRepresentation;
 import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.ModeOfWork;
 import com.athena.imis.models.ModeOfWork.WorkMode;
-import com.athena.imis.schema.management.common.ICostBasedSchemaManager;
+import com.athena.imis.schema.management.separatism.ICostBasedSchemaManagerIS20;
 //import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.Path;
 
@@ -52,7 +52,7 @@ import gnu.trove.map.hash.THashMap;
  * @author meimar, gpapas, pvassil
  * @version 0.3
  */
-public class CostBasedSchemaManagementDOLAP20  implements ICostBasedSchemaManager{
+public class CostBasedSchemaManagementDOLAP20  implements ICostBasedSchemaManagerIS20{
 
 	private Map<String, Integer> propertiesSet;
 	private Map<Integer, String> revPropertiesSet;

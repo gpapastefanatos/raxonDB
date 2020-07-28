@@ -6,12 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.athena.imis.schema.management.common.ICostBasedSchemaManager;
+import com.athena.imis.schema.management.separatism.ICostBasedSchemaManagerIS20;
 
 public class SimpleClientDOLAP {
 
 	public static void main(String[] args) {
-		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
+		ICostBasedSchemaManagerIS20 schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
 		int result = schemaDecisionEngine.decideSchemaAndPopulate();
 
 		System.out.println("PVEngine returned " + result);

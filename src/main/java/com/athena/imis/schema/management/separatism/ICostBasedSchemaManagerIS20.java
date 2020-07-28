@@ -1,8 +1,8 @@
-package com.athena.imis.schema.management.common;
+package com.athena.imis.schema.management.separatism;
 
 import java.sql.Connection;
 
-public interface ICostBasedSchemaManager {
+public interface ICostBasedSchemaManagerIS20 {
 
 	/**
 	 * Gets the job done FIX THIS DESCRIPTION
