@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+//import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,22 +19,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.jena.graph.Triple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+//import org.apache.logging.log4j.LogManager;
+//import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.querying.common.IRelationalQueryArray;
-import com.athena.imis.querying.extras.SimpleClientQueryIS;
 import com.athena.imis.models.CharacteristicSet;
 
 public class RelationalQueryArrayIS20Separatism implements IRelationalQueryArray {
 
-	private static final Logger LOG = LogManager.getLogger(SimpleClientQueryIS.class);
+	//private static final Logger LOG = LogManager.getLogger(RelationalQueryArrayIS20Separatism.class);
 
 	public static Connection conn ;
 	private String[] args;
 	private double execTime , planTime ;
-	private long time = 0;
+	//private long time = 0;
 	
 	//variable for the query
 	Map<CharacteristicSet, List<CharacteristicSet>> csJoinMap;
