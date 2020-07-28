@@ -1,4 +1,4 @@
-package com.athena.imis.experiments;
+package com.athena.imis.experiments.separatism;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
