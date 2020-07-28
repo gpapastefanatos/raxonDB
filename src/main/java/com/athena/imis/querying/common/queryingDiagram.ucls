@@ -20,7 +20,7 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="com.athena.imis.querying.extras.QueriesIS20iesIS20" project="raxonDB" 
+  <class id="3" language="java" name="com.athena.imis.querying.extras.QueriesIS20"raxonDB" 
     file="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="326" y="78"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -29,8 +29,7 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <enumeration id="4" languagecom.athena.imis.querying.extras.QueriesIS20ng.extras.QueriesIS20.Dataset" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
+  <enumeration id="4" language="java" name="com.athena.imis.querying.ecom.athena.imis.querying.extras.QueriesIS20le="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="279" y="683"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -98,7 +97,7 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="11" language="java" com.athena.imis.querying.extras.SimpleClientQueryISClientQueryIS" project="raxonDB" 
+  <class id="11" language="java" name="com.athena.imis.querying.extras.SimpleClientQueryIS" project="raxonDB" 
     file="/raxonDB/src/main/java/com/athena/imis/querying/extras/SimpleClientQueryIS.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1634" y="792"/>    
