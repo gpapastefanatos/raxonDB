@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.dolap;
 
 import java.sql.Array;
 import java.sql.Connection;
@@ -23,16 +23,13 @@ import org.apache.jena.graph.Triple;
 import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.CharacteristicSet;
 
-public class RelationalQueryArrayDOLAP20 {
+public class RelationalQuerySimple {
 
 	
 	public static Connection c ;
 	
 	public static void main(String[] args) {
 		
-		/***
-		 * init dictionary db
-		 */
 		
 		 c = null;
 	      Statement stmt = null;
@@ -73,8 +70,6 @@ public class RelationalQueryArrayDOLAP20 {
 			
 			st = c.createStatement();				
 			
-			
-			
 			Map<CharacteristicSet, Set<Integer>> multiValuedCSProps = new HashMap<CharacteristicSet, Set<Integer>>();
 			Map<Integer, CharacteristicSet> realCSIds = new HashMap<Integer, CharacteristicSet>();
 			String multiValuedQuery = " SELECT cs, p, properties FROM multi_valued INNER JOIN cs_schema ON cs=id ;";
@@ -92,95 +87,18 @@ public class RelationalQueryArrayDOLAP20 {
 			rsMulti.close();
 			st.close();
 			st = c.createStatement();	
-			String paths = "select DISTINCT e1.css, e2.css, e3.css, e4.css, e5.css, e6.css from ecs_schema as e1 "
-					+ "inner join ecs_schema as e2 on e1.cso  = e2.css "
-					+ "inner join ecs_schema as e3 on e2.cso  = e3.css "
-					+ "inner join ecs_schema as e4 on e3.cso  = e4.css "
-					+ "inner join ecs_schema as e5 on e4.cso  = e5.css "
-					+ "inner join ecs_schema as e6 on e5.cso  = e6.css";
-			ResultSet rsPaths = st.executeQuery(paths);
-			Set<String> pathSet = new HashSet<String>();
-			while(rsPaths.next()){
-				String pathList = "";
-				for(int i = 1; i < 7; i++){
-					pathList += rsPaths.getInt(i)+"_";
-				}
-				pathList = pathList.substring(0, pathList.length()-1);
-				pathSet.add(pathList);
-			}
-			System.out.println("PathSet: " + pathSet.toString());
-			rsPaths.close();
-			st.close();
-			
-			System.out.println("propMap: " + propMap.toString()) ;
 			
 			
-			/***
-			 * start processing queries from static class
-			 */
+			//System.out.println("propMap: " + propMap.toString()) ;
 			Queries queries = new Queries();
-			List<String> FinalSqlQueries = new ArrayList<String>(); 
-			for(String sparql : queries.queries){
+			for(String sparql : queries.geonames_queries){
+				
 				int res = 0;
 				StringBuilder union = new StringBuilder();
 				execTime = 0d;
 				planTime = 0d;
 				SQLTranslator sqlTranslator = new SQLTranslator();
-				
-//				String sparql = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
-//						+ "PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> "
-//						+ "SELECT ?X ?Y ?Z WHERE {"
-//						+ "?X rdf:type ub:Student." //ub:UndergraduateStudent 
-//						//+ "?W rdf:type ub:UndergraduateStudent ."
-//						+ "?Y rdf:type ub:Organization ." //ub:Department 
-//						+ "?X ub:memberOf ?Y . "
-//						//+ "?W ub:memberOf ?Y . "
-//						+ "?Y ub:subOrganizationOf <http://www.University0.edu> . "
-//						+ "?X ub:telephone \"xxx-xxx-xxxx\" ."
-//						//+ "?p rdf:type ?p1 . "
-//						+ "?X ub:emailAddress ?Z}";
-////				sparql = "SELECT ?v0 ?v1 ?v6 WHERE {  ?v0 <http://schema.org/eligibleRegion> ?v122 . "
-////						+ " ?v0 <http://purl.org/goodrelations/includes> ?v1 .  "
-////						//+ "?v2 <http://purl.org/goodrelations/offers> ?v0 . "
-////						//+ " ?v0 <http://purl.org/goodrelations/price> ?v3 . "
-////						//+ " ?v0 <http://purl.org/goodrelations/serialNumber> ?v4 .  "
-////						//+ "?v0 <http://purl.org/goodrelations/validFrom> ?v5 . "
-////						+ " ?v0 <http://purl.org/goodrelations/validThrough> ?v6 .  "
-////						+ "?v0 <http://schema.org/eligibleQuantity> ?v8 .  "
-////						//+ "?v0 <http://schema.org/priceValidUntil> ?v10 .  "
-////						+ "?v1 <http://schema.org/author> ?v7 .  }";
-////				sparql = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
-////						+ "PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> "
-////						+ "SELECT ?X ?Y "
-////						+ "WHERE "
-////						+ "{?X rdf:type ub:UndergraduateStudent . "
-////						+ "?Y rdf:type ub:GraduateCourse . "
-////						+ "?X ub:takesCourse ?Y . "
-////						+ "<http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y }";
-//						//+ "<http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y }";
-//				String reactomePrefixes = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
-//						+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
-//						+ "PREFIX owl: <http://www.w3.org/2002/07/owl#> "
-//						+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> "
-//						+ "PREFIX dc: <http://purl.org/dc/elements/1.1/> "
-//						+ "PREFIX dcterms: <http://purl.org/dc/terms/> "
-//						+ "PREFIX foaf: <http://xmlns.com/foaf/0.1/> "
-//						+ "PREFIX skos: <http://www.w3.org/2004/02/skos/core#> "
-//						+ "PREFIX biopax3: <http://www.biopax.org/release/biopax-level3.owl#> " ;
-//				sparql = reactomePrefixes 
-//						+ "SELECT DISTINCT ?pathway ?reaction ?complex ?protein ?ref  "
-//						+ "WHERE  "
-//						+ "{?pathway rdf:type ?aa .  " //biopax3:Pathway
-//						+ "?pathway biopax3:displayName ?pathwayname ."
-//						+ "?pathway biopax3:pathwayComponent ?reaction . "
-//						+ "?reaction rdf:type ?df.  " //biopax3:BiochemicalReaction 			
-//						+ "?reaction biopax3:right ?complex ."
-//						+ "?complex rdf:type ?add .  " //biopax3:Complex
-//						+ "?complex biopax3:component ?protein . "
-//						+ "?protein rdf:type ?prr . " //biopax3:Protein
-//						+ "?protein biopax3:entityReference ?ref ."
-//						//+ "?ref biopax3:id ?id ; rdf:type ?refType" 
-//						+ "}";
+		
 				System.out.println("SPARQL QUERY: " + sparql);
 				sqlTranslator.setSparql(sparql);
 				
@@ -191,24 +109,12 @@ public class RelationalQueryArrayDOLAP20 {
 				Map<CharacteristicSet, List<CharacteristicSet>> csJoinMap = sqlTranslator.getCsJoinMap();
 				
 				Set<CharacteristicSet> csSet = sqlTranslator.getCsSet();
-				
-				String schemaQuery = " SELECT DISTINCT * ";
-				String schemaWhere = " WHERE " ;
-				int cs_index = 0, ecs_index = 0;
-				
-				Map<CharacteristicSet, String> csVarMap = new HashMap<CharacteristicSet, String>();
-							
+									
 				Map<CharacteristicSet, Set<String>> csMatches = new HashMap<CharacteristicSet, Set<String>>();
 				
 				Map<CharacteristicSet, Set<String>> csQueryMatches = new HashMap<CharacteristicSet, Set<String>>();
 				
 				Set<CharacteristicSet> undangled = new HashSet<CharacteristicSet>();
-				
-				
-				/***
-				 * Map CS from query to Data CS via the ecs index
-				 */
-				
 				//get ecs from db for each pair of SO joins
 				for(CharacteristicSet nextCSS : csJoinMap.keySet()){
 					
@@ -222,7 +128,7 @@ public class RelationalQueryArrayDOLAP20 {
 								+ "WHERE e.css_properties @> ARRAY" + nextCSS.getAsList().toString() 
 								+ " AND e.cso_properties @> ARRAY" + nextCSO.getAsList().toString();							
 						st = c.createStatement();
-						//System.out.println(schema);
+						System.out.println(schema);
 						ResultSet rsS = st.executeQuery(schema);
 						
 						while(rsS.next()){
@@ -236,22 +142,19 @@ public class RelationalQueryArrayDOLAP20 {
 							csQueryMatches.put(nextCSO, cso_matches);
 						}
 						rsS.close();
-						st.close();
-						//System.out.println("new round " + csMatches.toString());
+						st.close();						
 						for(CharacteristicSet nextCS : csQueryMatches.keySet()){
-							//System.out.println("next cs " + nextCS.toString());
+							
 							if(!csMatches.containsKey(nextCS)){
-								//System.out.println("not contained");
+								
 								csMatches.put(nextCS, csQueryMatches.get(nextCS));
-								//System.out.println("cs matches thus far: "+ csMatches.toString());
+								
 							}
-							else{
-								//System.out.println("contained");
+							else{								
 								Set<String> c = csQueryMatches.get(nextCS);
-								//System.out.println("existing matches: "+ csMatches.toString());
-								//System.out.println("existing c: "+ c.toString());
+								
 								c.retainAll(csMatches.get(nextCS));
-								//System.out.println("after retain: "+ c.toString());
+								
 								csMatches.put(nextCS, c) ;
 							}
 							
@@ -259,20 +162,16 @@ public class RelationalQueryArrayDOLAP20 {
 						csQueryMatches.clear();
 					}				
 					
-				}	 	
+				}			
 				for(CharacteristicSet nextCSS : csSet){
 					
 					if(csJoinMap.get(nextCSS) != null || undangled.contains(nextCSS))
 						continue;
 					//System.out.println("Dangling: " + nextCSS.toString());													
-					//fetch all cs joins (ecs) that contain the 
 					String schema = " SELECT DISTINCT * FROM ecs_schema as e "
-							+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;
-					
-					// schema = " SELECT DISTINCT * FROM cs_schema as e "+ "WHERE e.properties @> ARRAY" + nextCSS.toString() ;			
-					
+							+ "WHERE e.css_properties @> ARRAY" + nextCSS.toString() ;											
 					st = c.createStatement();
-					//System.out.println(schema);
+					System.out.println(schema);
 					ResultSet rsS = st.executeQuery(schema);
 					
 					while(rsS.next()){
@@ -283,16 +182,10 @@ public class RelationalQueryArrayDOLAP20 {
 					rsS.close();
 					st.close();
 				}
-				
-				//System.out.println("CS Matches: " + csMatches.toString());
+								
 				for(CharacteristicSet nextCS : csMatches.keySet()){
-					nextCS.setMatches(csMatches.get(nextCS));
+					nextCS.setMatches(csMatches.get(nextCS));					
 				}
-				
-				
-				/***
-				 * Build SQL syntax
-				 */
 				
 				//prepare WHERE clause
 				String finalQuery = "";
@@ -317,7 +210,7 @@ public class RelationalQueryArrayDOLAP20 {
 						csIdAliases.put(nextCSId, "c"+(csAliasIdx));
 					csAliasIdx++;
 				}
-				
+				System.out.println("Prefetching matches...");
 				for(CharacteristicSet nextCS : csMatches.keySet()){
 					
 					Set<Integer> isCovered = new HashSet<Integer>();
@@ -358,27 +251,15 @@ public class RelationalQueryArrayDOLAP20 {
 						
 						where += restriction ;
 					}
-					//else {
-						
-						//check for all nulls??
-						String nonNull = "";
-						// All properties contained in the triple graph (i.e.contained in a query CS)  must be not null, 
-						// either they are part of a restriction or a join
-						for(Integer property : nextCS.getAsList()){
-							if(isCovered.contains(property)) continue; 
-							nonNull = csAliases.get(nextCS) + ".p_" +property+" IS NOT NULL ";
-							
-							if(!where.equals(" WHERE "))
-								where += " AND ";
-							where += nonNull ;
-						}
+					//else {						
+												
 						
 						continue;
 					//}
 					
 				}
 				
-				//System.out.println(where);
+				System.out.println(where);
 				
 				//find permutations of cs
 				List<List<String>> csAsList = new ArrayList<List<String>>();
@@ -393,9 +274,6 @@ public class RelationalQueryArrayDOLAP20 {
 				}
 				//System.out.println("CS list index map: " + csListIndexMap.toString());
 				List<List<String>> perms = cartesianProduct(csAsList);
-				
-				
-				//Build the projection part , i.e., SELECT Clause....
 				
 				Map<CharacteristicSet, List<Triple>> vars = sqlTranslator.getCsVars();
 				//System.out.println("vars " + vars.toString()) ;
@@ -427,10 +305,6 @@ public class RelationalQueryArrayDOLAP20 {
 					csProjection = csProjection.substring(0, csProjection.length()-2);
 					csProjectionsOrdered.add(csProjection);
 				}
-				
-				
-				//Build the FROM Part
-				
 				//System.out.println(csProjectionsOrdered.toString());
 				//are there any joins? 
 				String noJoins = ""; boolean joinsExist = false;
@@ -442,39 +316,16 @@ public class RelationalQueryArrayDOLAP20 {
 					}
 				}
 				
+				
 				//Map<List<Integer>, List<Integer>> permToListMap = new HashMap<List<Integer>, List<Integer>>();
 				
 				
 				//how do we build a query graph representation?
-				DirectedGraph<CharacteristicSet> queryGraph = sqlTranslator.getQueryGraph();
-				
-				
-				//Iterator<CharacteristicSet> it = queryGraph.iterator();
-				//while(it.hasNext()){
-				//
-				//CharacteristicSet node = it.next();
-				////System.out.println("Next node: " + node.toString());
-				////System.out.println("\tChildren: " + queryGraph.edgesFrom(node).toString());
-				//
-				//}
-				int permIndex = 0;
-				
-				/*for(List<String> nextPerm : perms){
-				
-					List<Integer> asIntList = new ArrayList<Integer>();
-					for(String nextCS : nextPerm){
-						asIntList.add(Integer.parseInt(nextCS));
-					}
-					permToListMap.put(asIntList, csMatchesOrdered.get(permIndex++));
-				}*/
-				
-				/**
-				 * If the query has no joins then only a single query CS exists and it may be mapped to multiple data CSs (permutations)
-				 * 	For each permutation a SQL is created 
-				 *  All permutations are concatenated with UNION  
-				 */
+				DirectedGraph<CharacteristicSet> queryGraph = sqlTranslator.getQueryGraph();				
+								
 				if(!joinsExist){
-					//one query with no joins for each permutation
+					//one query for each permutation
+					System.out.println("# of permutations (no joins):" + perms.size());
 					for(List<String> nextPerm : perms){
 															
 						int idx = 0;
@@ -488,7 +339,7 @@ public class RelationalQueryArrayDOLAP20 {
 							
 							String varList = csProjectionsOrdered.get(idx++);
 							if(!noJoins.equals("")){
-								noJoins += " UNION ";			
+								noJoins += " UNION ALL ";			
 							}
 							if(!where.equals(" WHERE "))
 								noJoins += " (SELECT " + varList + " FROM cs_" + nextCS + " AS " + csIdAliases.get(nextCS+"")+ " " + where + ") ";
@@ -501,8 +352,6 @@ public class RelationalQueryArrayDOLAP20 {
 //							templateQ += where ;	
 						//int idx = 0;
 						//System.out.println("nextPerm: " + nextPerm.toString()) ;						
-						
-						
 						for(String nextIntString : nextPerm) {
 							CharacteristicSet nextCSToTransform = csMatchesOrdered.get(idx++);
 							templateQ = templateQ.replaceAll("cs_ AS "+csAliases.get(nextCSToTransform), "cs_"+nextIntString+" AS "+csAliases.get(nextCSToTransform));
@@ -587,8 +436,7 @@ public class RelationalQueryArrayDOLAP20 {
 				    	String explain = "EXPLAIN ANALYZE " ;
 				    	//explain = "" ;
 				    	finalQuery = explain + finalQuery;
-				    	FinalSqlQueries.add(finalQuery);
-				    	System.out.println("\t" + finalQuery);
+				    	//System.out.println("\t" + finalQuery);
 				    	
 				    	//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
 				    	ResultSet rs2 = st2.executeQuery(finalQuery); //
@@ -623,12 +471,6 @@ public class RelationalQueryArrayDOLAP20 {
 						e.printStackTrace();
 					}
 				}
-				
-				
-				/**
-				 * If the query has joins then 
-				 */
-				
 				else{
 					
 					Set<CharacteristicSet> graphRoots = queryGraph.findRoots() ;
@@ -664,7 +506,7 @@ public class RelationalQueryArrayDOLAP20 {
 							for(CharacteristicSet child : queryGraph.edgesFrom(currentCS)){
 								
 								//if(!visited.contains(child)){
-									
+								if(!visited.contains(child))
 									stack.push(child);
 									
 									if(joinQueues.containsKey(child)){
@@ -691,11 +533,39 @@ public class RelationalQueryArrayDOLAP20 {
 					//System.out.println("\n");
 					//System.out.println(joinQueues.toString());
 					Set<LinkedHashSet<CharacteristicSet>> uniqueQueues = new HashSet<LinkedHashSet<CharacteristicSet>>();
+					int qsize = 0;
 					for(CharacteristicSet nextCS : joinQueues.keySet()){
 						uniqueQueues.add(joinQueues.get(nextCS));
+						qsize = joinQueues.get(nextCS).size();
 					}					
 					
-					
+					System.out.println("Fetching paths...");
+					String paths = "select DISTINCT ";
+					for(int i = 1; i < qsize+1; i++){
+						paths += " e"+i+".css";
+						if(i < qsize){
+							paths += ",";
+						}
+					}
+					paths += " from ecs_schema as e1 "; 
+					for(int i = 1; i < qsize; i++){
+						paths += "inner join ecs_schema as e"+(i+1)+" on e"+i+".cso  = e"+(i+1)+".css ";
+						
+					}
+					System.out.println(paths);
+					st = c.createStatement();
+					ResultSet rsPaths = st.executeQuery(paths);
+					Set<List<Integer>> pathSet = new HashSet<List<Integer>>();
+					while(rsPaths.next()){
+						List<Integer> pathList = new ArrayList<Integer>();
+						for(int i = 1; i < qsize+1; i++){
+							pathList.add(rsPaths.getInt(i));
+						}				
+						pathSet.add(pathList);
+					}
+					System.out.println("PathSet: " + pathSet.toString());
+					rsPaths.close();
+					st.close();
 					
 					String varList = "";
 					//System.out.println(" projections " + csProjectionsOrdered.toString()) ;
@@ -813,9 +683,32 @@ public class RelationalQueryArrayDOLAP20 {
 						}
 						//System.out.println(nextQS);
 						//System.out.println("REAL IDS: " + realCSIds.toString());
+						Iterator<List<String>> permIt = perms.iterator();
+						List<Integer> nextPermInt ;						
+						while(permIt.hasNext()){						
+							nextPermInt = new ArrayList<Integer>();
+							for(String nextPermCS : permIt.next()){
+								nextPermInt.add(Integer.parseInt(nextPermCS));
+							}							
+							//boolean isContained = false;
+							//System.out.println("nextPerm " + nextPermInt.toString());
+							if(!pathSet.contains(nextPermInt)){
+								permIt.remove();
+							}
+//							for(List<Integer> nextPathList : pathSet){
+//								
+//								if(nextPathList.containsAll((nextPermInt))){
+//									isContained = true;
+//									break;
+//								}
+//							}
+							/*if(!isContained){
+								permIt.remove();
+							}*/
+						}
 						System.out.println("Number of permutations: " + perms.size());
 						for(List<String> nextPerm : perms){
-							String nextPermInt = "";
+							/*String nextPermInt = "";
 							for(String nextPermCS : nextPerm){
 								nextPermInt += nextPermCS+"_";
 							}
@@ -828,7 +721,7 @@ public class RelationalQueryArrayDOLAP20 {
 									break;
 								}
 							}
-							/*if(!isContained){
+							if(!isContained){
 //								System.out.println("IS NOT CONTAINED!!!");
 //								System.out.println(nextPermInt);
 								continue;
@@ -910,7 +803,7 @@ public class RelationalQueryArrayDOLAP20 {
 							}
 							
 							//System.out.println("nextQS: " + templateQ );//+ " " + where) ;
-							union.append(templateQ).append(" UNION ");
+							union.append(templateQ).append(" UNION ALL ");
 							//if(true) continue ;
 							try{
 						    	
@@ -923,7 +816,8 @@ public class RelationalQueryArrayDOLAP20 {
 						    	else{
 						    		templateQ = explain + templateQ + " ";
 						    	}
-						    	System.out.println("\t" + templateQ);
+						    	//System.out.println("\t" + templateQ);
+						    	
 						    	//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
 						    	ResultSet rs2 = st2.executeQuery(templateQ); //
 						    	long start = System.nanoTime();
@@ -947,7 +841,7 @@ public class RelationalQueryArrayDOLAP20 {
 							    rs2.close();
 							    //System.out.println(execTime);
 							    time += System.nanoTime() - start;
-							    System.out.println(res);
+							    //System.out.println(res);
 //							    System.out.println("time: " + time);
 //							    System.out.println("execTime: " + execTime + " ms ");
 //							    System.out.println("planTime: " + planTime + " ms ");
@@ -962,8 +856,8 @@ public class RelationalQueryArrayDOLAP20 {
 					}												
 													
 				}		
-				if(union.length() >= 8)
-					union.delete(union.length()-7, union.length());
+				if(union.length() >= 12)
+					union.delete(union.length()-11, union.length());
 				System.out.println("execTime: " + execTime + " ms ");
 				System.out.println("planTime: " + planTime + " ms ");
 				System.out.println(union);
@@ -984,8 +878,6 @@ public class RelationalQueryArrayDOLAP20 {
 			    		templateQ = explain + union.toString() + " ";
 			    	}
 			    	//System.out.println("\t" + templateQ);
-			    	FinalSqlQueries.add(templateQ);
-
 			    	
 			    	//templateQ = templateQ.replaceAll("p_0 = 20", "p_0 = 22");
 			    	ResultSet rs2 = st2.executeQuery(templateQ); //
@@ -1017,11 +909,6 @@ public class RelationalQueryArrayDOLAP20 {
 				}
 				//if(true) return ;
 			}
-			
-	    	for (String s : FinalSqlQueries)
-			    System.out.println(s);
-
- 
 			
 			
 		}catch (Exception e){

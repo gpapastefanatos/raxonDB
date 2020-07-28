@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <class-diagram version="1.2.4" icons="true" automaticImage="PNG" always-add-relationships="true" generalizations="true" 
   realizations="true" associations="true" dependencies="true" nesting-relationships="true" router="FAN">  
-  <interface id="1" language="java" name="com.athena.imis.querying.IRelationalQueryArray" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/IRelationalQueryArray.java" binary="false" 
+  <interface id="1" language="java" name="com.athena.imis.querying.common.IRelationalQueryArray" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/common/IRelationalQueryArray.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1506" y="-194"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -11,8 +11,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </interface>  
-  <class id="2" language="java" name="com.athena.imis.querying.Queries" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/Queries.java" binary="false" corner="BOTTOM_RIGHT">    
+  <class id="2" language="java" name="com.athena.imis.querying.dolap.Queries" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/dolap/Queries.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="125" y="76"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -20,8 +20,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="com.athena.imis.querying.QueriesIS20" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
+  <class id="3" language="java" name="com.athena.imis.querying.extras.QueriesIS20iesIS20" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="326" y="78"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -29,8 +29,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <enumeration id="4" language="java" name="com.athena.imis.querying.QueriesIS20.Dataset" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
+  <enumeration id="4" languagecom.athena.imis.querying.extras.QueriesIS20ng.extras.QueriesIS20.Dataset" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/extras/QueriesIS20.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="279" y="683"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -38,8 +38,9 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </enumeration>  
-  <enumeration id="5" language="java" name="com.athena.imis.querying.QueriesIS20ForLubm.Dataset" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/QueriesIS20ForLubm.java" binary="false" corner="BOTTOM_RIGHT">    
+  <enumeration id="5" language="java" name="com.athena.imis.experiments.common.QueriesIS20ForLubm.Dataset" 
+    project="raxonDB" file="/raxonDB/src/main/java/com/athena/imis/experiments/common/QueriesIS20ForLubm.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1833" y="699"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -47,8 +48,9 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </enumeration>  
-  <class id="6" language="java" name="com.athena.imis.querying.QueriesIS20ForLubm" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/QueriesIS20ForLubm.java" binary="false" corner="BOTTOM_RIGHT">    
+  <class id="6" language="java" name="com.athena.imis.experiments.common.QueriesIS20ForLubm" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/experiments/common/QueriesIS20ForLubm.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1806" y="-5"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -56,8 +58,9 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="7" language="java" name="com.athena.imis.querying.QueryParserIS20" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/QueryParserIS20.java" binary="false" corner="BOTTOM_RIGHT">    
+  <class id="7" language="java" name="com.athena.imis.querying.separatism.QueryParserIS20" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/separatism/QueryParserIS20.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="883" y="-126"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -65,8 +68,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="8" language="java" name="com.athena.imis.querying.RelationalQueryArrayDOLAP20" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/RelationalQueryArrayDOLAP20.java" binary="false" 
+  <class id="8" language="java" name="com.athena.imis.querying.dolap.RelationalQueryArrayDOLAP20" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/dolap/RelationalQueryArrayDOLAP20.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="540" y="966"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -75,8 +78,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="9" language="java" name="com.athena.imis.querying.RelationalQueryArrayIS20" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/RelationalQueryArrayIS20.java" binary="false" 
+  <class id="9" language="java" name="com.athena.imis.querying.separatism.RelationalQueryArrayIS20" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/separatism/RelationalQueryArrayIS20.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1344" y="218"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -85,8 +88,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="10" language="java" name="com.athena.imis.querying.RelationalQuerySimple" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/RelationalQuerySimple.java" binary="false" 
+  <class id="10" language="java" name="com.athena.imis.querying.dolap.RelationalQuerySimple" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/dolap/RelationalQuerySimple.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="478" y="1202"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -95,8 +98,9 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="11" language="java" name="com.athena.imis.querying.SimpleClientQueryIS" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/querying/SimpleClientQueryIS.java" binary="false" corner="BOTTOM_RIGHT">    
+  <class id="11" language="java" com.athena.imis.querying.extras.SimpleClientQueryISClientQueryIS" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/querying/extras/SimpleClientQueryIS.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1634" y="792"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -108,42 +112,46 @@
     <end type="SOURCE" refId="11"/>    
     <end type="TARGET" refId="1"/>  
   </dependency>  
-  <dependency id="13">    
-    <end type="SOURCE" refId="11"/>    
-    <end type="TARGET" refId="9"/>  
-  </dependency>  
-  <nesting id="14">    
-    <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="5"/>  
-  </nesting>  
-  <dependency id="15">    
-    <end type="SOURCE" refId="9"/>    
-    <end type="TARGET" refId="7"/>  
-  </dependency>  
-  <dependency id="16">    
-    <end type="SOURCE" refId="11"/>    
-    <end type="TARGET" refId="3"/>  
-  </dependency>  
-  <realization id="17">    
-    <end type="SOURCE" refId="9"/>    
-    <end type="TARGET" refId="1"/>  
-  </realization>  
-  <dependency id="18">    
-    <bendpoint x="34" y="1024"/>    
-    <end type="SOURCE" refId="10"/>    
-    <end type="TARGET" refId="2"/>  
-  </dependency>  
-  <nesting id="19">    
+  <nesting id="13">    
     <end type="SOURCE" refId="3"/>    
     <end type="TARGET" refId="4"/>  
   </nesting>  
-  <dependency id="20">    
+  <realization id="14">    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="1"/>  
+  </realization>  
+  <dependency id="15">    
     <end type="SOURCE" refId="11"/>    
     <end type="TARGET" refId="4"/>  
+  </dependency>  
+  <nesting id="16">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="5"/>  
+  </nesting>  
+  <dependency id="17">    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="7"/>  
+  </dependency>  
+  <dependency id="18">    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="11"/>  
+  </dependency>  
+  <dependency id="19">    
+    <end type="SOURCE" refId="11"/>    
+    <end type="TARGET" refId="3"/>  
+  </dependency>  
+  <dependency id="20">    
+    <end type="SOURCE" refId="11"/>    
+    <end type="TARGET" refId="9"/>  
   </dependency>  
   <dependency id="21">    
     <bendpoint x="100" y="746"/>    
     <end type="SOURCE" refId="8"/>    
+    <end type="TARGET" refId="2"/>  
+  </dependency>  
+  <dependency id="22">    
+    <bendpoint x="34" y="1024"/>    
+    <end type="SOURCE" refId="10"/>    
     <end type="TARGET" refId="2"/>  
   </dependency>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 

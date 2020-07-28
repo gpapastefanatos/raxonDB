@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.separatism;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.common;
 
 public interface IRelationalQueryArray {
 

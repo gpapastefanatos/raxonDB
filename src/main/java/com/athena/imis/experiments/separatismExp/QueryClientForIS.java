@@ -8,10 +8,10 @@ import java.sql.Statement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.athena.imis.querying.IRelationalQueryArray;
-import com.athena.imis.querying.QueriesIS20ForLubm;
-import com.athena.imis.querying.QueriesIS20ForLubm.Dataset;
-import com.athena.imis.querying.RelationalQueryArrayIS20;
+import com.athena.imis.experiments.common.QueriesIS20ForLubm;
+import com.athena.imis.experiments.common.QueriesIS20ForLubm.Dataset;
+import com.athena.imis.querying.common.IRelationalQueryArray;
+import com.athena.imis.querying.separatism.RelationalQueryArrayIS20;
 import com.esotericsoftware.minlog.Log;
 
 public class QueryClientForIS {

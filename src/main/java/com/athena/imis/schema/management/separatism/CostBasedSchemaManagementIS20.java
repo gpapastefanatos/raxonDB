@@ -1,4 +1,4 @@
-package com.athena.imis.schema.management;
+package com.athena.imis.schema.management.separatism;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -40,8 +40,9 @@ import com.athena.imis.models.AbstractQueryRepresentation;
 import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.ModeOfWork;
 import com.athena.imis.models.ModeOfWork.WorkMode;
-import com.athena.imis.schema.management.aqr.AQRFactory;
-import com.athena.imis.schema.management.aqr.IAQRManager;
+import com.athena.imis.schema.management.common.ICostBasedSchemaManager;
+import com.athena.imis.schema.management.separatism.aqr.AQRFactory;
+import com.athena.imis.schema.management.separatism.aqr.IAQRManager;
 //import com.athena.imis.models.DirectedGraph;
 import com.athena.imis.models.Path;
 

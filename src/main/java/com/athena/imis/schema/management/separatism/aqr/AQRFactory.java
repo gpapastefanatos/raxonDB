@@ -1,4 +1,4 @@
-package com.athena.imis.schema.management.aqr;
+package com.athena.imis.schema.management.separatism.aqr;
 
 public class AQRFactory {
 

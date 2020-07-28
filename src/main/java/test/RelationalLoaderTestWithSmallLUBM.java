@@ -14,7 +14,7 @@ import java.sql.Statement;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.athena.imis.schema.management.CostBasedSchemaManagementIS20;
+import com.athena.imis.schema.management.separatism.CostBasedSchemaManagementIS20;
 
 /**
  * Just a very small data set lubm nt 2
@@ -63,7 +63,7 @@ class RelationalLoaderTestWithSmallLUBM {
 
 
 	/**
-	 * Test method for {@link com.athena.imis.schema.management.CostBasedSchemaManagementIS20#decideSchemaAndPopulate()}.
+	 * Test method for {@link com.athena.imis.schema.management.separatism.CostBasedSchemaManagementIS20#decideSchemaAndPopulate()}.
 	 */
 	@Test
 	void testDecideSchemaAndPopulate() {

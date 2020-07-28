@@ -1,4 +1,4 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.dolap;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

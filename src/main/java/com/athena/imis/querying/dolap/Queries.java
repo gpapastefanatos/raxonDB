@@ -1,42 +1,35 @@
-package com.athena.imis.querying;
+package com.athena.imis.querying.dolap;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class QueriesIS20 {
-
-	public enum Dataset {
-		LUBM1,
-		REACTOME,
-		GEONAMES
-		};
+public final class Queries {
+ 
    
 	
-	public static List<String> lubm_queries = new ArrayList<String>();
+	public static List<String> queries = new ArrayList<String>();
 	
 	public static List<String> reactome_queries = new ArrayList<String>();
 	
 	public static List<String> geonames_queries = new ArrayList<String>();
 	
 	{
-
-				lubm_queries.add(q1);
-				lubm_queries.add(q1_ext);
-				lubm_queries.add(q2);
-				lubm_queries.add(q3_ext);
-				lubm_queries.add(q4_ext);
-				lubm_queries.add(q8_ext);
-				lubm_queries.add(q10_ext);
-				lubm_queries.add(q11_ext);
-				//lubm_queries.add(qm1);
-				//lubm_queries.add(qm2);	
-				//lubm_queries.add(qm3);
-				lubm_queries.add(qm4);
-				
 				//queries.add(q_ex);
-				//lubm_queries.add(q12); 
-				////lubm_queries.add(q13_ext); this is not debugged.							
-				
+//				queries.add(q1);
+//				queries.add(q1_ext);
+//				queries.add(q3_ext);
+//				queries.add(q11_ext);
+//				//queries.add(q13_ext);
+//				queries.add(q10_ext);	
+				queries.add(q12);
+//				queries.add(q4_ext);
+//				queries.add(q8_ext);
+//				queries.add(q2);
+//				queries.add(qm1);
+//				queries.add(qm2);	
+//				queries.add(qm3);
+//				queries.add(qm4);		
+//											
 		
 				//reactome_queries.add(reactomePrefixes + " " + r10);
 				reactome_queries.add(reactomePrefixes + " " + r9);
@@ -56,14 +49,12 @@ public final class QueriesIS20 {
 		geonames_queries.add(geonamesPrefixes + " " + g5);
 		geonames_queries.add(geonamesPrefixes + " " + g6);
 	}
-	public List<String> getQueries(Dataset dataset){
-		if(dataset == Dataset.REACTOME)
-			return QueriesIS20.reactome_queries;
-		else if(dataset == Dataset.GEONAMES)
-			return QueriesIS20.geonames_queries;
-		else if(dataset == Dataset.LUBM1)
-			return QueriesIS20.lubm_queries;
-		return null;
+	public List<String> getQueries(int dataset){
+		if(dataset == 1)
+			return Queries.reactome_queries;
+		else if(dataset == 2)
+			return Queries.geonames_queries;
+		return Queries.queries;
 	}
 	
 	public static String q_ex = "PREFIX ex: <http://www.example.com/> SELECT ?x ?y ?z ?w "
@@ -80,8 +71,7 @@ public final class QueriesIS20 {
 	public static String q1 = prefix + 
 			"SELECT ?X WHERE"
 			+ "{?X rdf:type ub:Student . "
-			+ "?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse16>}";
-	
+			+ "?X ub:takesCourse <http://www.Department1.University1.edu/GraduateCourse1>}";
 	public static String q1_ext = prefix + 
 			"SELECT ?X ?Y WHERE"
 			+ "{?X rdf:type ub:GraduateStudent . "

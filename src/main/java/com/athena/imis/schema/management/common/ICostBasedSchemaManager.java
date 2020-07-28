@@ -1,4 +1,4 @@
-package com.athena.imis.schema.management;
+package com.athena.imis.schema.management.common;
 
 import java.sql.Connection;
 

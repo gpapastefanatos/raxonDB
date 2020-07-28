@@ -16,9 +16,8 @@
     <position height="-1" width="-1" x="499" y="436"/>    
     <display autosize="true" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
-  <package id="4" language="java" name="com.athena.imis.schema.management.densityFactorOptimizer" project="raxonDB" 
-    file="/raxonDB/src/main/java/com/athena/imis/schema/management/densityFactorOptimizer" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <package id="4" language="java" name="com.athena.imis.schema.management.density" project="raxonDB" 
+    file="/raxonDB/src/main/java/com/athena/imis/schema/management/density" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="590" y="124"/>    
     <display autosize="true" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
@@ -33,32 +32,16 @@
     <display autosize="true" stereotype="true" sort-features="false" accessors="true"/>  
   </package>  
   <dependency id="7">    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="2"/>  
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="5"/>  
   </dependency>  
   <dependency id="8">    
     <end type="SOURCE" refId="4"/>    
     <end type="TARGET" refId="6"/>  
   </dependency>  
   <dependency id="9">    
-    <end type="SOURCE" refId="2"/>    
-    <end type="TARGET" refId="3"/>  
-  </dependency>  
-  <dependency id="10">    
     <end type="SOURCE" refId="1"/>    
     <end type="TARGET" refId="6"/>  
-  </dependency>  
-  <dependency id="11">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="5"/>  
-  </dependency>  
-  <dependency id="12">    
-    <end type="SOURCE" refId="2"/>    
-    <end type="TARGET" refId="5"/>  
-  </dependency>  
-  <dependency id="13">    
-    <end type="SOURCE" refId="6"/>    
-    <end type="TARGET" refId="5"/>  
   </dependency>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
