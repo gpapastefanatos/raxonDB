@@ -19,20 +19,20 @@ public final class QueriesIS20ForLubm {
 	public static List<String> geonames_queries = new ArrayList<String>();
 
 	{
-//		lubm_queries.add(q1);
-//		lubm_queries.add(q2);
-//	////	lubm_queries.add(q3_ext);
-//		lubm_queries.add(q4_ext);
-//	////	lubm_queries.add(q5);
-//		//lubm_queries.add(q6);
-//		lubm_queries.add(q7);
-//		
-//		lubm_queries.add(q9);
-//		lubm_queries.add(q10);
+		lubm_queries.add(q1);
+		lubm_queries.add(q2);
+	////	lubm_queries.add(q3_ext);
+		lubm_queries.add(q4_ext);
+	////	lubm_queries.add(q5);
+		//lubm_queries.add(q6);
+		lubm_queries.add(q7);
+		
+		lubm_queries.add(q9);
+		lubm_queries.add(q10);
 
 		//lubm_queries.add(q10_ext);
 		//lubm_queries.add(qm1);
-		lubm_queries.add(qm2);	
+		//lubm_queries.add(qm2);	
 		//lubm_queries.add(qm3);
 		//queries.add(q_ex);
 		//lubm_queries.add(q12); 
@@ -74,7 +74,7 @@ public final class QueriesIS20ForLubm {
 
 	public static String q1 = prefix + 
 			"SELECT ?X WHERE"
-			+ "{?X rdf:type ub:GraduateStudent . "
+			+ "{?X rdf:type ub:Student . "
 			+ "?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse16>}";
 
 	public static String q2 = prefix
@@ -86,8 +86,7 @@ public final class QueriesIS20ForLubm {
 			+ "?X ub:memberOf ?Z . "
 			+ "?Z ub:subOrganizationOf ?Y ."
 			+ "?X ub:undergraduateDegreeFrom ?Y}";
-	
-	
+
 	public static String q3_ext = prefix + "SELECT ?X ?Y WHERE "
 			+ "{?X rdf:type ub:Publication . "
 			+ "?X ub:publicationAuthor ?Y . "

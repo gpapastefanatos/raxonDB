@@ -1,4 +1,4 @@
-package com.athena.imis.experiments.separatism;
+package com.athena.imis.experiments.separatismExp;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,9 +10,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.athena.imis.experiments.common.QueriesIS20ForLubm;
 import com.athena.imis.experiments.common.QueriesIS20ForLubm.Dataset;
-import com.athena.imis.models.Database;
 import com.athena.imis.querying.common.IRelationalQueryArray;
-import com.athena.imis.querying.density.RelationalQueryArrayIS20;
+import com.athena.imis.querying.separatism.RelationalQueryArrayIS20Separatism;
 import com.esotericsoftware.minlog.Log;
 
 public class QueryClientForIS {
@@ -30,10 +29,7 @@ public class QueryClientForIS {
 		Connection conn;
 		
 		//define a query Builder 
-		Database d =  new Database(args[0], args[1], args[2], args[3]) ;
-
-		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(d);
-		//define a query Builder 
+		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20Separatism(args);
 		int i = 1;
 		QueriesIS20ForLubm queries  = new QueriesIS20ForLubm();
 		for(String sparql : queries.getQueries(Dataset.LUBM1)){

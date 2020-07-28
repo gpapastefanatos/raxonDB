@@ -40,7 +40,6 @@ import com.athena.imis.models.AbstractQueryRepresentation;
 import com.athena.imis.models.CharacteristicSet;
 import com.athena.imis.models.ModeOfWork;
 import com.athena.imis.models.ModeOfWork.WorkMode;
-import com.athena.imis.schema.management.common.ICostBasedSchemaManager;
 import com.athena.imis.schema.management.separatism.aqr.AQRFactory;
 import com.athena.imis.schema.management.separatism.aqr.IAQRManager;
 //import com.athena.imis.models.DirectedGraph;
@@ -55,7 +54,7 @@ import gnu.trove.map.hash.THashMap;
  * @author meimar, gpapas, pvassil
  * @version 0.3
  */
-public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
+public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManagerIS20{
 	private String projectClassName;
 	private Map<String, Integer> propertiesSet;
 	private Map<Integer, String> revPropertiesSet;
@@ -92,6 +91,8 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	private Map<Integer, int[][]> mergedMapFull;
 	private Map<CharacteristicSet, Integer> sortedCSMapByQueries;
 	private List<CharacteristicSet> csToSeparate;
+	private int _MaxCSKeptSeparately;
+	private int _MinCSKeptSeparately;
 	
 	//private Logger LOG;
 	//private Map<Integer, String> revIntMap;
@@ -157,6 +158,10 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 				this.projectClassName = "UNKNOWN";
 		}
 		System.out.println("PRJ CLASS: " + this.projectClassName);
+		
+		this._MinCSKeptSeparately = 1;
+		this._MaxCSKeptSeparately = 5;
+		
 
 	}//end constructor
 
@@ -381,8 +386,7 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 		Set<AbstractQueryRepresentation> querySet = queryList.stream().collect(Collectors.toSet());
 		this.sortedCSMapByQueries = this.computeFrequencies(querySet);
 
-		int _MinCSKeptSeparately = 2;
-		int howManyToSeparate = whichCSToKeepUntouchedSimple(this.sortedCSMapByQueries, _MinCSKeptSeparately);
+		int howManyToSeparate = whichCSToKeepUntouchedSimple(this.sortedCSMapByQueries, _MinCSKeptSeparately, _MaxCSKeptSeparately);
 		System.out.println("\nTO KEEP SEPARATELY: " + howManyToSeparate);
 
 		this.csToSeparate = new ArrayList<CharacteristicSet>(); 
@@ -461,14 +465,16 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	/**
 	 * We have a sorted list of frequencies. We want to keep separately a set of them that make a difference.
 	 * We continue keeping as long as the difference rate is not dropping.
-	 * We also give as a parameter (to allow exp's) a min number of CS's we gonna keep separate.
-	 * Whichever of the two is bigger, we retain
+	 * We also give as a parameter (to allow exp's) for a min and a max number of CS's we gonna keep separate.
+	 * We return the computed value if it falls between min and max; otherwise the appropriate of the two
+	 * (min if the computed value is smaller than min, max if it's larger than max).
 	 * 
 	 * @param sortedQueryFrequenciesDesc the map of CSs which is sorted desc by frequency values
 	 * @param minNumberOfCSs the minimum number of CS that we will obligatorily separate
+	 * @param maxNumberOfCSs the max number of CS that we will tolerate to see separated
 	 * @return how many CS's to separate
 	 */
-	private int whichCSToKeepUntouchedSimple(Map<CharacteristicSet, Integer> sortedQueryFrequenciesDesc, int minNumberOfCSs) {
+	private int whichCSToKeepUntouchedSimple(Map<CharacteristicSet, Integer> sortedQueryFrequenciesDesc, int minNumberOfCSs, int maxNumberOfCS) {
 
 		ArrayList<Integer> sortedValues =  new ArrayList<Integer>(sortedQueryFrequenciesDesc.values());
 		int position = 0;
@@ -493,7 +499,11 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 			}//else: not equal to previous value
 		}//end while
 
-		return Math.max(minNumberOfCSs, position);
+		if (position >= maxNumberOfCS)
+			return maxNumberOfCS;
+		else
+			return Math.max(minNumberOfCSs, position);
+		
 
 	}//end whichCSToKeepUntouched()
 
@@ -856,7 +866,7 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	 * @param a Connection object to the RDBMS 
 	 * @return the updated Connection to the newly created db
 	 */
-	
+	@Override
 	public Connection createDB(String args[], Connection conn) {
 		try {
 			Class.forName("org.postgresql.Driver");
@@ -2214,13 +2224,6 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 
 		return 0;
 	}//end createdDBPopulateTables()
-
-
-	@Override
-	public Connection createDB() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 
 
