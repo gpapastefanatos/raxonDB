@@ -6,10 +6,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.athena.imis.models.Database;
+
 public class SimpleClientDOLAP {
 
 	public static void main(String[] args) {
-		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementDOLAP20(args);
+		
+		String inFile = args[1];
+		Database database = new Database(args[0], args[2], args[4], args[5], Integer.parseInt(args[3]));
+		int densityFactor =  Integer.parseInt(args[6]);
+		
+		ICostBasedSchemaManager schemaDecisionEngine = new CostBasedSchemaManagementDOLAP_Analyze(database, inFile, densityFactor);
 		int result = schemaDecisionEngine.decideSchemaAndPopulate();
 
 		System.out.println("PVEngine returned " + result);

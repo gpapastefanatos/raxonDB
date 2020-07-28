@@ -29,10 +29,8 @@ public class QueryClientForIS {
 		
 		Connection conn;
 		
-	
-		
 		//define a query Builder 
-		Database d =  new Database(args[0], args[1], args[2], args[3]);
+		Database d =  new Database(args[0], args[1], args[2], args[3]) ;
 
 		IRelationalQueryArray queryBuilder = new RelationalQueryArrayIS20(d);
 		//define a query Builder 

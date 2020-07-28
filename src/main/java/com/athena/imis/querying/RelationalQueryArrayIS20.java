@@ -135,10 +135,10 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 				pathList = pathList.substring(0, pathList.length()-1);
 				pathSet.add(pathList);
 			}
-			System.out.println("PathSet: " + pathSet.toString());
+//			System.out.println("PathSet: " + pathSet.toString());
 			rsPaths.close();
 			st.close();
-			System.out.println("propMap: " + propMap.toString()) ;
+//			System.out.println("propMap: " + propMap.toString()) ;
 		}catch (Exception e){
 			e.printStackTrace();
 			return ;
@@ -508,7 +508,9 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 				for(int ig = 0; ig < csProjectionsOrdered.size(); ig++){
 					varList += csProjectionsOrdered.get(ig) + ", ";
 				}
-				varList = varList.substring(0, varList.length()-2) ;
+				if (varList.length()>0){
+					varList = varList.substring(0, varList.length()-2) ;	
+				}				
 				Map<CharacteristicSet, Set<CharacteristicSet>> reverseJoinMap = new HashMap<CharacteristicSet, Set<CharacteristicSet>>();
 
 				//reverse the join map...
@@ -608,7 +610,7 @@ public class RelationalQueryArrayIS20 implements IRelationalQueryArray {
 					}
 					
 					//replace for each join queue the aliases for the CS involved 
-//					System.out.println("Number of permutations: " + perms.size());
+					System.out.println("Number of permutations: " + perms.size());
 					for(List<String> nextPerm : perms){
 						String nextPermInt = "";
 						for(String nextPermCS : nextPerm){

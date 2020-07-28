@@ -17,13 +17,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.postgresql.PGConnection;
@@ -58,9 +56,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 	private Map<Integer, String> revPropertiesSet;
 	private Set<Integer> multiValuedProperties ;
 	private Map<String, Integer> intMap ;
-	private int meanMultiplier = 1;
-	private String[] args;
-	private String dbname;
+	private int meanMultiplier = 0;
 	private int batchSize = 100;
 	private Connection conn = null;
 	private int[][] triplesArray = null;
@@ -71,7 +67,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 	private Map<CharacteristicSet, Set<CharacteristicSet>> children;
 	private Map<CharacteristicSet, Set<CharacteristicSet>> parents;
 	private Map<CharacteristicSet, Set<CharacteristicSet>> allCsAncestors;
-	private Map<CharacteristicSet, Integer> csExtentSizes;
+	public Map<CharacteristicSet, Integer> csExtentSizes;
 	private int maxCSSize;
 	private Set<CharacteristicSet> denseCSs;
 	private int numDenseCSs;
@@ -87,6 +83,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 	private int totalNumOfTriples;
 	private List<String> tableNames;
 	private Database database = null;
+	private String fileName = "";
 
 
 	//private Logger LOG;
@@ -105,16 +102,10 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 	 *	postgres 					 -- db password 
 	 *	2 						     -- density factor m
 	 */
-	public CostBasedSchemaManagementDOLAP_Analyze(String[] args, Database database) {
+	public CostBasedSchemaManagementDOLAP_Analyze(Database database, String fileName, int multiplier) {
 		this.propertiesSet = new THashMap<String, Integer>();
 		this.revPropertiesSet = new THashMap<Integer, String>();
-		if(args.length > 6)
-			meanMultiplier = Integer.parseInt(args[6]);
-		else 
-			this.meanMultiplier = 1;
-		this.args = args;
-		this.dbname = args[2].toLowerCase();
-		this.batchSize = Integer.parseInt(args[3]);
+		this.meanMultiplier = multiplier;
 		this.csMap = new HashMap<>();
 		this.dbECSMap = null; 
 		this.reverseCSMap = new HashMap<Integer, CharacteristicSet>();
@@ -136,8 +127,9 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 		totalNumOfTriples=0;
 		this.tableNames = new ArrayList<String>();
 		this.database = database;
+		this.batchSize = database.getBatchSize();
 		conn = database.getConnection(conn);
-
+		this.fileName = fileName;
 		
 		//Commented out as useless
 		//revIntMap = new THashMap<Integer, String>();
@@ -146,6 +138,16 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 	}//end constructor
 
 
+	public int getMeanMultiplier() {
+		return meanMultiplier;
+	}
+
+
+	public void setMeanMultiplier(int meanMultiplier) {
+		this.meanMultiplier = meanMultiplier;
+	}
+	
+	
 	/**
 	 * Gets the job done FIX THIS DESCRIPTION
 	 * @return 0 if all well, -1 otherwise
@@ -157,7 +159,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 		//	LOG.debug("Starting time: " + new Date().toString());
 		System.out.println("Starting time: " + new Date().toString());
 
-		this.conn = createDB(this.args, this.conn);
+		this.conn = createDB();
 		if(this.conn == null) {
 			System.err.println("Lost db Connection; exiting...");
 			System.exit(-1);
@@ -481,11 +483,11 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 			 * DECIDE IF DENSE !!!!! MUST ALIGN TO THE OTHER DEF.
 			 */
 
-			if(csExtentSizes.get(nextCS) >= Math.max((notCovered)/notContained.size()*meanMultiplier, totalNumOfTriples/1000)){
-				//denseCS++;
-				remainingDenseCSs.add(nextCS);
-				//totalDenseRows += csSizes.get(nextCS);
-			}
+//			if(csExtentSizes.get(nextCS) >= Math.max((notCovered)/notContained.size()*(meanMultiplier), totalNumOfTriples/1000)){
+//				//denseCS++;
+//				remainingDenseCSs.add(nextCS);
+//				//totalDenseRows += csSizes.get(nextCS);
+//			}
 		}
 		Set<Path> remainingPaths = findPaths(remainingDenseCSs, remainingCosts, csExtentSizes, reverseImmediateAncestorsNotContained, true, true);
 		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
@@ -747,34 +749,25 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 	 * @return the updated Connection to the newly created db
 	 */
 	@Override
-	public Connection createDB(String args[], Connection conn) {
+	public Connection createDB() {
 		
 		
 		try {
 			
 			//create a new connection to the server to create database
-			Connection conn2;			
-			Class.forName("org.postgresql.Driver");
-
-			conn2=null;
-			conn2 = DriverManager
-					.getConnection("jdbc:postgresql://"+args[0]+":5432/", args[4], args[5]);
-
-//						
+			Connection conn2=database.resetServerConnection();			
+						
 			Statement cre = conn2.createStatement();
 			//kill any active connection to DBName 
-			cre.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '"+ this.dbname +"' ;");	         
+			cre.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '"+ this.database.getDbName() +"' ;");	         
 			//drop DBName 
-			cre.executeUpdate("DROP DATABASE IF EXISTS "+ this.dbname +" ;");	         
+			cre.executeUpdate("DROP DATABASE IF EXISTS "+ this.database.getDbName() +" ;");	         
 			System.out.println("Dropped database successfully");
 
-			int resDBC = cre.executeUpdate("CREATE DATABASE "+ this.dbname +" ;COMMIT;");
+			int resDBC = cre.executeUpdate("CREATE DATABASE "+ this.database.getDbName() +" ;COMMIT;");
 			System.out.println("Database creation returned " + resDBC);
 			cre.close();
 			conn2.close();
-//			
-//			conn = DriverManager
-//					.getConnection("jdbc:postgresql://"+args[0]+":5432/" + this.dbname, args[4], args[5]);			         			        				
 
 			//recreate the connection to the dbName database 
 			conn = database.getConnection(conn);
@@ -819,7 +812,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 
 		FileInputStream is;
 		try {
-			is = new FileInputStream(args[1]);
+			is = new FileInputStream(this.fileName);
 			NxParser nxp = new NxParser();
 			nxp.parse(is);
 			for (@SuppressWarnings("unused") Node[] nx : nxp){
@@ -839,7 +832,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 
 		try {
 			int[] ar ;
-			is = new FileInputStream(args[1]);
+			is = new FileInputStream(this.fileName);
 			NxParser nxp = new NxParser();
 
 			nxp.parse(is);
@@ -1218,6 +1211,9 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 		//			}
 		//		}
 
+		denseCSs.clear();
+		numDenseCSs=0;
+		numDenseRows=0;
 		double _DENSITY_THRESHOLD = maxCSSize*meanMultiplier/100;
 		if(ModeOfWork.mode == WorkMode.DEBUG_GLOBAL) {
 			//PV DIAGNOSTICS COMMENTED OUT		
@@ -1240,6 +1236,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 					//PV DIAGNOSTICS 			
 					System.out.println("... is dense, with extent " + csExtentSizes.get(nextCS));				
 				}
+
 				numDenseCSs++;
 				denseCSs.add(nextCS);
 				numDenseRows += csExtentSizes.get(nextCS);
@@ -1837,6 +1834,9 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 
 
 				// populate CS tables.
+				boolean populateTables = true;//flag to toggle on or off the laoding tables
+				if (populateTables){
+	
 				for(int[] tripleNext : triplesArray){
 
 					if(prevSubject != tripleNext[0]){
@@ -1975,6 +1975,7 @@ public class CostBasedSchemaManagementDOLAP_Analyze  implements ICostBasedSchema
 					}
 				}
 
+				} 
 				//					    reader = new PushbackReader( new StringReader(""), multisb.length() );
 				//					    reader.unread( multisb.toString().toCharArray() );
 				//					    cpManager.copyIn("COPY spo FROM STDIN WITH CSV NULL AS 'null'", reader );

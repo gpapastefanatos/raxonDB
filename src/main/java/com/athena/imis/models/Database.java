@@ -16,18 +16,38 @@ public class Database {
 	private String username=""; 
 	private String password="";
 	private String url ="";
+	int batchSize =1000;
+
+
 	private String dbName ="";
 
 
+	public Database(String url , String dbName,String username, String password, int batchSize) {
+		this.dbName = dbName;
+		this.password = password;
+		this.url = url;
+		this.username = username;
+		this.batchSize = batchSize;
+		
+	}
+	
 	public Database(String url , String dbName,String username, String password) {
 		this.dbName = dbName;
 		this.password = password;
 		this.url = url;
 		this.username = username;
-		
+		this.batchSize = 1000;
 		
 	}
 	
+	public int getBatchSize() {
+		return batchSize;
+	}
+
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
+
 	public void setUsername(String username) {
 		this.username = username;
 	}
@@ -45,6 +65,10 @@ public class Database {
 	public void setDbName(String dbName) {
 		this.dbName = dbName;
 	}
+	public String getDbName() {
+		return dbName;
+	}
+
 	
 	
 	public Connection getConnection(Connection conn)  {
@@ -74,5 +98,24 @@ public class Database {
 		return conn;
 
 	}
+	
+	
+	public Connection resetServerConnection()  {
+
+		Connection conn=null;		
+		try{
+			
+			Class.forName("org.postgresql.Driver");
+			conn = DriverManager
+					.getConnection("jdbc:postgresql://"+this.url+":5432/", this.username, this.password);
+			
+		} catch ( Exception e ) {
+			System.err.println(e.getMessage());
+		}
+
+		return conn;
+
+	}
+	
 	
 }

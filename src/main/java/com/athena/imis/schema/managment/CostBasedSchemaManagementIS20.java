@@ -855,7 +855,7 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 	 * @param a Connection object to the RDBMS 
 	 * @return the updated Connection to the newly created db
 	 */
-	@Override
+	
 	public Connection createDB(String args[], Connection conn) {
 		try {
 			Class.forName("org.postgresql.Driver");
@@ -2213,6 +2213,13 @@ public class CostBasedSchemaManagementIS20  implements ICostBasedSchemaManager{
 
 		return 0;
 	}//end createdDBPopulateTables()
+
+
+	@Override
+	public Connection createDB() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 
 

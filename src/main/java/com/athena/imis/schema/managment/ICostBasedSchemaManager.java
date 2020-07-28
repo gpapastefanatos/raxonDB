@@ -17,6 +17,6 @@ public interface ICostBasedSchemaManager {
 	 * @param a Connection object to the RDBMS 
 	 * @return the updated Connection to the newly created db
 	 */
-	Connection createDB(String args[], Connection conn);//end createDB
+	Connection createDB();//end createDB
 
 }
